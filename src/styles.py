@@ -229,10 +229,40 @@ html, body, [data-testid="stAppViewContainer"], .stApp {{
     border-bottom: 2px solid rgba(0, 245, 212, 0.42);
 }}
 
+/* Hide Default Streamlit Header Chrome & Keep Sidebar Toggle Clickable */
+header[data-testid="stHeader"] {{
+    background: transparent !important;
+    height: 0px !important;
+    min-height: 0px !important;
+    border: none !important;
+    overflow: visible !important;
+}}
+
+[data-testid="stToolbar"],
+[data-testid="stDecoration"] {{
+    display: none !important;
+}}
+
+#MainMenu,
+footer {{
+    visibility: hidden !important;
+}}
+
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stExpandSidebarButton"] {{
+    visibility: visible !important;
+    display: flex !important;
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    z-index: 999999 !important;
+}}
+
 /* Main Container Spacing */
 .main .block-container,
+.block-container,
 [data-testid="stMainBlockContainer"] {{
-    padding-top: clamp(0.85rem, 2vw, 1.5rem);
+    padding-top: 0.75rem !important;
     padding-bottom: 5.5rem;
     padding-left: clamp(0.85rem, 2.4vw, 2.25rem);
     padding-right: clamp(0.85rem, 2.4vw, 2.25rem);
@@ -1584,9 +1614,39 @@ html, body, [data-testid="stAppViewContainer"], .stApp {
     border-bottom: none !important;
 }
 
+/* Hide Default Streamlit Header Chrome & Keep Sidebar Toggle Clickable */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+    height: 0px !important;
+    min-height: 0px !important;
+    border: none !important;
+    overflow: visible !important;
+}
+
+[data-testid="stToolbar"],
+[data-testid="stDecoration"] {
+    display: none !important;
+}
+
+#MainMenu,
+footer {
+    visibility: hidden !important;
+}
+
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stExpandSidebarButton"] {
+    visibility: visible !important;
+    display: flex !important;
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    z-index: 999999 !important;
+}
+
 .main .block-container,
+.block-container,
 [data-testid="stMainBlockContainer"] {
-    padding-top: clamp(1rem, 2vw, 1.75rem);
+    padding-top: 0.75rem !important;
     padding-bottom: 3.25rem;
     padding-left: clamp(0.9rem, 2.5vw, 2.25rem);
     padding-right: clamp(0.9rem, 2.5vw, 2.25rem);
