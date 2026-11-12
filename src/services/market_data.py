@@ -7,9 +7,17 @@ import re
 from typing import Any
 
 import pandas as pd
-import pandas_ta as ta
 import streamlit as st
-import yfinance as yf
+
+try:
+    import pandas_ta as ta
+except Exception:  # pragma: no cover - pure-pandas fallback handles indicators
+    ta = None
+
+try:
+    import yfinance as yf
+except Exception:  # pragma: no cover
+    yf = None
 
 from src.constants import MIN_HISTORY_ROWS, get_stock_sector
 
@@ -79,11 +87,60 @@ def _build_symbol_candidates(ticker_symbol: str) -> list[str]:
     return [f"{ticker_clean}.NS", f"{ticker_clean}.BO", ticker_clean]
 
 
+def _safe_rsi(close_series: pd.Series, length: int = 14) -> pd.Series:
+    """Compute RSI-14 via pandas_ta with a pure-pandas Wilder EWM fallback."""
+    if ta is not None:
+        try:
+            res = ta.rsi(close_series, length=length)
+            if res is not None and not res.dropna().empty:
+                return res
+        except Exception:
+            pass
+    delta = close_series.diff()
+    gain = delta.clip(lower=0.0).ewm(alpha=1.0 / length, min_periods=length, adjust=False).mean()
+    loss = (-delta.clip(upper=0.0)).ewm(alpha=1.0 / length, min_periods=length, adjust=False).mean()
+    rsi = pd.Series(50.0, index=close_series.index, dtype=float)
+    valid = gain.notna() & loss.notna()
+    zero_loss = valid & (loss == 0.0)
+    nonzero = valid & (loss > 0.0)
+    rsi.loc[zero_loss & (gain > 0.0)] = 100.0
+    rsi.loc[nonzero] = 100.0 - (100.0 / (1.0 + (gain.loc[nonzero] / loss.loc[nonzero])))
+    return rsi
+
+
+def _safe_sma(close_series: pd.Series, length: int) -> pd.Series:
+    """Compute SMA via pandas_ta with a pure-pandas rolling fallback."""
+    win = max(1, min(int(length), len(close_series)))
+    if ta is not None:
+        try:
+            res = ta.sma(close_series, length=win)
+            if res is not None and not res.dropna().empty:
+                return res
+        except Exception:
+            pass
+    return close_series.rolling(window=win, min_periods=1).mean()
+
+
+def _safe_bbands(close_series: pd.Series, length: int = 20, std: float = 2.0) -> tuple[pd.Series, pd.Series, pd.Series]:
+    """Compute Bollinger Bands (BBL, BBM, BBU) with a pure-pandas rolling fallback."""
+    if ta is not None:
+        try:
+            bbands = ta.bbands(close_series, length=length, std=std)
+            if bbands is not None and not bbands.empty and bbands.shape[1] >= 3:
+                return bbands.iloc[:, 0], bbands.iloc[:, 1], bbands.iloc[:, 2]
+        except Exception:
+            pass
+    win = max(2, min(length, len(close_series)))
+    mid = close_series.rolling(window=win, min_periods=1).mean()
+    sd = close_series.rolling(window=win, min_periods=1).std(ddof=0).fillna(0.0)
+    return mid - std * sd, mid, mid + std * sd
+
+
 def _fetch_stock_dataframe_raw(ticker_symbol: str) -> tuple[pd.DataFrame, str]:
     """Uncached 1-year daily OHLCV downloader safe for use in background worker threads."""
     candidates = _build_symbol_candidates(ticker_symbol)
-    if not candidates:
-        return pd.DataFrame(), ""
+    if not candidates or yf is None:
+        return pd.DataFrame(), candidates[0] if candidates else ""
 
     for sym in candidates:
         try:
@@ -132,18 +189,13 @@ def _compute_stock_analysis_raw(ticker_symbol: str) -> tuple[dict[str, Any] | No
         df = df.copy()
         close_series = df["Close"].astype(float)
 
-        rsi_series = ta.rsi(close_series, length=14)
-        sma50_series = ta.sma(close_series, length=min(50, len(df) - 1))
-        sma200_series = ta.sma(close_series, length=min(200, len(df) - 1))
-        bbands = ta.bbands(close_series, length=20, std=2)
-
-        df["RSI"] = rsi_series
-        df["SMA_50"] = sma50_series
-        df["SMA_200"] = sma200_series
-        if bbands is not None and not bbands.empty and bbands.shape[1] >= 3:
-            df["BBL"] = bbands.iloc[:, 0]
-            df["BBM"] = bbands.iloc[:, 1]
-            df["BBU"] = bbands.iloc[:, 2]
+        df["RSI"] = _safe_rsi(close_series, length=14)
+        df["SMA_50"] = _safe_sma(close_series, length=min(50, len(df) - 1))
+        df["SMA_200"] = _safe_sma(close_series, length=min(200, len(df) - 1))
+        bbl, bbm, bbu = _safe_bbands(close_series, length=20, std=2.0)
+        df["BBL"] = bbl
+        df["BBM"] = bbm
+        df["BBU"] = bbu
 
         latest = df.iloc[-1]
         prev = df.iloc[-2] if len(df) > 1 else latest
@@ -311,6 +363,8 @@ def fetch_batch_returns(stock_items: tuple[tuple[str, str], ...]) -> dict[str, p
 @st.cache_data(ttl=600, show_spinner=False)
 def fetch_news_sentiment(ticker_symbol: str) -> tuple[str, str, list[dict[str, str]]]:
     """Fetch recent news headlines from yfinance and compute rule-based sentiment."""
+    if yf is None:
+        return "Neutral 🟡", "Live news feed module unavailable.", []
     try:
         ticker = yf.Ticker(ticker_symbol)
         raw_news = ticker.news[:6] if ticker.news else []
@@ -375,5 +429,4 @@ def clear_market_cache() -> None:
     get_stock_analysis.clear()
     fetch_batch_overview.clear()
     fetch_batch_returns.clear()
-    fetch_news_sentiment.clear()
     fetch_news_sentiment.clear()
