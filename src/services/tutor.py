@@ -45,7 +45,7 @@ The AI Stock Insights Portal uses transparent heuristics:
 QUICK_PROMPTS: list[str] = [
     "How does the BUY signal trigger?",
     "Explain Golden Cross and Death Cross",
-    "What is RSI?",
+    "What is P/E Ratio and EPS?",
     "Suggest a ₹10,000 budget allocation",
 ]
 
@@ -54,7 +54,10 @@ def generate_bot_response(query: str) -> str:
     """Return an educational tutor response tailored to the user's question."""
     q = query.lower()
 
-    if any(k in q for k in ("budget", "10000", "5000", "50000", "invest", "recommend", "allocat")):
+    if any(
+        k in q
+        for k in ("budget", "10000", "10,000", "5000", "50000", "invest", "recommend", "allocat", "long term")
+    ):
         return """💡 **Educational Portfolio Allocation Framework (e.g. ₹10,000 Budget):**
 
 Risk diversification prevents catastrophic drawdowns. Here is a balanced asset allocation model:
@@ -76,6 +79,19 @@ Risk diversification prevents catastrophic drawdowns. Here is a balanced asset a
   - *Below Sector Average (< 20):* Potential undervaluation or value trap.
   - *Above Sector Average (> 40):* High growth expectations or overvalued."""
 
+    if "eps" in q:
+        return """💰 **EPS (Earnings Per Share):**
+- **Formula:** Net Profit ÷ Total Outstanding Shares.
+- **Interpretation:** Measures how much profit a company earns for each individual share. Consistent YoY EPS growth signals strong financial health."""
+
+    if "market cap" in q:
+        return """🏢 **Market Capitalization:**
+- **Formula:** $\\text{Total Shares} \\times \\text{Current Share Price}$.
+- **Categories (SEBI / Indian Market):**
+  - **Large Cap:** ₹20,000 Cr+ (High stability, lower volatility).
+  - **Mid Cap:** ₹5,000 – ₹20,000 Cr (Balanced growth & risk).
+  - **Small Cap:** < ₹5,000 Cr (Higher volatility & risk/reward)."""
+
     if "rsi" in q:
         return """📈 **RSI (Relative Strength Index - 14 Periods):**
 - Developed by J. Welles Wilder, RSI measures the magnitude of recent price changes (0 to 100).
@@ -88,14 +104,14 @@ Risk diversification prevents catastrophic drawdowns. Here is a balanced asset a
 - **🟢 Golden Cross:** Occurs when the 50-Day SMA crosses *above* the 200-Day SMA. Strong long-term bullish signal.
 - **🔴 Death Cross:** Occurs when the 50-Day SMA crosses *below* the 200-Day SMA. Long-term bearish warning."""
 
-    if any(k in q for k in ("buy", "signal", "logic")):
+    if any(k in q for k in ("buy", "khareed", "signal", "logic")):
         return """🎯 **Synopsis Rule-Based BUY Signal Condition:**
 Under the BCC 351 Mini Project rules:
 1. **RSI < 40** (Stock is in oversold/attractive momentum territory).
 2. **Close Price > 95% of 50-Day SMA** (Price is maintaining structural moving average support).
 When both align, the portal emits a **BUY** signal with **88% Confidence**!"""
 
-    if "sell" in q:
+    if "sell" in q or "bech" in q:
         return """🛑 **Synopsis Rule-Based SELL Signal Condition:**
 1. **RSI > 65** (Momentum overbought).
 2. **OR Close Price < 92% of 50-Day SMA** (Severe breakdown below support).
@@ -109,4 +125,4 @@ I can help clarify technical concepts used in this project:
 - 📊 **"What is RSI and how does the Buy signal trigger?"**
 - 📈 **"Explain Golden Cross and Death Cross."**
 - 💰 **"Suggest a ₹10,000 budget allocation for beginners."**
-- 📉 **"What is the difference between 50 SMA and 200 SMA?"**"""
+- 📉 **"What is P/E Ratio and EPS?"**"""

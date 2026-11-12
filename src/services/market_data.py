@@ -50,7 +50,6 @@ def _normalize_ohlcv_df(df: pd.DataFrame) -> pd.DataFrame:
     if cleaned.empty:
         return pd.DataFrame()
 
-    # Fill missing OHLC/Volume values safely so downstream charts never break
     for col in ("Open", "High", "Low"):
         if col not in cleaned.columns:
             cleaned[col] = cleaned["Close"]
@@ -194,7 +193,6 @@ def _compute_stock_analysis_raw(ticker_symbol: str) -> tuple[dict[str, Any] | No
                 f"🔴 **Bearish Alignment:** 50-Day SMA (₹{sma50:,.2f}) remains below 200-Day SMA (₹{sma200:,.2f})."
             )
 
-        # Exact Synopsis Rule-Based Decision Engine
         if rsi < 40 and close > (sma50 * 0.95):
             signal = "BUY"
             confidence = 88
@@ -264,6 +262,7 @@ def fetch_batch_overview(stock_items: tuple[tuple[str, str], ...]) -> list[dict[
             "SMA 50": metrics["sma50"],
             "Signal": metrics["signal"],
             "Confidence": metrics["confidence"],
+            "Strategic Insight": metrics["final_reason"],
         }
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
@@ -301,7 +300,6 @@ def fetch_batch_returns(stock_items: tuple[tuple[str, str], ...]) -> dict[str, p
             except Exception:
                 continue
 
-    # Preserve user selection order
     ordered: dict[str, pd.Series] = {}
     for name, _ in stock_items:
         if name in returns_dict:

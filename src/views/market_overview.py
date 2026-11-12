@@ -23,7 +23,7 @@ def render_market_overview() -> None:
         stock_count = st.slider(
             "Select number of stocks to scan:",
             min_value=5,
-            max_value=30,
+            max_value=50,
             value=15,
             step=5,
         )
