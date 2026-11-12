@@ -90,25 +90,25 @@ def _render_chat_panel(doomsday: bool) -> None:
 
 
 def render_ai_tutor() -> None:
-    """Render real-time 3D WebGL character stage + Chat Terminal + Curriculum."""
+    """Render 3D Holographic Character Stage + Chat Terminal + Curriculum."""
     doomsday = is_doomsday()
     world_ed = str(st.session_state.get("world_edition", "DOOMSDAY" if doomsday else "GTA VI")).strip().upper()
     edition = world_ed if world_ed in {"DOOMSDAY", "GTA VI", "PRO", "STANDARD"} else ("DOOMSDAY" if doomsday else "GTA VI")
     render_page_header(
         title=(
-            "DOCTOR DOOM // DOOMSDAY ARCANUM TERMINAL"
+            "DOOMSDAY AI // LATVERIAN COMMAND"
             if doomsday
-            else "UNDERGROUND CYBER HACKER / LESTER INTEL TERMINAL"
+            else "AI TUTOR // LEONIDA BROKER"
         ),
         subtitle=(
-            "Real-time 3D WebGL Doctor Doom Tactician powered by live NSE telemetry & Hinglish chat"
+            "Interactive 3D Holographic Doctor Doom Tactician powered by live NSE telemetry & Hinglish chat"
             if doomsday
-            else "Real-time 3D WebGL Vice City Cyber-Broker powered by live NSE telemetry & Hinglish chat"
+            else "Interactive 3D Holographic Jason Broker Stage powered by live NSE telemetry & Hinglish chat"
         ),
         badge=(
-            "AVENGERS: DOOMSDAY • 3D WEBGL AI TERMINAL"
+            "AVENGERS: DOOMSDAY • 3D HOLOGRAPHIC AI"
             if doomsday
-            else "3D WEBGL CHARACTER TERMINAL • LIVE NSE AI"
+            else "GTA VI • 3D HOLOGRAPHIC CHARACTER STAGE"
         ),
         wanted_stars=compute_dynamic_wanted_stars(),
     )
