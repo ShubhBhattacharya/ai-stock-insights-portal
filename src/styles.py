@@ -107,6 +107,16 @@ GLOBAL_CSS = f"""
     100% {{ transform: translateX(-18%); }}
 }}
 
+@keyframes weazel-scroll {{
+    0% {{ transform: translateX(6%); }}
+    100% {{ transform: translateX(-52%); }}
+}}
+
+@keyframes race-bar-sweep {{
+    0% {{ transform: scaleX(0.18); }}
+    100% {{ transform: scaleX(1); }}
+}}
+
 @keyframes phase-seq-1 {{
     0%, 34% {{ opacity: 1; }}
     36%, 100% {{ opacity: 0.28; }}
@@ -210,64 +220,6 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     border-color: var(--neon-cyan);
     box-shadow: 0 0 14px rgba(0, 245, 212, 0.38);
     transform: translateX(3px);
-}}
-
-/* Sidebar Mini-Map Radar Graphic */
-.sidebar-minimap-card {{
-    position: relative;
-    background: linear-gradient(155deg, rgba(12, 8, 30, 0.96), rgba(22, 10, 44, 0.96));
-    border: 2px solid var(--neon-cyan);
-    border-radius: 12px;
-    padding: 0.65rem 0.75rem 0.75rem 0.75rem;
-    margin-top: 0.85rem;
-    overflow: hidden;
-    box-shadow: 0 0 16px rgba(0, 245, 212, 0.26);
-}}
-
-.sidebar-minimap-card::before {{
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: repeating-linear-gradient(-45deg, #fee440 0 8px, #0b0422 8px 16px);
-}}
-
-.minimap-grid {{
-    position: relative;
-    height: 112px;
-    margin-top: 0.4rem;
-    border-radius: 8px;
-    border: 1px solid rgba(0, 245, 212, 0.45);
-    background-color: #08041c;
-    background-image:
-        linear-gradient(90deg, rgba(0, 245, 212, 0.16) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255, 42, 133, 0.16) 1px, transparent 1px),
-        linear-gradient(35deg, transparent 42%, rgba(57, 255, 20, 0.22) 43%, rgba(57, 255, 20, 0.22) 46%, transparent 47%),
-        linear-gradient(-25deg, transparent 55%, rgba(0, 245, 212, 0.24) 56%, rgba(0, 245, 212, 0.24) 58%, transparent 59%);
-    background-size: 22px 22px, 22px 22px, 100% 100%, 100% 100%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}}
-
-.minimap-sweep {{
-    position: absolute;
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: conic-gradient(from 0deg, rgba(0, 245, 212, 0.36) 0deg, rgba(0, 245, 212, 0.0) 65deg, transparent 360deg);
-    animation: spin-radar 3.6s linear infinite;
-}}
-
-.minimap-player {{
-    position: relative;
-    z-index: 2;
-    font-size: 1rem;
-    color: #fee440;
-    text-shadow: 0 0 10px #fee440, 0 0 16px #ff2a85;
 }}
 
 /* Top GTA Wing Emblem + 6-Star Wanted Rack */
@@ -553,47 +505,27 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     margin: 1.5rem auto;
 }}
 
-.radar-reticle {{
+.cyber-uplink-crest {{
     position: relative;
-    width: 184px;
-    height: 184px;
+    width: 156px;
+    height: 156px;
     margin: 0.75rem auto 1rem auto;
     border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 2.5px solid var(--neon-cyan);
-    background:
-        radial-gradient(circle, rgba(0, 245, 212, 0.14) 0%, rgba(10, 4, 28, 0.92) 70%),
-        repeating-radial-gradient(circle, rgba(0, 245, 212, 0.28) 0px, rgba(0, 245, 212, 0.28) 1px, transparent 1px, transparent 30px);
-    box-shadow: 0 0 28px rgba(0, 245, 212, 0.55), inset 0 0 22px rgba(255, 42, 133, 0.25);
-    overflow: hidden;
+    background: radial-gradient(circle, rgba(255, 42, 133, 0.22) 0%, rgba(10, 4, 28, 0.94) 72%);
+    box-shadow: 0 0 28px rgba(0, 245, 212, 0.55), inset 0 0 22px rgba(255, 42, 133, 0.35);
+    animation: vice-pulse 1.5s infinite;
 }}
 
-.radar-reticle::before {{
-    content: "";
+.cyber-uplink-ring {{
     position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(90deg, transparent 49.5%, rgba(0, 245, 212, 0.45) 50%, transparent 50.5%),
-        linear-gradient(0deg, transparent 49.5%, rgba(0, 245, 212, 0.45) 50%, transparent 50.5%);
-}}
-
-.radar-beam {{
-    position: absolute;
-    inset: -12px;
+    inset: 9px;
     border-radius: 50%;
-    background: conic-gradient(from 0deg, rgba(0, 245, 212, 0.65) 0deg, rgba(255, 42, 133, 0.22) 38deg, transparent 78deg, transparent 360deg);
-    animation: spin-radar 1.15s linear infinite;
-}}
-
-.radar-center-dot {{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 10px;
-    height: 10px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: var(--neon-yellow);
-    box-shadow: 0 0 12px var(--neon-yellow);
+    border: 2px dashed rgba(254, 228, 64, 0.68);
+    animation: spin-radar 3.2s linear infinite;
 }}
 
 .neon-progress-track {{
@@ -751,6 +683,183 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
 .badge-buy {{ background: rgba(57, 255, 20, 0.14); color: #39ff14; border: 1.5px solid #39ff14; box-shadow: 0 0 14px rgba(57, 255, 20, 0.4); }}
 .badge-sell {{ background: rgba(255, 42, 109, 0.18); color: #ff4d8d; border: 1.5px solid #ff2a6d; box-shadow: 0 0 14px rgba(255, 42, 109, 0.45); }}
 .badge-hold {{ background: rgba(254, 228, 64, 0.14); color: #fee440; border: 1.5px solid #fee440; box-shadow: 0 0 14px rgba(254, 228, 64, 0.38); }}
+
+/* WEAZEL NEWS // LEONIDA MARKET FLASH Lower-Third Ticker */
+.weazel-flash-bar {{
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(90deg, rgba(28, 6, 36, 0.96), rgba(14, 7, 36, 0.96));
+    border: 2px solid #ff2a6d;
+    border-left: 6px solid #fee440;
+    border-radius: 10px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.95rem 0 0.45rem 0;
+    box-shadow: 0 0 20px rgba(255, 42, 109, 0.36);
+    overflow: hidden;
+}}
+
+.weazel-tag {{
+    flex-shrink: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: #070312;
+    background: linear-gradient(90deg, #ff2a6d, #fee440);
+    padding: 0.28rem 0.65rem;
+    border-radius: 6px;
+    text-transform: uppercase;
+}}
+
+.weazel-marquee-wrap {{
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+}}
+
+.weazel-marquee-track {{
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.84rem;
+    color: #f8fafc;
+    animation: weazel-scroll 18s linear infinite;
+}}
+
+/* Safehouse Empire Tier Card & XP Bar */
+.safehouse-card {{
+    position: relative;
+    background: linear-gradient(155deg, rgba(16, 7, 42, 0.96), rgba(32, 9, 54, 0.96));
+    border: 2px solid var(--neon-pink);
+    border-radius: 14px;
+    padding: 1.05rem 1.2rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 22px rgba(255, 42, 133, 0.28), inset 0 0 18px rgba(0, 245, 212, 0.16);
+    overflow: hidden;
+}}
+
+.safehouse-tier-badge {{
+    display: inline-block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #070312;
+    background: linear-gradient(90deg, #00f5d4, #fee440);
+    padding: 0.22rem 0.68rem;
+    border-radius: 999px;
+}}
+
+.xp-bar-track {{
+    width: 100%;
+    height: 16px;
+    border-radius: 999px;
+    background: rgba(7, 3, 18, 0.92);
+    border: 1.5px solid rgba(254, 228, 64, 0.65);
+    padding: 2px;
+    overflow: hidden;
+    margin-top: 0.38rem;
+}}
+
+.xp-bar-fill {{
+    height: 100%;
+    border-radius: 999px;
+    background: repeating-linear-gradient(
+        -55deg,
+        #fee440 0px,
+        #fee440 10px,
+        #00f5d4 10px,
+        #00f5d4 18px
+    );
+    box-shadow: 0 0 14px rgba(0, 245, 212, 0.7);
+    transition: width 0.6s ease-out;
+}}
+
+/* Head-to-Head Street Race Segmented Racing Bars */
+.street-race-board {{
+    position: relative;
+    background: linear-gradient(160deg, rgba(16, 8, 40, 0.96), rgba(10, 5, 28, 0.97));
+    border: 2px solid var(--neon-cyan);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    margin: 0.8rem 0 1.15rem 0;
+    box-shadow: 0 0 24px rgba(0, 245, 212, 0.24), inset 0 0 18px rgba(255, 42, 133, 0.14);
+}}
+
+.race-winner-pill {{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 0.84rem;
+    letter-spacing: 0.06em;
+    color: #070312;
+    background: linear-gradient(90deg, #fee440, #39ff14);
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    box-shadow: 0 0 18px rgba(254, 228, 64, 0.75);
+}}
+
+.race-metric-block {{
+    margin-bottom: 0.85rem;
+}}
+
+.race-track {{
+    width: 100%;
+    height: 14px;
+    border-radius: 999px;
+    background: rgba(6, 2, 16, 0.94);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    overflow: hidden;
+    padding: 2px;
+    margin: 0.22rem 0;
+}}
+
+.race-fill-cyan {{
+    height: 100%;
+    border-radius: 999px;
+    transform-origin: left center;
+    animation: race-bar-sweep 0.9s ease-out forwards;
+    background: repeating-linear-gradient(-55deg, #00f5d4 0px, #00f5d4 10px, #0284c7 10px, #0284c7 16px);
+    box-shadow: 0 0 12px rgba(0, 245, 212, 0.78);
+}}
+
+.race-fill-pink {{
+    height: 100%;
+    border-radius: 999px;
+    transform-origin: left center;
+    animation: race-bar-sweep 0.9s ease-out forwards;
+    background: repeating-linear-gradient(-55deg, #ff2a85 0px, #ff2a85 10px, #9333ea 10px, #9333ea 16px);
+    box-shadow: 0 0 12px rgba(255, 42, 133, 0.78);
+}}
+
+/* Collapsible iFruit Market Phone Floating Right-Edge Dock */
+div[data-testid="stVerticalBlock"]:has(> div.element-container span.ifruit-anchor),
+div[data-testid="stVerticalBlockBorderWrapper"]:has(span.ifruit-anchor) {{
+    position: fixed !important;
+    right: 1rem !important;
+    bottom: 4.5rem !important;
+    width: 300px !important;
+    max-width: calc(100vw - 2rem) !important;
+    z-index: 950 !important;
+    background: linear-gradient(165deg, rgba(10, 5, 28, 0.97), rgba(24, 9, 48, 0.98)) !important;
+    border: 2px solid #00f5d4 !important;
+    border-radius: 18px !important;
+    padding: 0.65rem 0.75rem !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), 0 0 22px rgba(0, 245, 212, 0.36) !important;
+    backdrop-filter: blur(12px);
+}}
+
+@media (max-width: 768px) {{
+    div[data-testid="stVerticalBlock"]:has(> div.element-container span.ifruit-anchor),
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(span.ifruit-anchor) {{
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-top: 1rem !important;
+    }}
+}}
 
 /* Surface & Sidebar Profile Cards */
 .surface-card {{
@@ -1029,12 +1138,16 @@ def render_wanted_stars_html(active_stars: int = 6, total_stars: int = 6) -> str
 
 
 def render_vice_hud_banner(wanted_stars: int = 6, telemetry: str = "BAWSAQ // LCN LIVE LINK") -> None:
-    """Render top GTA-style neon wing emblem banner and 6-star wanted level rack."""
+    """Render top GTA-style neon wing emblem, 3D portal brand, and dynamic 6-star Wanted rack."""
     stars_html = render_wanted_stars_html(active_stars=wanted_stars, total_stars=6)
     safe_telemetry = html.escape(telemetry)
     st.markdown(
         f'<div class="vice-hud-top">'
-        f'<div class="vice-telemetry-tag">▸▸ {safe_telemetry}</div>'
+        f'<div class="vice-telemetry-tag">▸▸ {safe_telemetry}<br/>'
+        f'<span style="font-family:\'Orbitron\',sans-serif; font-weight:900; font-size:0.78rem; '
+        f'background:linear-gradient(90deg,#ff2a85,#ff7a00,#fee440); -webkit-background-clip:text; '
+        f'-webkit-text-fill-color:transparent; filter:drop-shadow(0 0 6px rgba(0,245,212,0.55));">'
+        f'AI STOCK INSIGHTS PORTAL · BCC 351</span></div>'
         f'<div class="vice-wing-emblem">'
         f'<div class="vice-wing-row">'
         f'<span class="wing-chevron"></span>'
@@ -1078,7 +1191,7 @@ def render_page_header(
 
 
 def render_login_transition_overlay(username: str) -> None:
-    """Render the 2-second cinematic GTA VI radar & neon progress transition screen."""
+    """Render the 2-second cinematic GTA VI neon progress & glitch transition screen."""
     render_vice_hud_banner(wanted_stars=6, telemetry="LEONIDA ENTRY PROTOCOL")
     safe_user = html.escape(username)
     st.markdown(
@@ -1092,9 +1205,9 @@ def render_login_transition_overlay(username: str) -> None:
                 <div style="font-family:'Orbitron',sans-serif; color:#00f5d4; font-size:0.82rem; letter-spacing:0.14em;">
                     OPERATOR VERIFIED // {safe_user.upper()}
                 </div>
-                <div class="radar-reticle">
-                    <div class="radar-beam"></div>
-                    <div class="radar-center-dot"></div>
+                <div class="cyber-uplink-crest">
+                    <div class="cyber-uplink-ring"></div>
+                    <div class="graffiti-vi" style="font-size:3.1rem;">VI</div>
                 </div>
                 <div class="neon-progress-track">
                     <div class="neon-progress-fill"></div>
@@ -1115,23 +1228,19 @@ def render_login_transition_overlay(username: str) -> None:
     )
 
 
-def render_sidebar_minimap_html() -> str:
-    """Return HTML markup for the bottom sidebar mini-map radar graphic."""
-    return (
-        '<div class="sidebar-minimap-card">'
-        '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.2rem;">'
-        '<span style="font-family:\'Orbitron\',sans-serif; font-size:0.68rem; color:#00f5d4; letter-spacing:0.08em;">'
-        '🗺️ LEONIDA RADAR'
-        "</span>"
-        '<span style="font-family:\'Share Tech Mono\',monospace; font-size:0.66rem; color:#39ff14;">ACTIVE</span>'
-        "</div>"
-        '<div class="minimap-grid">'
-        '<div class="minimap-sweep"></div>'
-        '<div class="minimap-player">▲</div>'
-        "</div>"
-        '<div style="font-family:\'Share Tech Mono\',monospace; font-size:0.66rem; color:#cbd5e1; margin-top:0.35rem; text-align:center;">'
-        "BAWSAQ SECTOR · 100% ENCRYPTED"
-        "</div></div>"
+def render_weazel_flash_ticker(headlines: list[str]) -> None:
+    """Render the bottom WEAZEL NEWS // LEONIDA MARKET FLASH breaking news ticker."""
+    joined = "   ✦   ".join(html.escape(h) for h in headlines if h)
+    if not joined:
+        joined = "BAWSAQ / LCN EQUITIES MONITORING ACTIVE — NO EXTREME SIGNAL ALERTS TRIGGERED"
+    st.markdown(
+        f'<div class="weazel-flash-bar">'
+        f'<div class="weazel-tag">WEAZEL NEWS // LEONIDA MARKET FLASH</div>'
+        f'<div class="weazel-marquee-wrap">'
+        f'<div class="weazel-marquee-track">{joined} &nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp; {joined}</div>'
+        f"</div>"
+        f"</div>",
+        unsafe_allow_html=True,
     )
 
 

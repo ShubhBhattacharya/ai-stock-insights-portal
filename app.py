@@ -3,20 +3,26 @@
 from __future__ import annotations
 
 import html
+from pathlib import Path
+import sys
 import time
 import streamlit as st
 
+_ROOT_DIR = str(Path(__file__).resolve().parent)
+if _ROOT_DIR not in sys.path:
+    sys.path.insert(0, _ROOT_DIR)
+
 from src.constants import NAV_ITEMS
-from src.state import init_session_state, logout
+from src.state import compute_dynamic_wanted_stars, init_session_state, logout
 from src.styles import (
     inject_global_styles,
     render_login_transition_overlay,
-    render_sidebar_minimap_html,
     render_wanted_stars_html,
 )
 from src.views.ai_tutor import render_ai_tutor
 from src.views.auth import render_login_page
 from src.views.comparison import render_stock_comparison
+from src.views.ifruit_widget import render_ifruit_phone_widget
 from src.views.market_overview import render_market_overview
 from src.views.paper_trading import render_paper_trading
 from src.views.price_alerts import render_price_alerts
@@ -44,12 +50,12 @@ VIEW_DISPATCH = {
 
 
 def render_sidebar() -> str:
-    """Render Vice City HUD sidebar profile, navigation radio buttons, and bottom mini-map radar."""
+    """Render clean Vice City HUD sidebar profile, cash balance, logout, and neon navigation."""
     username = html.escape(str(st.session_state["username"]).upper())
     cash_balance = float(st.session_state["cash_balance"])
     num_holdings = len(st.session_state["portfolio"])
     num_alerts = len(st.session_state["alerts"])
-    wanted_level = min(6, max(1, 1 + num_holdings + num_alerts))
+    wanted_level = compute_dynamic_wanted_stars()
     wanted_html = render_wanted_stars_html(active_stars=wanted_level, total_stars=6)
 
     st.sidebar.markdown(
@@ -58,7 +64,7 @@ def render_sidebar() -> str:
         f'<div class="sidebar-cash-pill">💰 CASH: ₹{cash_balance:,.2f}</div>'
         f'<div style="margin:0.38rem 0;">{wanted_html}</div>'
         f'<div style="font-family:\'Share Tech Mono\',monospace; color:#cbd5e1; font-size:0.76rem;">'
-        f"💼 {num_holdings} Drops · 🎯 {num_alerts} Wanted Bounties"
+        f"💼 {num_holdings} Holdings · 🎯 {num_alerts} Alerts"
         f"</div></div>",
         unsafe_allow_html=True,
     )
@@ -74,8 +80,6 @@ def render_sidebar() -> str:
         NAV_ITEMS,
         index=0,
     )
-
-    st.sidebar.markdown(render_sidebar_minimap_html(), unsafe_allow_html=True)
 
     st.sidebar.markdown("---")
     st.sidebar.info(
@@ -106,6 +110,7 @@ def main() -> None:
     selected_mode = render_sidebar()
     view_fn = VIEW_DISPATCH.get(selected_mode, render_market_overview)
     view_fn()
+    render_ifruit_phone_widget()
 
 
 if __name__ == "__main__":

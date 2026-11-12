@@ -9,7 +9,76 @@ import streamlit as st
 
 from src.constants import NSE_STOCKS
 from src.services.market_data import get_stock_analysis
+from src.state import compute_dynamic_wanted_stars, set_context_risk_heat
 from src.styles import render_page_header, render_signal_badge, render_wanted_stars_html, style_plotly_figure
+
+
+def _compute_race_scores(metrics: dict) -> dict[str, int]:
+    """Compute normalized 0-100 Street Race scores for RSI, SMA50 trend, and AI confidence."""
+    rsi = float(metrics.get("rsi", 50.0))
+    close = float(metrics.get("close", 1.0))
+    sma50 = float(metrics.get("sma50", close)) or close
+    conf = int(metrics.get("confidence", 65))
+    sig = str(metrics.get("signal", "HOLD")).upper()
+
+    rsi_score = int(round(max(15.0, min(100.0, 100.0 - abs(rsi - 52.0) * 1.45))))
+    sma_pct = ((close / sma50) - 1.0) * 100.0
+    sma_score = int(round(max(15.0, min(100.0, 52.0 + sma_pct * 4.2))))
+    if sig == "BUY":
+        ai_score = min(100, conf + 8)
+    elif sig == "SELL":
+        ai_score = max(18, conf - 25)
+    else:
+        ai_score = conf
+
+    overall = int(round((rsi_score * 0.30) + (sma_score * 0.35) + (ai_score * 0.35)))
+    return {"rsi": rsi_score, "sma": sma_score, "ai": ai_score, "overall": overall}
+
+
+def _render_street_race_arena(name1: str, m1: dict, name2: str, m2: dict) -> None:
+    """Render animated Cyan vs. Hot Pink segmented racing bars with 🏆 WINNER crown."""
+    s1 = _compute_race_scores(m1)
+    s2 = _compute_race_scores(m2)
+    if s1["overall"] >= s2["overall"]:
+        winner_label = f"🏆 WINNER: TEAM {m1['symbol'].replace('.NS', '').replace('.BO', '')} ({s1['overall']} PTS)"
+    else:
+        winner_label = f"🏆 WINNER: TEAM {m2['symbol'].replace('.NS', '').replace('.BO', '')} ({s2['overall']} PTS)"
+
+    t1 = html.escape(name1.split("(")[0].strip())
+    t2 = html.escape(name2.split("(")[0].strip())
+
+    def _bar_pair(title: str, v1: int, v2: int, detail1: str, detail2: str) -> str:
+        return (
+            f'<div class="race-metric-block">'
+            f'<div style="display:flex; justify-content:space-between; font-family:\'Orbitron\',sans-serif; font-size:0.74rem; color:#fee440; margin-bottom:0.2rem;">'
+            f'<span>▸ {html.escape(title)}</span>'
+            f'<span style="font-family:\'Share Tech Mono\',monospace; color:#cbd5e1;">'
+            f'<span style="color:#00f5d4;">{t1}: {detail1}</span> &nbsp;|&nbsp; <span style="color:#ff2a85;">{t2}: {detail2}</span>'
+            f"</span></div>"
+            f'<div class="race-track"><div class="race-fill-cyan" style="width:{v1}%;"></div></div>'
+            f'<div class="race-track"><div class="race-fill-pink" style="width:{v2}%;"></div></div>'
+            f"</div>"
+        )
+
+    bars_html = (
+        _bar_pair("OVERALL STREET RACE SCORE", s1["overall"], s2["overall"], f"{s1['overall']}/100", f"{s2['overall']}/100")
+        + _bar_pair("RSI MOMENTUM HEALTH", s1["rsi"], s2["rsi"], f"RSI {m1['rsi']:.1f} ({s1['rsi']} pts)", f"RSI {m2['rsi']:.1f} ({s2['rsi']} pts)")
+        + _bar_pair("50-SMA TREND VECTOR", s1["sma"], s2["sma"], f"₹{m1['sma50']:,.0f} ({s1['sma']} pts)", f"₹{m2['sma50']:,.0f} ({s2['sma']} pts)")
+        + _bar_pair("AI SIGNAL CONFIDENCE", s1["ai"], s2["ai"], f"{m1['signal']} {m1['confidence']}%", f"{m2['signal']} {m2['confidence']}%")
+    )
+
+    st.markdown(
+        f'<div class="street-race-board">'
+        f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem; margin-bottom:0.85rem;">'
+        f'<div><span style="font-family:\'Share Tech Mono\',monospace; color:#00f5d4; font-size:0.72rem; letter-spacing:0.08em;">'
+        f'STREET RACE MODE: ACTIVE // CYAN VS HOT PINK</span>'
+        f'<h3 style="margin:0.1rem 0 0 0; font-family:\'Orbitron\',sans-serif; color:#ffffff;">🏁 HEAD-TO-HEAD STREET RACE</h3></div>'
+        f'<span class="race-winner-pill">{html.escape(winner_label)}</span>'
+        f"</div>"
+        f"{bars_html}"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
 
 
 def _render_stock_summary_card(name: str, metrics: dict, corner_tag: str) -> None:
@@ -41,12 +110,12 @@ def _render_stock_summary_card(name: str, metrics: dict, corner_tag: str) -> Non
 
 
 def render_stock_comparison() -> None:
-    """Render head-to-head BAWSAQ vs LCN stock metrics and normalized cumulative returns."""
+    """Render head-to-head BAWSAQ vs LCN Street Race bars, metrics, and normalized returns."""
     render_page_header(
-        title="BAWSAQ vs LCN // Turf War Comparison",
-        subtitle="Head-to-head Vice City benchmark of RSI, SMA vectors, and 1-year normalized returns",
-        badge="BAWSAQ & LCN • SYNDICATE DUEL",
-        wanted_stars=3,
+        title="BAWSAQ vs LCN // Head-to-Head Street Race",
+        subtitle="Animated Cyan vs. Hot Pink segmented racing bars comparing RSI, SMA, and AI confidence",
+        badge="STREET RACE MODE • SYNDICATE DUEL",
+        wanted_stars=compute_dynamic_wanted_stars(),
     )
 
     stock_names = list(NSE_STOCKS.keys())
@@ -72,6 +141,11 @@ def render_stock_comparison() -> None:
 
     if not (m1 and m2):
         return
+
+    max_chg = max(abs(float(m1["day_change_pct"])), abs(float(m2["day_change_pct"])))
+    set_context_risk_heat(5 if max_chg >= 2.5 else (3 if max_chg >= 1.0 else 2))
+
+    _render_street_race_arena(s1_name, m1, s2_name, m2)
 
     card_c1, card_c2 = st.columns(2)
     with card_c1:

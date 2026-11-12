@@ -6,6 +6,7 @@ import html
 import streamlit as st
 
 from src.services.tutor import CURRICULUM_MODULES, QUICK_PROMPTS, generate_tutor_turn
+from src.state import compute_dynamic_wanted_stars
 from src.styles import render_page_header
 from src.views.character_stage import render_character_stage
 
@@ -27,7 +28,7 @@ def render_ai_tutor() -> None:
         title="UNDERGROUND CYBER HACKER / LESTER INTEL TERMINAL",
         subtitle="Full-body Vice City AI Insider powered by live NSE telemetry, RSI scanners & Hinglish chat",
         badge="INTERACTIVE CHARACTER TERMINAL • LIVE NSE AI",
-        wanted_stars=6,
+        wanted_stars=compute_dynamic_wanted_stars(),
     )
 
     st.session_state.setdefault("tutor_mood", "neutral")

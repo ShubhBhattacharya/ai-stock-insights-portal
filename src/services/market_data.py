@@ -11,7 +11,7 @@ import pandas_ta as ta
 import streamlit as st
 import yfinance as yf
 
-from src.constants import MIN_HISTORY_ROWS
+from src.constants import MIN_HISTORY_ROWS, get_stock_sector
 
 _POSITIVE_KEYWORDS = (
     "growth", "profit", "surge", "rise", "record", "gain", "buy", "bullish",
@@ -256,6 +256,7 @@ def fetch_batch_overview(stock_items: tuple[tuple[str, str], ...]) -> list[dict[
         return {
             "Company Name": name,
             "Symbol": sym.replace(".NS", "").replace(".BO", ""),
+            "Sector": get_stock_sector(sym),
             "Price": metrics["close"],
             "Change %": metrics["day_change_pct"],
             "RSI": metrics["rsi"],

@@ -20,6 +20,9 @@ def init_session_state() -> None:
         "portfolio": {},
         "trade_history": [],
         "alerts": [],
+        "ifruit_open": False,
+        "ifruit_feedback": "",
+        "active_risk_heat": 0,
         "messages": [
             {
                 "role": "assistant",
@@ -135,3 +138,29 @@ def remove_price_alert(alert_id: str) -> None:
     st.session_state["alerts"] = [
         alert for alert in st.session_state["alerts"] if alert.get("id") != alert_id
     ]
+
+
+def set_context_risk_heat(stars: int) -> None:
+    """Persist context-driven risk heat stars (1-6) in session state."""
+    st.session_state["active_risk_heat"] = max(1, min(6, int(stars)))
+
+
+def compute_dynamic_wanted_stars(context_heat: int | None = None) -> int:
+    """Compute live 1-6 Wanted Level stars from portfolio exposure, alerts, and active risk heat."""
+    portfolio = st.session_state.get("portfolio", {})
+    alerts = st.session_state.get("alerts", [])
+    cash_balance = float(st.session_state.get("cash_balance", INITIAL_VIRTUAL_CAPITAL))
+    deployed_ratio = max(0.0, (INITIAL_VIRTUAL_CAPITAL - cash_balance) / INITIAL_VIRTUAL_CAPITAL)
+
+    base_stars = 1
+    if len(portfolio) >= 1 or deployed_ratio >= 0.15:
+        base_stars += 1
+    if len(portfolio) >= 3 or deployed_ratio >= 0.45:
+        base_stars += 1
+    if len(alerts) >= 1:
+        base_stars += 1
+    if len(alerts) >= 3:
+        base_stars += 1
+
+    heat = context_heat if context_heat is not None else int(st.session_state.get("active_risk_heat", 0))
+    return max(1, min(6, max(base_stars, heat)))

@@ -5,20 +5,22 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 from src.constants import NSE_STOCKS, RISK_FREE_RATE_PCT
 from src.services.market_data import fetch_batch_returns
+from src.state import compute_dynamic_wanted_stars, set_context_risk_heat
 from src.styles import render_kpi_grid, render_page_header, render_wanted_stars_html, style_plotly_figure
 
 
 def render_risk_optimizer() -> None:
-    """Render portfolio volatility, Sharpe ratio, and synthwave correlation heatmap."""
+    """Render portfolio volatility gauge meter, Sharpe ratio, and synthwave heatmap."""
     render_page_header(
         title="Syndicate Heat // Portfolio Risk Matrix",
-        subtitle="Quantify multi-stock annualized volatility, Sharpe ratio, and Wanted-level heat",
+        subtitle="Quantify multi-stock annualized volatility meters, Sharpe ratio, and Wanted-level heat",
         badge="WANTED HEAT & QUANT ENGINE",
-        wanted_stars=6,
+        wanted_stars=compute_dynamic_wanted_stars(),
     )
 
     selected_stocks = st.multiselect(
@@ -112,14 +114,44 @@ def render_risk_optimizer() -> None:
             "Aggressive high-volatility basket; watch for sharp drawdowns!",
         )
 
-    st.markdown(
-        f'<div class="surface-card" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.75rem; border-color:{heat_color};">'
-        f'<div><strong style="font-family:\'Orbitron\',sans-serif; color:{heat_color};">{heat_label}</strong>'
-        f'<div style="font-family:\'Share Tech Mono\',monospace; color:#e2e8f0; font-size:0.86rem; margin-top:0.2rem;">{heat_msg}</div></div>'
-        f"{render_wanted_stars_html(active_stars=heat_stars, total_stars=6)}"
-        f"</div>",
-        unsafe_allow_html=True,
-    )
+    set_context_risk_heat(heat_stars)
+
+    col_heat_info, col_gauge = st.columns([1.4, 1])
+    with col_heat_info:
+        st.markdown(
+            f'<div class="surface-card" style="display:flex; flex-direction:column; justify-content:space-between; gap:0.75rem; border-color:{heat_color}; min-height:220px;">'
+            f'<div><strong style="font-family:\'Orbitron\',sans-serif; color:{heat_color}; font-size:1.05rem;">{heat_label}</strong>'
+            f'<div style="font-family:\'Share Tech Mono\',monospace; color:#e2e8f0; font-size:0.88rem; margin-top:0.35rem;">{heat_msg}</div></div>'
+            f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">'
+            f'<span style="font-family:\'Share Tech Mono\',monospace; color:#00f5d4; font-size:0.82rem;">PORTFOLIO HEAT: {port_volatility:.2f}% σ</span>'
+            f"{render_wanted_stars_html(active_stars=heat_stars, total_stars=6)}"
+            f"</div></div>",
+            unsafe_allow_html=True,
+        )
+    with col_gauge:
+        fig_gauge = go.Figure(
+            go.Indicator(
+                mode="gauge+number",
+                value=round(port_volatility, 2),
+                number={"suffix": "%", "font": {"family": "Share Tech Mono, monospace", "color": "#fee440", "size": 28}},
+                title={"text": "VOLATILITY METER", "font": {"family": "Orbitron, sans-serif", "color": "#00f5d4", "size": 13}},
+                gauge={
+                    "axis": {"range": [0, 45], "tickcolor": "#cbd5e1"},
+                    "bar": {"color": heat_color},
+                    "bgcolor": "rgba(11, 5, 36, 0.85)",
+                    "borderwidth": 1.5,
+                    "bordercolor": "#00f5d4",
+                    "steps": [
+                        {"range": [0, 18], "color": "rgba(0, 245, 212, 0.18)"},
+                        {"range": [18, 28], "color": "rgba(254, 228, 64, 0.20)"},
+                        {"range": [28, 45], "color": "rgba(255, 42, 133, 0.25)"},
+                    ],
+                },
+            )
+        )
+        style_plotly_figure(fig_gauge, height=235)
+        fig_gauge.update_layout(margin={"l": 18, "r": 18, "t": 36, "b": 8})
+        st.plotly_chart(fig_gauge, width="stretch")
 
     st.markdown("---")
     col_heat, col_table = st.columns([3, 2])

@@ -7,7 +7,7 @@ import streamlit as st
 
 from src.constants import NSE_STOCKS
 from src.services.market_data import get_stock_analysis
-from src.state import add_price_alert, remove_price_alert
+from src.state import add_price_alert, compute_dynamic_wanted_stars, remove_price_alert, set_context_risk_heat
 from src.styles import render_page_header
 
 
@@ -22,11 +22,13 @@ def _sync_alert_default_target() -> None:
 
 def render_price_alerts() -> None:
     """Render WANTED target bounty setup and live threshold trigger cards."""
+    alerts_count = len(st.session_state.get("alerts", []))
+    set_context_risk_heat(min(6, 2 + alerts_count))
     render_page_header(
         title="WANTED LEVEL // Price Alert Bounties",
         subtitle="Arm digital target thresholds and intercept live breakout alerts on NSE equities",
         badge="WANTED RADAR • THRESHOLD TRIGGERS",
-        wanted_stars=6,
+        wanted_stars=compute_dynamic_wanted_stars(),
     )
 
     stock_names = list(NSE_STOCKS.keys())

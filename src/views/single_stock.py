@@ -12,6 +12,7 @@ from src.constants import NSE_STOCKS
 from src.services.forecasting import predict_stock_prices
 from src.services.market_data import fetch_news_sentiment, get_stock_analysis
 from src.services.reporting import generate_text_report
+from src.state import compute_dynamic_wanted_stars, set_context_risk_heat
 from src.styles import (
     render_kpi_grid,
     render_page_header,
@@ -203,16 +204,24 @@ def _build_technical_chart(
 
 def render_single_stock_analysis() -> None:
     """Render single-stock technical breakdown, Classified Intel Dossier, and ML forecast."""
+    stock_names = list(NSE_STOCKS.keys())
+    if "single_stock_symbol" not in st.session_state:
+        st.session_state["single_stock_symbol"] = NSE_STOCKS[stock_names[0]]
+
+    peek_sym = str(st.session_state.get("single_stock_symbol", NSE_STOCKS[stock_names[0]])).upper().strip()
+    peek_metrics, _ = get_stock_analysis(peek_sym) if peek_sym else (None, None)
+    if peek_metrics:
+        rsi_v = float(peek_metrics["rsi"])
+        chg_v = abs(float(peek_metrics["day_change_pct"]))
+        stock_heat = 6 if (rsi_v > 72 or rsi_v < 28 or chg_v >= 3.0) else (4 if (peek_metrics["signal"] == "SELL" or chg_v >= 1.5) else 2)
+        set_context_risk_heat(stock_heat)
+
     render_page_header(
         title="BAWSAQ Target Intel & ML Forecast",
         subtitle="Deep indigo synthwave candlestick radar, ML trend vector, and Classified Intel Dossiers",
         badge="CLASSIFIED INTEL DOSSIERS • ML FORECASTING",
-        wanted_stars=6,
+        wanted_stars=compute_dynamic_wanted_stars(),
     )
-
-    stock_names = list(NSE_STOCKS.keys())
-    if "single_stock_symbol" not in st.session_state:
-        st.session_state["single_stock_symbol"] = NSE_STOCKS[stock_names[0]]
 
     col_s1, col_s2, col_s3 = st.columns([2, 1.2, 1])
     with col_s1:
