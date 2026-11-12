@@ -376,3 +376,4 @@ def clear_market_cache() -> None:
     fetch_batch_overview.clear()
     fetch_batch_returns.clear()
     fetch_news_sentiment.clear()
+    fetch_news_sentiment.clear()

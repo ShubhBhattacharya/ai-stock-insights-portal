@@ -138,6 +138,10 @@ html, body, [class*="css"] {{
     color: var(--text-primary);
 }}
 
+html, body, [data-testid="stAppViewContainer"], .stApp {{
+    overflow-x: hidden !important;
+}}
+
 /* Leonida Synthwave Dusk Sky + Neon Horizon Grid + Dual Palm Shadows */
 .stApp {{
     background-color: var(--bg-canvas);
@@ -177,7 +181,7 @@ html, body, [class*="css"] {{
 .main .block-container,
 [data-testid="stMainBlockContainer"] {{
     padding-top: clamp(0.85rem, 2vw, 1.5rem);
-    padding-bottom: 3rem;
+    padding-bottom: 5.5rem;
     padding-left: clamp(0.85rem, 2.4vw, 2.25rem);
     padding-right: clamp(0.85rem, 2.4vw, 2.25rem);
     max-width: 1460px;
@@ -839,14 +843,16 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container span.ifruit-ancho
 div[data-testid="stVerticalBlockBorderWrapper"]:has(span.ifruit-anchor) {{
     position: fixed !important;
     right: 1rem !important;
-    bottom: 4.5rem !important;
-    width: 300px !important;
+    bottom: 3.4rem !important;
+    width: 295px !important;
     max-width: calc(100vw - 2rem) !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
     z-index: 950 !important;
     background: linear-gradient(165deg, rgba(10, 5, 28, 0.97), rgba(24, 9, 48, 0.98)) !important;
     border: 2px solid #00f5d4 !important;
     border-radius: 18px !important;
-    padding: 0.65rem 0.75rem !important;
+    padding: 0.55rem 0.7rem !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), 0 0 22px rgba(0, 245, 212, 0.36) !important;
     backdrop-filter: blur(12px);
 }}
@@ -1085,10 +1091,11 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
     }}
 }}
 
-@media (max-width: 640px) {{
+@media (max-width: 768px) {{
     .main .block-container,
     [data-testid="stMainBlockContainer"] {{
         padding-top: 0.75rem;
+        padding-bottom: 2.5rem;
         padding-left: 0.65rem;
         padding-right: 0.65rem;
     }}
@@ -1100,6 +1107,24 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
         width: 100% !important;
         min-width: 100% !important;
         flex: 1 1 100% !important;
+    }}
+    button[data-baseweb="tab"] {{
+        font-size: 0.7rem !important;
+        padding: 0.45rem 0.55rem !important;
+    }}
+    .console-hud-ruler {{
+        justify-content: center;
+        text-align: center;
+        font-size: 0.64rem;
+    }}
+    .console-hud-ruler span:first-child,
+    .console-hud-ruler span:last-child {{
+        display: none;
+    }}
+    .weazel-flash-bar {{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
     }}
     .kpi-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
