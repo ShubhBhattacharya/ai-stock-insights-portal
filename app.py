@@ -13,9 +13,11 @@ if _ROOT_DIR not in sys.path:
     sys.path.insert(0, _ROOT_DIR)
 
 from src.constants import NAV_ITEMS
-from src.state import compute_dynamic_wanted_stars, init_session_state, logout
+from src.state import compute_dynamic_wanted_stars, init_session_state, is_doomsday, logout
 from src.styles import (
     inject_global_styles,
+    render_doomsday_reboot_overlay,
+    render_edition_toggle,
     render_login_transition_overlay,
     render_wanted_stars_html,
 )
@@ -50,7 +52,8 @@ VIEW_DISPATCH = {
 
 
 def render_sidebar() -> str:
-    """Render clean Vice City HUD sidebar profile, cash balance, logout, and neon navigation."""
+    """Render clean edition-aware HUD sidebar profile, capital/cash, logout, and navigation."""
+    doomsday = is_doomsday()
     username = html.escape(str(st.session_state["username"]).upper())
     cash_balance = float(st.session_state["cash_balance"])
     num_holdings = len(st.session_state["portfolio"])
@@ -58,46 +61,66 @@ def render_sidebar() -> str:
     wanted_level = compute_dynamic_wanted_stars()
     wanted_html = render_wanted_stars_html(active_stars=wanted_level, total_stars=6)
 
+    user_line = f"👤 AUTHORIZED USER: {username}" if doomsday else f"👤 WELCOME, {username}"
+    cash_line = f"💰 WAR CAPITAL: ₹{cash_balance:,.2f}" if doomsday else f"💰 CASH: ₹{cash_balance:,.2f}"
+    sub_counts = (
+        f"🛡️ {num_holdings} Covert Assets · ☢️ {num_alerts} Alarms"
+        if doomsday
+        else f"💼 {num_holdings} Holdings · 🎯 {num_alerts} Alerts"
+    )
+    logout_label = "🚪 EVACUATE SHELTER / LOGOUT" if doomsday else "🚪 JACK OUT / LOGOUT"
+
     st.sidebar.markdown(
         f'<div class="sidebar-profile-card">'
-        f'<div class="sidebar-profile-name">👤 WELCOME, {username}</div>'
-        f'<div class="sidebar-cash-pill">💰 CASH: ₹{cash_balance:,.2f}</div>'
+        f'<div class="sidebar-profile-name">{user_line}</div>'
+        f'<div class="sidebar-cash-pill">{cash_line}</div>'
         f'<div style="margin:0.38rem 0;">{wanted_html}</div>'
         f'<div style="font-family:\'Share Tech Mono\',monospace; color:#cbd5e1; font-size:0.76rem;">'
-        f"💼 {num_holdings} Holdings · 🎯 {num_alerts} Alerts"
+        f"{sub_counts}"
         f"</div></div>",
         unsafe_allow_html=True,
     )
 
-    if st.sidebar.button("🚪 JACK OUT / LOGOUT", width="stretch"):
+    if st.sidebar.button(logout_label, width="stretch"):
         logout()
         st.rerun()
 
     st.sidebar.markdown("---")
 
     selected_mode = st.sidebar.radio(
-        "🕹️ MODULE SELECTOR",
+        "☢️ BUNKER MODULES" if doomsday else "🕹️ MODULE SELECTOR",
         NAV_ITEMS,
         index=0,
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.info(
-        "**LEONIDA INTEL TERMINAL:**\n"
-        "- Mission: BCC 351 Mini Project\n"
-        "- Stack: Streamlit, yfinance, Plotly, pandas-ta\n"
-        "- Feed: NSE India (BAWSAQ / LCN)"
-    )
+    if doomsday:
+        st.sidebar.info(
+            "**BUNKER NET TERMINAL // DEFCON-1:**\n"
+            "- Mission: BCC 351 Mini Project\n"
+            "- Stack: Streamlit, yfinance, Plotly, pandas-ta\n"
+            "- Feed: NSE India (FALLOUT NODE)"
+        )
+    else:
+        st.sidebar.info(
+            "**LEONIDA INTEL TERMINAL:**\n"
+            "- Mission: BCC 351 Mini Project\n"
+            "- Stack: Streamlit, yfinance, Plotly, pandas-ta\n"
+            "- Feed: NSE India (BAWSAQ / LCN)"
+        )
     return selected_mode
 
 
 def main() -> None:
-    """Bootstrap Leonida synthwave styles, session state, login transition, and dashboard."""
-    inject_global_styles()
+    """Bootstrap active world edition styles, session state, transitions, and dashboard."""
     init_session_state()
+    inject_global_styles()
 
-    if not st.session_state["authenticated"]:
-        render_login_page()
+    if st.session_state.get("edition_transitioning"):
+        render_doomsday_reboot_overlay()
+        time.sleep(1.8)
+        st.session_state["edition_transitioning"] = False
+        st.rerun()
         return
 
     if st.session_state.get("transitioning"):
@@ -105,6 +128,12 @@ def main() -> None:
         time.sleep(2.0)
         st.session_state["transitioning"] = False
         st.rerun()
+        return
+
+    render_edition_toggle()
+
+    if not st.session_state["authenticated"]:
+        render_login_page()
         return
 
     selected_mode = render_sidebar()

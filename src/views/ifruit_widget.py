@@ -7,11 +7,12 @@ import streamlit as st
 
 from src.constants import IFRUIT_WATCHLIST
 from src.services.market_data import fetch_batch_overview, get_stock_analysis
-from src.state import execute_buy_order, execute_sell_order
+from src.state import execute_buy_order, execute_sell_order, is_doomsday
 
 
 def render_ifruit_phone_widget() -> None:
-    """Render a collapsible floating iFruit smartphone card on the right edge."""
+    """Render a collapsible floating iFruit / Bunker Comms smartphone card on the right edge."""
+    doomsday = is_doomsday()
     is_open = bool(st.session_state.get("ifruit_open", False))
     alerts_count = len(st.session_state.get("alerts", []))
     portfolio = st.session_state.get("portfolio", {})
@@ -19,11 +20,18 @@ def render_ifruit_phone_widget() -> None:
     with st.container():
         st.markdown('<span class="ifruit-anchor"></span>', unsafe_allow_html=True)
 
-        toggle_label = (
-            f"📱 iFruit Phone ▾ (🚨 {alerts_count} Alerts)"
-            if is_open
-            else f"📱 iFruit Market Phone ▸ (🚨 {alerts_count})"
-        )
+        if doomsday:
+            toggle_label = (
+                f"📟 Bunker Comms ▾ (☢️ {alerts_count} Alarms)"
+                if is_open
+                else f"📟 Bunker Comms ▸ (☢️ {alerts_count})"
+            )
+        else:
+            toggle_label = (
+                f"📱 iFruit Phone ▾ (🚨 {alerts_count} Alerts)"
+                if is_open
+                else f"📱 iFruit Market Phone ▸ (🚨 {alerts_count})"
+            )
         if st.button(toggle_label, key="ifruit_toggle_btn", width="stretch"):
             st.session_state["ifruit_open"] = not is_open
             st.rerun()
@@ -43,11 +51,12 @@ def render_ifruit_phone_widget() -> None:
             chg = float(row["Change %"])
             sig = str(row["Signal"])
             dot = "🟢" if sig == "BUY" else ("🔴" if sig == "SELL" else "🟡")
-            chg_color = "#39ff14" if chg >= 0 else "#ff2a85"
+            chg_color = "#39ff14" if chg >= 0 else ("#ff2a00" if doomsday else "#ff2a85")
             price_lookup[sym] = (name, price)
+            border_dash = "rgba(57,255,20,0.22)" if doomsday else "rgba(0,245,212,0.18)"
             rows_html.append(
                 f'<div style="display:flex; justify-content:space-between; align-items:center; '
-                f'padding:0.22rem 0; border-bottom:1px dashed rgba(0,245,212,0.18); '
+                f'padding:0.22rem 0; border-bottom:1px dashed {border_dash}; '
                 f'font-family:\'Share Tech Mono\',monospace; font-size:0.74rem;">'
                 f'<span style="color:#f8fafc;">{dot} <strong>{html.escape(sym)}</strong></span>'
                 f'<span style="color:#cbd5e1;">₹{price:,.0f}</span>'
@@ -55,14 +64,20 @@ def render_ifruit_phone_widget() -> None:
                 f"</div>"
             )
 
+        card_bg = "rgba(18,12,8,0.94)" if doomsday else "rgba(7,3,18,0.88)"
+        card_border = "rgba(255,69,0,0.55)" if doomsday else "rgba(255,42,133,0.45)"
+        head_accent = "#39ff14" if doomsday else "#00f5d4"
+        phone_header = "☣️ BUNKER COMMS // DEFCON-1" if doomsday else " iFRUIT MINI-MARKET"
+        alarm_label = f"☢️ {alerts_count} ALARMS" if doomsday else f"🚨 {alerts_count} ALERTS"
+        sync_label = "Syncing BUNKER.NET quotes..." if doomsday else "Syncing BAWSAQ quotes..."
         st.markdown(
-            f'<div style="background:rgba(7,3,18,0.88); border:1px solid rgba(255,42,133,0.45); '
+            f'<div style="background:{card_bg}; border:1px solid {card_border}; '
             f'border-radius:10px; padding:0.45rem 0.55rem; margin:0.2rem 0 0.45rem 0;">'
             f'<div style="display:flex; justify-content:space-between; font-family:\'Orbitron\',sans-serif; '
-            f'font-size:0.65rem; color:#00f5d4; margin-bottom:0.28rem;">'
-            f'<span> iFRUIT MINI-MARKET</span><span>🚨 {alerts_count} ALERTS</span>'
+            f'font-size:0.65rem; color:{head_accent}; margin-bottom:0.28rem;">'
+            f'<span>{phone_header}</span><span>{alarm_label}</span>'
             f"</div>"
-            f'{"".join(rows_html) if rows_html else "<div style=\'color:#cbd5e1;font-size:0.74rem;\'>Syncing BAWSAQ quotes...</div>"}'
+            f'{"".join(rows_html) if rows_html else f"<div style=\'color:#cbd5e1;font-size:0.74rem;\'>{sync_label}</div>"}'
             f"</div>",
             unsafe_allow_html=True,
         )

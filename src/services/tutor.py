@@ -239,17 +239,28 @@ def _format_live_stock_response(
     return "\n".join(lines), mood, scans
 
 
-def generate_tutor_turn(query: str) -> tuple[str, str, list[dict[str, Any]]]:
+def generate_tutor_turn(
+    query: str,
+    edition: str = "GTA VI",
+) -> tuple[str, str, list[dict[str, Any]]]:
     """
-    Generate a Vice City cyber-broker response along with avatar mood and any live scans.
+    Generate a dual-world Cyber-Broker / Bunker AI response along with mood and live scans.
     Returns: (reply_text, mood ['bullish'|'bearish'|'neutral'], scanned_metrics_list)
     """
+    doomsday = edition.strip().upper() == "DOOMSDAY"
     q = query.lower().strip()
     hinglish = _is_hinglish(query)
 
     mentioned_syms = _extract_mentioned_symbols(query)
     if mentioned_syms:
-        return _format_live_stock_response(mentioned_syms, hinglish)
+        text, mood, scans = _format_live_stock_response(mentioned_syms, hinglish)
+        if doomsday:
+            text = (
+                text.replace("BAWSAQ", "BUNKER.NET")
+                .replace("Vice City", "Shelter Sector")
+                .replace("Insider Take", "Bunker Command")
+            )
+        return text, mood, scans
 
     if any(
         k in q
@@ -264,12 +275,31 @@ def generate_tutor_turn(query: str) -> tuple[str, str, list[dict[str, Any]]]:
                 dot = "🟢" if m["signal"] == "BUY" else ("🔴" if m["signal"] == "SELL" else "🟡")
                 scanner_lines.append(f"`{m['symbol']}` {dot} ₹{m['close']:,.2f} (RSI: {m['rsi']:.1f}, {m['signal']})")
 
+        feed_name = "BUNKER.NET PULSE" if doomsday else "LIVE BAWSAQ PULSE"
         live_strip = (
-            f"\n\n📡 **LIVE BAWSAQ PULSE:** {'  |  '.join(scanner_lines)}"
+            f"\n\n📡 **{feed_name}:** {'  |  '.join(scanner_lines)}"
             if scanner_lines
             else ""
         )
-        if hinglish:
+        if doomsday and hinglish:
+            text = (
+                "`[DEFCON-1 PROTOCOL // ₹10,000 SURVIVAL ALLOCATION]`\n\n"
+                "Commander — fallout market mein poora ₹10,000 war capital ek asset mein lock mat karo. 3-tier bunker split use karo:\n\n"
+                "* 🛡️ **Core Bunker Armor (50–60% ~ ₹5,000 – ₹6,000):** `SBIN.NS` ya `ITC.NS` (hardened liquidity & defensive floor).\n"
+                "* 🔋 **Mobile Tactical Units (30% ~ ₹3,000):** `TCS.NS` ya `INFY.NS` (resilient tech recovery).\n"
+                "* ☢️ **Fallback Index Shield (10–20% ~ ₹1,000 – ₹2,000):** `NIFTYBEES` (top-50 NSE radiation hedge)."
+                f"{live_strip}\n\n📌 *Bunker Directive:* Staged deployment rakho aur emergency reserve liquid rakhna!"
+            )
+        elif doomsday:
+            text = (
+                "`[DEFCON-1 PROTOCOL // ₹10,000 SURVIVAL PORTFOLIO]`\n\n"
+                "Commander — smart bunker tacticians never expose all ₹10,000 war capital on a single sector. Deploy in three armored tiers:\n\n"
+                "* 🛡️ **Core Bunker Stability (50–60% ~ ₹5,000 – ₹6,000):** **SBIN** or **ITC** — high-liquidity defensive perimeter.\n"
+                "* 🔋 **Tactical Recovery Engine (30% ~ ₹3,000):** **TCS / Infosys** or **Tata Motors PV (`TMPV.NS`)**.\n"
+                "* ☢️ **Top-50 Fallback Shield (10–20% ~ ₹1,000 – ₹2,000):** **NIFTYBEES** — instant multi-sector survival hedge."
+                f"{live_strip}\n\n📌 *Bunker Directive:* Deploy in phased tranches and keep emergency reserve capital uncompromised!"
+            )
+        elif hinglish:
             text = (
                 "`[ENCRYPTED BLUEPRINT // ₹10,000 SMART ALLOCATION]`\n\n"
                 "Suno boss — ₹10,000 ka poora stash ek hi stock mein mat daalo. Yeh solid 3-tier plan follow karo:\n\n"
@@ -386,20 +416,26 @@ When both tripwires align, the terminal flashes **BUY** at **88% Confidence**!""
         return text, "bullish", []
 
     if hinglish:
-        text = f"""`[CYBER-BROKER // ENCRYPTED TERMINAL ONLINE]`
+        header_tag = "[BUNKER AI // ENCRYPTED TERMINAL ONLINE]" if doomsday else "[CYBER-BROKER // ENCRYPTED TERMINAL ONLINE]"
+        feed_lbl = "BUNKER.NET" if doomsday else "BAWSAQ"
+        lead = "☢️" if doomsday else "🕶️"
+        text = f"""`{header_tag}`
 
-🕶️ Boss, aapne poocha: *"{query}"*.
+{lead} Boss, aapne poocha: *"{query}"*.
 
-Kisi bhi NSE company ka **naam likho** (jaise *"Reliance ka RSI aur price batao"* ya *"TCS vs Infosys"*) — main abhi live BAWSAQ data scan kar dunga! Ya phir poochho:
+Kisi bhi NSE company ka **naam likho** (jaise *"Reliance ka RSI aur price batao"* ya *"TCS vs Infosys"*) — main abhi live {feed_lbl} data scan kar dunga! Ya phir poochho:
 - 📊 **"BUY aur SELL signal kaise trigger hota hai?"**
 - 💰 **"10,000 budget ke liye allocation batao"**
 - 📉 **"P/E Ratio aur EPS kya hota hai?"**"""
     else:
-        text = f"""`[CYBER-BROKER // ENCRYPTED TERMINAL ONLINE]`
+        header_tag = "[BUNKER AI // ENCRYPTED TERMINAL ONLINE]" if doomsday else "[CYBER-BROKER // ENCRYPTED TERMINAL ONLINE]"
+        feed_lbl = "BUNKER.NET" if doomsday else "BAWSAQ"
+        lead = "☢️" if doomsday else "🕶️"
+        text = f"""`{header_tag}`
 
-🕶️ Intercepted query: *"{query}"*.
+{lead} Intercepted query: *"{query}"*.
 
-Name **any NSE company** (like *"Analyze Reliance"*, *"How is TCS doing?"*, or *"Infosys RSI"*) and I'll scan live BAWSAQ market bars on the spot — or ask:
+Name **any NSE company** (like *"Analyze Reliance"*, *"How is TCS doing?"*, or *"Infosys RSI"*) and I'll scan live {feed_lbl} market bars on the spot — or ask:
 - 📊 **"How does the BUY signal trigger?"**
 - 🛑 **"How does the SELL signal work?"**
 - 📈 **"Explain Golden Cross and Death Cross."**
@@ -407,7 +443,7 @@ Name **any NSE company** (like *"Analyze Reliance"*, *"How is TCS doing?"*, or *
     return text, "neutral", []
 
 
-def generate_bot_response(query: str) -> str:
-    """Return a Vice City cyber-broker response (backward-compatible string interface)."""
-    reply, _, _ = generate_tutor_turn(query)
+def generate_bot_response(query: str, edition: str = "GTA VI") -> str:
+    """Return a dual-world Cyber-Broker / Bunker AI response (backward-compatible string interface)."""
+    reply, _, _ = generate_tutor_turn(query, edition=edition)
     return reply

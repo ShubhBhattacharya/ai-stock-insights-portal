@@ -7,7 +7,13 @@ import streamlit as st
 
 from src.constants import NSE_STOCKS
 from src.services.market_data import get_stock_analysis
-from src.state import add_price_alert, compute_dynamic_wanted_stars, remove_price_alert, set_context_risk_heat
+from src.state import (
+    add_price_alert,
+    compute_dynamic_wanted_stars,
+    is_doomsday,
+    remove_price_alert,
+    set_context_risk_heat,
+)
 from src.styles import render_page_header
 
 
@@ -21,13 +27,26 @@ def _sync_alert_default_target() -> None:
 
 
 def render_price_alerts() -> None:
-    """Render WANTED target bounty setup and live threshold trigger cards."""
+    """Render WANTED/Apocalypse target bounty setup and live threshold trigger cards."""
+    doomsday = is_doomsday()
     alerts_count = len(st.session_state.get("alerts", []))
     set_context_risk_heat(min(6, 2 + alerts_count))
     render_page_header(
-        title="WANTED LEVEL // Price Alert Bounties",
-        subtitle="Arm digital target thresholds and intercept live breakout alerts on NSE equities",
-        badge="WANTED RADAR • THRESHOLD TRIGGERS",
+        title=(
+            "EMERGENCY RADIATION // Price Tripwires"
+            if doomsday
+            else "WANTED LEVEL // Price Alert Bounties"
+        ),
+        subtitle=(
+            "Arm bunker perimeter thresholds and intercept emergency NSE radiation alarms"
+            if doomsday
+            else "Arm digital target thresholds and intercept live breakout alerts on NSE equities"
+        ),
+        badge=(
+            "DEFCON-1 SIREN • EMERGENCY TRIPWIRES"
+            if doomsday
+            else "WANTED RADAR • THRESHOLD TRIGGERS"
+        ),
         wanted_stars=compute_dynamic_wanted_stars(),
     )
 
@@ -94,14 +113,21 @@ def render_price_alerts() -> None:
                     else (live_p <= alert["target"])
                 )
                 if triggered:
+                    banner_title = (
+                        "☢️ RADIATION THRESHOLD BREACHED // EMERGENCY ALARM · ⚠️⚠️⚠️⚠️⚠️⚠️"
+                        if doomsday
+                        else "🚨 TARGET TRIGGERED / WANTED · ★★★★★★"
+                    )
+                    banner_head_color = "#ff4500" if doomsday else "#fee440"
+                    live_accent = "#39ff14" if doomsday else "#00f5d4"
                     st.markdown(
                         f'<div class="wanted-alert-flash">'
-                        f'<div style="font-family:\'Orbitron\',sans-serif; color:#fee440; font-size:0.84rem; font-weight:800; letter-spacing:0.06em;">'
-                        f'🚨 TARGET TRIGGERED / WANTED · ★★★★★★</div>'
+                        f'<div style="font-family:\'Orbitron\',sans-serif; color:{banner_head_color}; font-size:0.84rem; font-weight:800; letter-spacing:0.06em;">'
+                        f'{banner_title}</div>'
                         f'<div style="font-family:\'Share Tech Mono\',monospace; color:#ffffff; font-size:0.95rem; margin-top:0.25rem;">'
                         f'<strong>{html.escape(alert["name"])} ({html.escape(alert["symbol"])})</strong> — '
                         f'{html.escape(alert["condition"])} ₹{alert["target"]:,.2f} | '
-                        f'<span style="color:#00f5d4; font-weight:700;">LIVE: ₹{live_p:,.2f}</span>'
+                        f'<span style="color:{live_accent}; font-weight:700;">LIVE: ₹{live_p:,.2f}</span>'
                         f"</div></div>",
                         unsafe_allow_html=True,
                     )

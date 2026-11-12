@@ -13,6 +13,7 @@ from src.state import (
     compute_dynamic_wanted_stars,
     execute_buy_order,
     execute_sell_order,
+    is_doomsday,
     reset_paper_portfolio,
     set_context_risk_heat,
 )
@@ -20,56 +21,79 @@ from src.styles import render_kpi_grid, render_page_header, render_signal_badge
 
 
 def _render_safehouse_empire_card(total_net_worth: float, holdings_value: float, trade_count: int) -> None:
-    """Render GTA Safehouse Empire Tier progression card with neon skyline and XP bar."""
+    """Render Safehouse Empire (GTA VI) or Bunker Empire Survival Tier (Doomsday) card."""
+    doomsday = is_doomsday()
     pnl = total_net_worth - INITIAL_VIRTUAL_CAPITAL
     xp_raw = int(max(12, min(100, 18 + trade_count * 12 + (pnl / 400.0))))
 
-    if trade_count >= 8 or total_net_worth >= 125_000:
-        tier_rank = "LEONIDA KINGPIN (TIER III)"
-        safehouse_name = "Starfish Island Neon Penthouse"
-        next_tier = "MAX EMPIRE STATUS UNLOCKED"
-    elif trade_count >= 3 or total_net_worth >= 105_000 or holdings_value >= 25_000:
-        tier_rank = "MARKET BROKER (TIER II)"
-        safehouse_name = "Maze Tower Vice Suite"
-        next_tier = "TIER III: LEONIDA KINGPIN"
+    if doomsday:
+        if trade_count >= 8 or total_net_worth >= 125_000:
+            tier_rank = "DEFCON SOVEREIGN (TIER III)"
+            safehouse_name = "Sub-Zero Titanium Vault Omega"
+            next_tier = "MAX BUNKER DOMINANCE"
+        elif trade_count >= 3 or total_net_worth >= 105_000 or holdings_value >= 25_000:
+            tier_rank = "SECTOR TACTICIAN (TIER II)"
+            safehouse_name = "Reinforced Sector-7 Bunker"
+            next_tier = "TIER III: DEFCON SOVEREIGN"
+        else:
+            tier_rank = "WASTELAND SCAVENGER (TIER I)"
+            safehouse_name = "Perimeter Concrete Shelter"
+            next_tier = "TIER II: SECTOR TACTICIAN"
+        card_title = "🛡️ BUNKER EMPIRE // SURVIVAL TIER PROGRESSION"
+        asset_lbl = "WAR ASSETS"
+        xp_lbl = "SURVIVAL XP"
+        stroke_c1, stroke_c2 = "#39ff14", "#ff4500"
     else:
-        tier_rank = "STREET HUSTLER (TIER I)"
-        safehouse_name = "Ocean View Neon Safehouse"
-        next_tier = "TIER II: MARKET BROKER"
+        if trade_count >= 8 or total_net_worth >= 125_000:
+            tier_rank = "LEONIDA KINGPIN (TIER III)"
+            safehouse_name = "Starfish Island Neon Penthouse"
+            next_tier = "MAX EMPIRE STATUS UNLOCKED"
+        elif trade_count >= 3 or total_net_worth >= 105_000 or holdings_value >= 25_000:
+            tier_rank = "MARKET BROKER (TIER II)"
+            safehouse_name = "Maze Tower Vice Suite"
+            next_tier = "TIER III: LEONIDA KINGPIN"
+        else:
+            tier_rank = "STREET HUSTLER (TIER I)"
+            safehouse_name = "Ocean View Neon Safehouse"
+            next_tier = "TIER II: MARKET BROKER"
+        card_title = "🏰 SAFEHOUSE EMPIRE TIER"
+        asset_lbl = "EMPIRE ASSETS"
+        xp_lbl = "SYNDICATE XP"
+        stroke_c1, stroke_c2 = "#00f5d4", "#ff2a85"
 
     exposure_pct = (holdings_value / total_net_worth) * 100 if total_net_worth > 0 else 0.0
     skyline_svg = (
-        '<svg viewBox="0 0 360 92" width="100%" height="78" xmlns="http://www.w3.org/2000/svg">'
-        '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">'
-        '<stop offset="0%" stop-color="#ff2a85" stop-opacity="0.35"/>'
-        '<stop offset="100%" stop-color="#070312" stop-opacity="0.95"/>'
-        "</linearGradient></defs>"
-        '<rect width="360" height="92" rx="8" fill="url(#sky)"/>'
-        '<circle cx="180" cy="52" r="28" fill="#ff7a00" opacity="0.45"/>'
-        '<rect x="34" y="42" width="32" height="50" fill="#12082e" stroke="#00f5d4" stroke-width="1.2"/>'
-        '<rect x="82" y="28" width="40" height="64" fill="#180a3c" stroke="#ff2a85" stroke-width="1.4"/>'
-        '<rect x="148" y="14" width="64" height="78" fill="#140736" stroke="#00f5d4" stroke-width="1.8"/>'
-        '<rect x="166" y="6" width="28" height="8" fill="#00f5d4" opacity="0.65"/>'
-        '<rect x="228" y="30" width="44" height="62" fill="#180a3c" stroke="#ff2a85" stroke-width="1.4"/>'
-        '<rect x="288" y="46" width="38" height="46" fill="#12082e" stroke="#00f5d4" stroke-width="1.2"/>'
-        '<line x1="0" y1="90" x2="360" y2="90" stroke="#00f5d4" stroke-width="2"/>'
-        "</svg>"
+        f'<svg viewBox="0 0 360 92" width="100%" height="78" xmlns="http://www.w3.org/2000/svg">'
+        f'<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="0%" stop-color="{stroke_c2}" stop-opacity="0.35"/>'
+        f'<stop offset="100%" stop-color="#070312" stop-opacity="0.95"/>'
+        f"</linearGradient></defs>"
+        f'<rect width="360" height="92" rx="8" fill="url(#sky)"/>'
+        f'<circle cx="180" cy="52" r="28" fill="#ff7a00" opacity="0.45"/>'
+        f'<rect x="34" y="42" width="32" height="50" fill="#12082e" stroke="{stroke_c1}" stroke-width="1.2"/>'
+        f'<rect x="82" y="28" width="40" height="64" fill="#180a3c" stroke="{stroke_c2}" stroke-width="1.4"/>'
+        f'<rect x="148" y="14" width="64" height="78" fill="#140736" stroke="{stroke_c1}" stroke-width="1.8"/>'
+        f'<rect x="166" y="6" width="28" height="8" fill="{stroke_c1}" opacity="0.65"/>'
+        f'<rect x="228" y="30" width="44" height="62" fill="#180a3c" stroke="{stroke_c2}" stroke-width="1.4"/>'
+        f'<rect x="288" y="46" width="38" height="46" fill="#12082e" stroke="{stroke_c1}" stroke-width="1.2"/>'
+        f'<line x1="0" y1="90" x2="360" y2="90" stroke="{stroke_c1}" stroke-width="2"/>'
+        f"</svg>"
     )
 
     st.markdown(
         f'<div class="safehouse-card">'
         f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.45rem;">'
-        f'<span style="font-family:\'Orbitron\',sans-serif; color:#00f5d4; font-size:0.86rem; font-weight:800;">🏰 SAFEHOUSE EMPIRE TIER</span>'
+        f'<span style="font-family:\'Orbitron\',sans-serif; color:{stroke_c1}; font-size:0.86rem; font-weight:800;">{card_title}</span>'
         f'<span class="safehouse-tier-badge">{tier_rank}</span>'
         f"</div>"
         f"{skyline_svg}"
         f'<div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem; font-family:\'Share Tech Mono\',monospace; font-size:0.82rem;">'
         f'<span style="color:#f8fafc;">HQ: <strong style="color:#fee440;">{safehouse_name}</strong></span>'
-        f'<span style="color:#00f5d4;">EMPIRE ASSETS: <strong>₹{total_net_worth:,.0f}</strong> · EXPOSURE: <strong>{exposure_pct:.0f}%</strong></span>'
+        f'<span style="color:{stroke_c1};">{asset_lbl}: <strong>₹{total_net_worth:,.0f}</strong> · EXPOSURE: <strong>{exposure_pct:.0f}%</strong></span>'
         f"</div>"
         f'<div class="xp-bar-track"><div class="xp-bar-fill" style="width:{xp_raw}%;"></div></div>'
         f'<div style="display:flex; justify-content:space-between; font-family:\'Share Tech Mono\',monospace; font-size:0.72rem; color:#cbd5e1; margin-top:0.32rem;">'
-        f'<span>SYNDICATE XP: <strong style="color:#39ff14;">{xp_raw}%</strong> ({trade_count} trades)</span>'
+        f'<span>{xp_lbl}: <strong style="color:#39ff14;">{xp_raw}%</strong> ({trade_count} trades)</span>'
         f'<span>NEXT: {next_tier}</span>'
         f"</div></div>",
         unsafe_allow_html=True,
@@ -77,7 +101,8 @@ def _render_safehouse_empire_card(total_net_worth: float, holdings_value: float,
 
 
 def render_paper_trading() -> None:
-    """Render Broker-Heist virtual paper trading vault with Safehouse Empire progression."""
+    """Render Broker-Heist or Bunker War-Capital paper trading vault."""
+    doomsday = is_doomsday()
     portfolio = st.session_state["portfolio"]
     live_prices: dict[str, float] = {}
     holdings_value = 0.0
@@ -94,18 +119,23 @@ def render_paper_trading() -> None:
     set_context_risk_heat(5 if exposure_ratio >= 0.65 else (3 if exposure_ratio >= 0.25 else 2))
 
     render_page_header(
-        title="PAPER TRADING SIMULATOR — THE UNDERGROUND MARKET",
-        subtitle="Arcade Heist Board: Execute covert NSE drops, unlock Safehouse tiers & build empire respect",
-        badge="ARCADE HEIST BOARD • RISK-FREE VAULT",
+        title="💣 DEFENSE WAR-CAPITAL COMMAND" if doomsday else "PAPER TRADING SIMULATOR — THE UNDERGROUND MARKET",
+        subtitle=(
+            "Secure covert NSE survival assets & manage bunker holdings using ₹1,00,000 war capital"
+            if doomsday
+            else "Arcade Heist Board: Execute covert NSE drops, unlock Safehouse tiers & build empire respect"
+        ),
+        badge="DEFENSE RESOURCE BOARD • ZERO-RISK BUNKER" if doomsday else "ARCADE HEIST BOARD • RISK-FREE VAULT",
         wanted_stars=compute_dynamic_wanted_stars(),
     )
 
     last_banner = st.session_state.pop("heist_reward_banner", None)
     if last_banner:
+        banner_prefix = "☣️ ASSET SECURED! +SURVIVAL XP" if doomsday else "🏆 TRADE PASSED! +RESPECT"
         st.markdown(
             f'<div class="steel-rivet-card" style="padding:0.9rem 1.25rem; border-color:#39ff14;">'
             f'<div style="font-family:\'Orbitron\',sans-serif; color:#39ff14; font-size:0.95rem; font-weight:800;">'
-            f'🏆 TRADE PASSED! +RESPECT · {html.escape(last_banner)}'
+            f"{banner_prefix} · {html.escape(last_banner)}"
             f"</div></div>",
             unsafe_allow_html=True,
         )
@@ -191,7 +221,7 @@ def render_paper_trading() -> None:
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
             if st.button(
-                "🟢 EXECUTE BUY",
+                "🟢 SECURE COVERT ASSET" if doomsday else "🟢 EXECUTE BUY",
                 width="stretch",
                 disabled=not can_buy,
                 type="primary",
@@ -199,15 +229,19 @@ def render_paper_trading() -> None:
                 ok, msg = execute_buy_order(trade_sym, trade_name, order_qty, live_price)
                 if ok:
                     st.session_state["heist_reward_banner"] = msg
-                    st.toast(f"+RP // {msg}", icon="🟢")
+                    st.toast(f"{'+SURVIVAL XP' if doomsday else '+RP'} // {msg}", icon="🟢")
                     st.rerun()
                 else:
                     st.error(msg)
             if not can_buy:
-                st.caption("Insufficient liquid stash for this drop quantity.")
+                st.caption("Insufficient capital reserves for this allocation.")
 
         with col_btn2:
-            if st.button("🔴 DUMP SHARES", width="stretch", disabled=not can_sell):
+            if st.button(
+                "🔴 LIQUIDATE HOLDINGS" if doomsday else "🔴 DUMP SHARES",
+                width="stretch",
+                disabled=not can_sell,
+            ):
                 ok, msg = execute_sell_order(trade_sym, trade_name, order_qty, live_price)
                 if ok:
                     st.session_state["heist_reward_banner"] = msg

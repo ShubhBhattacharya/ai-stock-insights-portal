@@ -12,7 +12,7 @@ from src.constants import NSE_STOCKS
 from src.services.forecasting import predict_stock_prices
 from src.services.market_data import fetch_news_sentiment, get_stock_analysis
 from src.services.reporting import generate_text_report
-from src.state import compute_dynamic_wanted_stars, set_context_risk_heat
+from src.state import compute_dynamic_wanted_stars, is_doomsday, set_context_risk_heat
 from src.styles import (
     render_kpi_grid,
     render_page_header,
@@ -35,14 +35,21 @@ def _build_technical_chart(
     forecast_days: int,
     show_bbands: bool,
 ) -> go.Figure:
-    """Create a deep-indigo synthwave 3-panel Candlestick, Volume, and RSI Plotly figure."""
+    """Create an edition-adaptive 3-panel Candlestick, Volume, and RSI Plotly figure."""
+    doomsday = is_doomsday()
+    up_col = "#39ff14" if doomsday else "#00f5d4"
+    dn_col = "#ff2a00" if doomsday else "#ff2a85"
+    sma50_col = "#ffb703" if doomsday else "#fee440"
+    sma200_col = "#39ff14" if doomsday else "#00f5d4"
+    ml_col = "#ff2a00" if doomsday else "#ff2a85"
+
     fig = make_subplots(
         rows=3,
         cols=1,
         shared_xaxes=True,
         vertical_spacing=0.05,
         subplot_titles=(
-            f"▸ {symbol} // CYAN-PINK CANDLES + NEON 50-SMA + {forecast_days}D ML FORECAST",
+            f"▸ {symbol} // {'FALLOUT CANDLES + AMBER 50-SMA + ' + str(forecast_days) + 'D RED ML SCENARIO' if doomsday else 'CYAN-PINK CANDLES + NEON 50-SMA + ' + str(forecast_days) + 'D ML FORECAST'}",
             "▸ TRADING VOLUME PULSE",
             "▸ RSI-14 MOMENTUM RADAR",
         ),
@@ -56,11 +63,11 @@ def _build_technical_chart(
             high=df["High"],
             low=df["Low"],
             close=df["Close"],
-            name="OHLC (Cyan/Pink)",
-            increasing_line_color="#00f5d4",
-            increasing_fillcolor="rgba(0, 245, 212, 0.72)",
-            decreasing_line_color="#ff2a85",
-            decreasing_fillcolor="rgba(255, 42, 133, 0.76)",
+            name="OHLC",
+            increasing_line_color=up_col,
+            increasing_fillcolor="rgba(57, 255, 20, 0.72)" if doomsday else "rgba(0, 245, 212, 0.72)",
+            decreasing_line_color=dn_col,
+            decreasing_fillcolor="rgba(255, 42, 0, 0.76)" if doomsday else "rgba(255, 42, 133, 0.76)",
         ),
         row=1,
         col=1,
@@ -73,7 +80,7 @@ def _build_technical_chart(
                 y=df["BBU"],
                 mode="lines",
                 name="Upper BB (20,2)",
-                line=dict(color="rgba(0, 245, 212, 0.55)", width=1.1, dash="dot"),
+                line=dict(color=up_col, width=1.1, dash="dot"),
             ),
             row=1,
             col=1,
@@ -84,9 +91,9 @@ def _build_technical_chart(
                 y=df["BBL"],
                 mode="lines",
                 name="Lower BB (20,2)",
-                line=dict(color="rgba(255, 42, 133, 0.55)", width=1.1, dash="dot"),
+                line=dict(color=dn_col, width=1.1, dash="dot"),
                 fill="tonexty",
-                fillcolor="rgba(192, 132, 252, 0.08)",
+                fillcolor="rgba(255, 69, 0, 0.08)" if doomsday else "rgba(192, 132, 252, 0.08)",
             ),
             row=1,
             col=1,
@@ -97,8 +104,8 @@ def _build_technical_chart(
             x=df.index,
             y=df["SMA_50"],
             mode="lines",
-            name="50 SMA (Laser Yellow)",
-            line=dict(color="#fee440", width=2.1),
+            name="50 SMA",
+            line=dict(color=sma50_col, width=2.1),
         ),
         row=1,
         col=1,
@@ -109,8 +116,8 @@ def _build_technical_chart(
             x=df.index,
             y=df["SMA_200"],
             mode="lines",
-            name="200 SMA (Electric Cyan)",
-            line=dict(color="#00f5d4", width=1.9),
+            name="200 SMA",
+            line=dict(color=sma200_col, width=1.9),
         ),
         row=1,
         col=1,
@@ -122,9 +129,9 @@ def _build_technical_chart(
                 x=pred_df.index,
                 y=pred_df["Predicted_Close"],
                 mode="lines+markers",
-                name=f"{forecast_days}D Magenta ML Curve",
-                line=dict(color="#ff2a85", width=2.6, dash="dot"),
-                marker=dict(size=5, color="#fee440", symbol="diamond"),
+                name=f"{forecast_days}D {'Fallout Scenario' if doomsday else 'Magenta ML Curve'}",
+                line=dict(color=ml_col, width=2.6, dash="dot"),
+                marker=dict(size=5, color=sma50_col, symbol="diamond"),
             ),
             row=1,
             col=1,
@@ -137,10 +144,10 @@ def _build_technical_chart(
             text=f"🎯 {forecast_days}D TARGET: ₹{last_pred_val:,.2f}",
             showarrow=True,
             arrowhead=2,
-            arrowcolor="#ff2a85",
-            font=dict(family="Share Tech Mono, monospace", size=11, color="#fee440"),
-            bgcolor="rgba(11, 5, 36, 0.88)",
-            bordercolor="#ff2a85",
+            arrowcolor=ml_col,
+            font=dict(family="Share Tech Mono, monospace", size=11, color=sma50_col),
+            bgcolor="rgba(16, 10, 8, 0.9)" if doomsday else "rgba(11, 5, 36, 0.88)",
+            bordercolor=ml_col,
             borderwidth=1,
             row=1,
             col=1,
@@ -154,10 +161,10 @@ def _build_technical_chart(
         text=f"CROSSHAIR SPOT: ₹{last_hist_close:,.2f}",
         showarrow=True,
         arrowhead=2,
-        arrowcolor="#00f5d4",
-        font=dict(family="Share Tech Mono, monospace", size=11, color="#00f5d4"),
-        bgcolor="rgba(11, 5, 36, 0.88)",
-        bordercolor="#00f5d4",
+        arrowcolor=up_col,
+        font=dict(family="Share Tech Mono, monospace", size=11, color=up_col),
+        bgcolor="rgba(16, 10, 8, 0.9)" if doomsday else "rgba(11, 5, 36, 0.88)",
+        bordercolor=up_col,
         borderwidth=1,
         ax=-55,
         ay=-36,
@@ -166,7 +173,7 @@ def _build_technical_chart(
     )
 
     vol_colors = [
-        "#00f5d4" if close_v >= open_v else "#ff2a85"
+        up_col if close_v >= open_v else dn_col
         for close_v, open_v in zip(df["Close"], df["Open"])
     ]
     fig.add_trace(
@@ -187,17 +194,17 @@ def _build_technical_chart(
             y=df["RSI"],
             mode="lines",
             name="RSI (14)",
-            line=dict(color="#c084fc", width=1.9),
+            line=dict(color="#ffb703" if doomsday else "#c084fc", width=1.9),
         ),
         row=3,
         col=1,
     )
 
-    fig.add_hline(y=70, line_dash="dot", line_color="#ff2a85", row=3, col=1)
-    fig.add_hline(y=30, line_dash="dot", line_color="#00f5d4", row=3, col=1)
+    fig.add_hline(y=70, line_dash="dot", line_color=dn_col, row=3, col=1)
+    fig.add_hline(y=30, line_dash="dot", line_color=up_col, row=3, col=1)
 
     style_plotly_figure(fig, height=780)
-    fig.update_annotations(font=dict(family="Orbitron, sans-serif", size=12, color="#00f5d4"))
+    fig.update_annotations(font=dict(family="Orbitron, sans-serif", size=12, color=up_col))
     fig.update_layout(xaxis_rangeslider_visible=False)
     return fig
 
@@ -216,10 +223,15 @@ def render_single_stock_analysis() -> None:
         stock_heat = 6 if (rsi_v > 72 or rsi_v < 28 or chg_v >= 3.0) else (4 if (peek_metrics["signal"] == "SELL" or chg_v >= 1.5) else 2)
         set_context_risk_heat(stock_heat)
 
+    doomsday = is_doomsday()
     render_page_header(
-        title="BAWSAQ Target Intel & ML Forecast",
-        subtitle="Deep indigo synthwave candlestick radar, ML trend vector, and Classified Intel Dossiers",
-        badge="CLASSIFIED INTEL DOSSIERS • ML FORECASTING",
+        title="🚨 FALLOUT SCENARIO FORECAST" if doomsday else "BAWSAQ Target Intel & ML Forecast",
+        subtitle=(
+            "Armored bunker candlestick radar, glowing red Fallout ML trend vector & survival dossiers"
+            if doomsday
+            else "Deep indigo synthwave candlestick radar, ML trend vector, and Classified Intel Dossiers"
+        ),
+        badge="FALLOUT SCENARIO INTEL • ML FORECASTING" if doomsday else "CLASSIFIED INTEL DOSSIERS • ML FORECASTING",
         wanted_stars=compute_dynamic_wanted_stars(),
     )
 

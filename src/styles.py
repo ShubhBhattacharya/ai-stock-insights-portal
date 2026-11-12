@@ -6,6 +6,8 @@ import html
 import plotly.graph_objects as go
 import streamlit as st
 
+from src.state import is_doomsday, switch_world_edition
+
 _PALM_LEFT_SVG = (
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 220'%3E"
     "%3Cg fill='%2305020f' opacity='0.9'%3E"
@@ -27,6 +29,24 @@ _PALM_RIGHT_SVG = (
     "%3Cpath d='M176,74 C180,36 196,14 214,6 C198,26 188,50 180,76 Z'/%3E"
     "%3Cpath d='M174,76 C156,42 132,28 106,34 C132,42 156,56 172,78 Z'/%3E"
     "%3Cpath d='M173,82 C142,68 114,76 96,96 C122,86 148,84 174,88 Z'/%3E"
+    "%3C/g%3E%3C/svg%3E"
+)
+
+_RUINED_LEFT_SVG = (
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 220'%3E"
+    "%3Cg fill='%23080403' opacity='0.94'%3E"
+    "%3Cpath d='M0,220 L0,96 L18,90 L28,118 L42,64 L64,52 L72,88 L88,78 L98,132 L116,120 L132,160 L158,150 L176,184 L210,220 Z'/%3E"
+    "%3Crect x='46' y='88' width='8' height='12' fill='%23ff4500' opacity='0.55'/%3E"
+    "%3Crect x='58' y='112' width='8' height='10' fill='%2339ff14' opacity='0.35'/%3E"
+    "%3C/g%3E%3C/svg%3E"
+)
+
+_RUINED_RIGHT_SVG = (
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 220'%3E"
+    "%3Cg fill='%23080403' opacity='0.94'%3E"
+    "%3Cpath d='M280,220 L280,82 L254,74 L240,104 L224,48 L196,62 L188,96 L168,86 L154,142 L134,132 L116,168 L92,160 L70,192 L48,220 Z'/%3E"
+    "%3Crect x='212' y='82' width='8' height='12' fill='%23ff4500' opacity='0.55'/%3E"
+    "%3Crect x='194' y='110' width='8' height='10' fill='%23ffb703' opacity='0.45'/%3E"
     "%3C/g%3E%3C/svg%3E"
 )
 
@@ -131,6 +151,54 @@ GLOBAL_CSS = f"""
 @keyframes phase-seq-3 {{
     0%, 67% {{ opacity: 0.28; }}
     70%, 100% {{ opacity: 1; }}
+}}
+
+@keyframes glitch-scan-sweep {{
+    0% {{ top: -8%; opacity: 0.9; }}
+    50% {{ top: 52%; opacity: 0.75; }}
+    100% {{ top: 105%; opacity: 0.9; }}
+}}
+
+/* Global Edition Toggle Armored Console */
+div[data-testid="stVerticalBlock"]:has(> div.element-container span.edition-toggle-marker),
+div[data-testid="stVerticalBlockBorderWrapper"]:has(span.edition-toggle-marker) {{
+    max-width: 780px !important;
+    margin: 0 auto 0.65rem auto !important;
+    background: linear-gradient(155deg, rgba(22, 26, 38, 0.94), rgba(10, 8, 22, 0.96)) !important;
+    border: 2px solid rgba(0, 245, 212, 0.52) !important;
+    border-radius: 14px !important;
+    padding: 0.45rem 0.75rem 0.6rem 0.75rem !important;
+    box-shadow: 0 0 18px rgba(0, 245, 212, 0.22), inset 0 0 14px rgba(255, 42, 133, 0.14) !important;
+}}
+
+.edition-toggle-header {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #fee440;
+    margin-bottom: 0.35rem;
+}}
+
+.doomsday-glitch-stage {{
+    position: relative;
+    overflow: hidden;
+}}
+
+.doomsday-scan-beam {{
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(180deg, transparent, rgba(57, 255, 20, 0.75), rgba(255, 69, 0, 0.55), transparent);
+    box-shadow: 0 0 22px rgba(57, 255, 20, 0.85);
+    animation: glitch-scan-sweep 1.25s linear infinite;
+    pointer-events: none;
 }}
 
 html, body, [class*="css"] {{
@@ -1143,15 +1211,244 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 </style>
 """
 
+DOOMSDAY_OVERRIDE_CSS = f"""
+<style>
+:root {{
+    --bg-canvas: #0c0604;
+    --bg-violet: #240c06;
+    --bg-surface: rgba(20, 14, 12, 0.93);
+    --bg-steel: linear-gradient(160deg, rgba(44, 42, 40, 0.96) 0%, rgba(20, 16, 15, 0.98) 58%, rgba(34, 22, 16, 0.96) 100%);
+    --neon-pink: #ff4500;
+    --neon-orange: #ff7a00;
+    --neon-yellow: #ffb703;
+    --neon-cyan: #39ff14;
+    --neon-green: #39ff14;
+    --neon-crimson: #ff2a00;
+    --border-neon: rgba(57, 255, 20, 0.56);
+    --border-magenta: rgba(255, 69, 0, 0.68);
+}}
+
+/* Cyber-Apocalypse Fiery Ruined Skyline + Tactical Amber Grid */
+.stApp {{
+    background-color: #0b0504;
+    background-image:
+        url("{_RUINED_LEFT_SVG}"),
+        url("{_RUINED_RIGHT_SVG}"),
+        linear-gradient(90deg, rgba(57, 255, 20, 0.08) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 69, 0, 0.10) 1px, transparent 1px),
+        radial-gradient(circle at 20% 24%, rgba(255, 69, 0, 0.36), transparent 44%),
+        radial-gradient(circle at 80% 18%, rgba(255, 183, 3, 0.24), transparent 42%),
+        radial-gradient(circle at 50% 82%, rgba(255, 42, 0, 0.28), transparent 52%),
+        linear-gradient(180deg, #160603 0%, #3d1205 46%, #260a04 78%, #090504 100%) !important;
+    background-position: left bottom, right bottom, center center, center center, center center, center center, center center, center center !important;
+    background-size: 245px auto, 245px auto, 48px 48px, 48px 48px, 100% 100%, 100% 100%, 100% 100%, 100% 100% !important;
+    box-shadow: inset 0 0 0 3px #2b2623, inset 0 0 34px rgba(255, 69, 0, 0.42) !important;
+}}
+
+/* Razor-Wire & Apocalyptic Noise Scanlines */
+.stApp::after {{
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(57, 255, 20, 0.025) 0px,
+        rgba(57, 255, 20, 0.025) 1px,
+        rgba(255, 69, 0, 0.015) 2px,
+        transparent 3px
+    ) !important;
+}}
+
+/* Armored Blast-Shelter Sidebar HUD */
+section[data-testid="stSidebar"] {{
+    background: linear-gradient(180deg, rgba(20, 16, 14, 0.99) 0%, rgba(30, 16, 11, 0.98) 62%, rgba(12, 9, 8, 0.99) 100%) !important;
+    border-right: 3px solid #ff4500 !important;
+    box-shadow: 4px 0 26px rgba(255, 69, 0, 0.34), inset -2px 0 14px rgba(57, 255, 20, 0.22) !important;
+}}
+
+section[data-testid="stSidebar"] .stRadio label {{
+    border: 1px solid rgba(57, 255, 20, 0.28) !important;
+    background: rgba(18, 14, 12, 0.85) !important;
+}}
+
+section[data-testid="stSidebar"] .stRadio label:hover {{
+    background: linear-gradient(90deg, rgba(255, 69, 0, 0.28), rgba(57, 255, 20, 0.18)) !important;
+    border-color: #39ff14 !important;
+    box-shadow: 0 0 14px rgba(57, 255, 20, 0.42) !important;
+}}
+
+/* Armored Top Banner & Edition Toggle */
+div[data-testid="stVerticalBlock"]:has(> div.element-container span.edition-toggle-marker),
+div[data-testid="stVerticalBlockBorderWrapper"]:has(span.edition-toggle-marker) {{
+    background: linear-gradient(160deg, rgba(38, 34, 32, 0.97), rgba(16, 13, 12, 0.98)) !important;
+    border: 2px solid #ffb703 !important;
+    box-shadow: 0 0 22px rgba(255, 69, 0, 0.45), inset 0 0 14px rgba(57, 255, 20, 0.16) !important;
+}}
+
+.vice-hud-top {{
+    background: linear-gradient(90deg, rgba(28, 22, 20, 0.97), rgba(52, 20, 10, 0.96), rgba(28, 22, 20, 0.97)) !important;
+    border: 2px solid #ff4500 !important;
+    box-shadow: 0 0 20px rgba(255, 69, 0, 0.45), inset 0 0 12px rgba(57, 255, 20, 0.18) !important;
+}}
+
+.wing-pill {{
+    background: linear-gradient(90deg, rgba(255, 69, 0, 0.36), rgba(57, 255, 20, 0.22)) !important;
+    border: 1.5px solid #39ff14 !important;
+    text-shadow: 0 0 8px rgba(57, 255, 20, 0.85) !important;
+}}
+
+.vice-sub-ribbon {{
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.09em !important;
+    color: #ffb703 !important;
+    text-shadow: 0 0 10px rgba(255, 69, 0, 0.9) !important;
+}}
+
+.wanted-rack {{
+    border: 1.5px solid #ff2a00 !important;
+    background: rgba(24, 8, 6, 0.92) !important;
+    box-shadow: 0 0 14px rgba(255, 42, 0, 0.55) !important;
+}}
+
+.portal-hero {{
+    background:
+        url("{_RUINED_LEFT_SVG}"),
+        url("{_RUINED_RIGHT_SVG}"),
+        repeating-linear-gradient(-45deg, rgba(255, 183, 3, 0.06) 0 12px, transparent 12px 24px),
+        linear-gradient(135deg, rgba(26, 15, 12, 0.96) 0%, rgba(58, 20, 8, 0.94) 52%, rgba(18, 22, 16, 0.96) 100%) !important;
+    background-position: left bottom, right bottom, center center, center center !important;
+    background-size: 165px auto, 165px auto, 100% 100%, 100% 100% !important;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat !important;
+    border: 2px solid #39ff14 !important;
+    box-shadow: 0 0 26px rgba(57, 255, 20, 0.32), 0 0 38px rgba(255, 69, 0, 0.34) !important;
+}}
+
+.portal-hero::before {{
+    content: "DEFCON-1 BUNKERNET // RADIATION LEVEL CRIT // SYS.ARMED" !important;
+    color: #ffb703 !important;
+}}
+
+.portal-hero h1,
+.portal-hero h1.vice-calligraphy {{
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.04em !important;
+    background: linear-gradient(180deg, #ff7a00 0%, #ffb703 45%, #39ff14 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    filter: drop-shadow(0 0 12px rgba(57, 255, 20, 0.72)) !important;
+}}
+
+.sidebar-profile-card,
+.safehouse-card,
+.street-race-board {{
+    background: linear-gradient(155deg, rgba(28, 22, 20, 0.97), rgba(14, 11, 10, 0.98)) !important;
+    border: 2px solid #ff4500 !important;
+    box-shadow: 0 0 20px rgba(255, 69, 0, 0.32), inset 0 0 14px rgba(57, 255, 20, 0.14) !important;
+}}
+
+.race-fill-cyan {{
+    background: repeating-linear-gradient(-55deg, #39ff14 0px, #39ff14 10px, #15803d 10px, #15803d 16px) !important;
+    box-shadow: 0 0 12px rgba(57, 255, 20, 0.78) !important;
+}}
+
+.race-fill-pink {{
+    background: repeating-linear-gradient(-55deg, #ff4500 0px, #ff4500 10px, #9a3412 10px, #9a3412 16px) !important;
+    box-shadow: 0 0 12px rgba(255, 69, 0, 0.78) !important;
+}}
+
+.weazel-flash-bar {{
+    background: linear-gradient(90deg, rgba(14, 24, 12, 0.97), rgba(34, 14, 8, 0.97)) !important;
+    border: 2px solid #ffb703 !important;
+    border-left: 6px solid #39ff14 !important;
+    box-shadow: 0 0 20px rgba(255, 69, 0, 0.42) !important;
+}}
+
+.weazel-tag {{
+    background: linear-gradient(90deg, #39ff14, #ffb703) !important;
+}}
+
+.stButton > button[kind="primary"],
+button[data-testid="stBaseButton-primary"],
+button[data-testid="baseButton-primary"] {{
+    color: #fff7ed !important;
+    background: linear-gradient(90deg, #9a1b00 0%, #ff4500 50%, #ffb703 100%) !important;
+    border: 2px solid #ffb703 !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+}}
+
+div[data-testid="stForm"] {{
+    background: rgba(18, 13, 12, 0.94) !important;
+    border: 2px solid #ff4500 !important;
+    box-shadow: 0 0 22px rgba(255, 69, 0, 0.28), inset 0 0 14px rgba(57, 255, 20, 0.14) !important;
+}}
+
+div[data-testid="stVerticalBlock"]:has(> div.element-container span.ifruit-anchor),
+div[data-testid="stVerticalBlockBorderWrapper"]:has(span.ifruit-anchor) {{
+    background: linear-gradient(165deg, rgba(24, 22, 20, 0.98), rgba(14, 18, 14, 0.98)) !important;
+    border: 2px solid #39ff14 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 22px rgba(57, 255, 20, 0.4) !important;
+}}
+</style>
+"""
+
 
 def inject_global_styles() -> None:
-    """Inject GTA VI / Vice City synthwave CSS into the Streamlit page."""
+    """Inject active world edition CSS (GTA VI Vice City or Doomsday Apocalypse)."""
     st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+    if is_doomsday():
+        st.markdown(DOOMSDAY_OVERRIDE_CSS, unsafe_allow_html=True)
+
+
+def render_edition_toggle() -> None:
+    """Render the persistent armored SELECT YOUR WORLD // EDITION TOGGLE console at the top."""
+    doomsday = is_doomsday()
+    active_badge = "☣️ ACTIVE: DOOMSDAY (DEFCON-1)" if doomsday else "🌴 ACTIVE: GTA VI (VICE CITY)"
+    badge_color = "#39ff14" if doomsday else "#00f5d4"
+
+    with st.container():
+        st.markdown('<span class="edition-toggle-marker"></span>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="edition-toggle-header">'
+            f'<span>⚡ SELECT YOUR WORLD // EDITION TOGGLE</span>'
+            f'<span style="color:{badge_color}; font-family:\'Share Tech Mono\',monospace;">{active_badge}</span>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+        col_gta, col_doom = st.columns(2, gap="small")
+        with col_gta:
+            if st.button(
+                "🌴 GTA VI (VICE)",
+                key="edition_btn_gta",
+                type="secondary" if doomsday else "primary",
+                width="stretch",
+            ):
+                if doomsday:
+                    switch_world_edition("GTA VI")
+                    st.rerun()
+        with col_doom:
+            if st.button(
+                "🌋 DOOMSDAY (APOCALYPSE)",
+                key="edition_btn_doomsday",
+                type="primary" if doomsday else "secondary",
+                width="stretch",
+            ):
+                if not doomsday:
+                    switch_world_edition("DOOMSDAY")
+                    st.rerun()
 
 
 def render_wanted_stars_html(active_stars: int = 6, total_stars: int = 6) -> str:
-    """Return HTML markup for a retro 6-star GTA Wanted Level bar."""
+    """Return HTML markup for GTA Wanted stars or Doomsday Apocalypse Alert System triangles."""
     clamped = max(0, min(active_stars, total_stars))
+    if is_doomsday():
+        on_icons = "".join('<span class="wanted-star-on" style="color:#ffb703;">⚠️</span>' for _ in range(clamped))
+        off_icons = "".join('<span class="wanted-star-off">△</span>' for _ in range(total_stars - clamped))
+        return (
+            f'<div class="wanted-rack">'
+            f'<span class="wanted-label" style="color:#ff4500; font-weight:700;">🚨 APOCALYPSE ALERT SYSTEM (TIER {clamped})</span>'
+            f"{on_icons}{off_icons}"
+            f"</div>"
+        )
     stars_on = "".join('<span class="wanted-star-on">★</span>' for _ in range(clamped))
     stars_off = "".join('<span class="wanted-star-off">☆</span>' for _ in range(total_stars - clamped))
     return (
@@ -1163,23 +1460,42 @@ def render_wanted_stars_html(active_stars: int = 6, total_stars: int = 6) -> str
 
 
 def render_vice_hud_banner(wanted_stars: int = 6, telemetry: str = "BAWSAQ // LCN LIVE LINK") -> None:
-    """Render top GTA-style neon wing emblem, 3D portal brand, and dynamic 6-star Wanted rack."""
+    """Render top armored wing emblem, 3D portal brand, and Wanted/Apocalypse Tier HUD."""
+    doomsday = is_doomsday()
     stars_html = render_wanted_stars_html(active_stars=wanted_stars, total_stars=6)
-    safe_telemetry = html.escape(telemetry)
+    safe_telemetry = html.escape(
+        "SECURITY LEVEL: DEFCON-1 · RADIOACTIVITY ALERT" if (doomsday and telemetry == "BAWSAQ // LCN LIVE LINK") else telemetry
+    )
+    wing_text = (
+        "☣️ ★ DRONACHARYA GROUP OF INSTITUTIONS • AKTU ★ ☣️"
+        if doomsday
+        else "🦅 ★ DRONACHARYA GROUP OF INSTITUTIONS • AKTU ★ 🦅"
+    )
+    sub_ribbon = (
+        "⚠️ DEFCON-1 BUNKER PROTOCOL • APOCALYPSE TERMINAL ⚠️"
+        if doomsday
+        else "★ ★ ★ Vice City Special Events • Leonida Terminal ★ ★ ★"
+    )
+    title_grad = (
+        "linear-gradient(90deg,#ffb703,#ff4500,#39ff14)"
+        if doomsday
+        else "linear-gradient(90deg,#ff2a85,#ff7a00,#fee440)"
+    )
+
     st.markdown(
         f'<div class="vice-hud-top">'
         f'<div class="vice-telemetry-tag">▸▸ {safe_telemetry}<br/>'
         f'<span style="font-family:\'Orbitron\',sans-serif; font-weight:900; font-size:0.78rem; '
-        f'background:linear-gradient(90deg,#ff2a85,#ff7a00,#fee440); -webkit-background-clip:text; '
-        f'-webkit-text-fill-color:transparent; filter:drop-shadow(0 0 6px rgba(0,245,212,0.55));">'
+        f'background:{title_grad}; -webkit-background-clip:text; '
+        f'-webkit-text-fill-color:transparent; filter:drop-shadow(0 0 6px rgba(57,255,20,0.45));">'
         f'AI STOCK INSIGHTS PORTAL · BCC 351</span></div>'
         f'<div class="vice-wing-emblem">'
         f'<div class="vice-wing-row">'
         f'<span class="wing-chevron"></span>'
-        f'<span class="wing-pill">🦅 ★ DRONACHARYA GROUP OF INSTITUTIONS • AKTU ★ 🦅</span>'
+        f'<span class="wing-pill">{wing_text}</span>'
         f'<span class="wing-chevron right"></span>'
         f"</div>"
-        f'<div class="vice-sub-ribbon">★ ★ ★ Vice City Special Events • Leonida Terminal ★ ★ ★</div>'
+        f'<div class="vice-sub-ribbon">{sub_ribbon}</div>'
         f"</div>"
         f"{stars_html}"
         f"</div>",
@@ -1194,31 +1510,110 @@ def render_page_header(
     use_calligraphy: bool = False,
     wanted_stars: int = 6,
 ) -> None:
-    """Render the GTA VI neon wing HUD bar and Vice City synthwave hero banner."""
+    """Render top HUD wing bar and edition-adaptive synthwave/apocalypse hero banner."""
+    doomsday = is_doomsday()
     render_vice_hud_banner(wanted_stars=wanted_stars)
     safe_badge = html.escape(badge)
     safe_title = html.escape(title)
     safe_subtitle = html.escape(subtitle)
-    title_cls = ' class="vice-calligraphy"' if use_calligraphy else ""
+    title_cls = ' class="vice-calligraphy"' if (use_calligraphy and not doomsday) else ""
+    badge_icon = "☣️" if doomsday else "🌴"
+    right_pill = "☢️ 📉🔥 DEFCON-1 INDEX ▾▾" if doomsday else "🌅 📈🌴 BAWSAQ INDEX ▲▲"
+
     st.markdown(
         f'<div class="portal-hero">'
-        f'<div class="portal-hero-badge">🌴 {safe_badge}</div>'
+        f'<div class="portal-hero-badge">{badge_icon} {safe_badge}</div>'
         f'<div class="portal-hero-row">'
         f"<div style='flex:1; min-width:260px;'>"
         f"<h1{title_cls}>{safe_title}</h1>"
         f"<p>▸▸ {safe_subtitle}</p>"
         f"</div>"
-        f'<div class="pixel-arrow-pill">🌅 📈🌴 BAWSAQ INDEX ▲▲</div>'
+        f'<div class="pixel-arrow-pill">{right_pill}</div>'
         f"</div>"
         f"</div>",
         unsafe_allow_html=True,
     )
 
 
+def render_doomsday_reboot_overlay() -> None:
+    """Render full-screen Fallback / Emergency Reboot transition when switching into Doomsday."""
+    render_vice_hud_banner(wanted_stars=6, telemetry="EMERGENCY REBOOT // BUNKER.NET")
+    st.markdown(
+        """
+        <div class="leonida-transition-shell">
+            <div class="steel-rivet-card doomsday-glitch-stage" style="text-align:center; padding:1.75rem 1.5rem;">
+                <div class="doomsday-scan-beam"></div>
+                <span class="rivet-dot rivet-tl"></span>
+                <span class="rivet-dot rivet-tr"></span>
+                <span class="rivet-dot rivet-bl"></span>
+                <span class="rivet-dot rivet-br"></span>
+                <div style="font-family:'Orbitron',sans-serif; color:#ffb703; font-size:0.85rem; letter-spacing:0.14em;">
+                    ⚠️ FALLBACK / EMERGENCY REBOOT INITIATED
+                </div>
+                <div class="cyber-uplink-crest" style="border-color:#ff4500;">
+                    <div class="cyber-uplink-ring" style="border-color:#39ff14;"></div>
+                    <div style="font-size:3.2rem; filter:drop-shadow(0 0 14px #39ff14);">☣️</div>
+                </div>
+                <div class="neon-progress-track" style="border-color:#39ff14;">
+                    <div class="neon-progress-fill" style="background:linear-gradient(90deg,#9a1b00,#ff4500,#ffb703,#39ff14);"></div>
+                </div>
+                <div class="holo-ticker-strip" style="color:#39ff14; border-color:rgba(255,69,0,0.55);">
+                    <div class="holo-ticker-inner">
+                        DEFCON-1 ACTIVE // BUNKER.NET ENCRYPTED LINK &nbsp;//&nbsp; NSE FEED ROUTED TO SHELTER NODES
+                        &nbsp;//&nbsp; RADIATION SHIELDS: ENGAGED
+                    </div>
+                </div>
+                <div class="glitch-seq-line seq-1" style="color:#ff4500;">▸ ALERT: REDIRECTING TO bunker.net CLIENT...</div>
+                <div class="glitch-seq-line seq-2" style="color:#ffb703;">▸ BYPASSING GLOBAL SECURITY RADARS...</div>
+                <div class="glitch-seq-line seq-3" style="color:#39ff14;">▸ DEFCON-1 STATUS ACTIVE // BUNKER ONLINE</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_login_transition_overlay(username: str) -> None:
-    """Render the 2-second cinematic GTA VI neon progress & glitch transition screen."""
-    render_vice_hud_banner(wanted_stars=6, telemetry="LEONIDA ENTRY PROTOCOL")
+    """Render edition-aware 2-second cinematic login loading transition."""
+    doomsday = is_doomsday()
     safe_user = html.escape(username)
+    if doomsday:
+        render_vice_hud_banner(wanted_stars=6, telemetry="BUNKER.NET ENTRY PROTOCOL")
+        st.markdown(
+            f"""
+            <div class="leonida-transition-shell">
+                <div class="steel-rivet-card doomsday-glitch-stage" style="text-align:center; padding:1.75rem 1.5rem;">
+                    <div class="doomsday-scan-beam"></div>
+                    <span class="rivet-dot rivet-tl"></span>
+                    <span class="rivet-dot rivet-tr"></span>
+                    <span class="rivet-dot rivet-bl"></span>
+                    <span class="rivet-dot rivet-br"></span>
+                    <div style="font-family:'Orbitron',sans-serif; color:#39ff14; font-size:0.82rem; letter-spacing:0.14em;">
+                        SURVIVOR CLEARANCE // {safe_user.upper()}
+                    </div>
+                    <div class="cyber-uplink-crest" style="border-color:#ff4500;">
+                        <div class="cyber-uplink-ring" style="border-color:#39ff14;"></div>
+                        <div style="font-size:3.1rem; filter:drop-shadow(0 0 14px #39ff14);">☣️</div>
+                    </div>
+                    <div class="neon-progress-track" style="border-color:#39ff14;">
+                        <div class="neon-progress-fill" style="background:linear-gradient(90deg,#9a1b00,#ff4500,#ffb703,#39ff14);"></div>
+                    </div>
+                    <div class="holo-ticker-strip" style="color:#39ff14; border-color:rgba(255,69,0,0.55);">
+                        <div class="holo-ticker-inner">
+                            BUNKER.NET UPLINK LOCKED &nbsp;//&nbsp; RELIANCE.NS &nbsp;//&nbsp; TCS.NS &nbsp;//&nbsp; SBIN.NS &nbsp;//&nbsp; WAR CAPITAL READY
+                        </div>
+                    </div>
+                    <div class="glitch-seq-line seq-1" style="color:#ff4500;">▸ ALERT: CONNECTING TO BUNKER.NET...</div>
+                    <div class="glitch-seq-line seq-2" style="color:#ffb703;">▸ BYPASSING GLOBAL SECURITY RADARS...</div>
+                    <div class="glitch-seq-line seq-3" style="color:#39ff14;">▸ DEFCON-1 STATUS ACTIVE // ACCESS GRANTED</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    render_vice_hud_banner(wanted_stars=6, telemetry="LEONIDA ENTRY PROTOCOL")
     st.markdown(
         f"""
         <div class="leonida-transition-shell">
@@ -1254,13 +1649,19 @@ def render_login_transition_overlay(username: str) -> None:
 
 
 def render_weazel_flash_ticker(headlines: list[str]) -> None:
-    """Render the bottom WEAZEL NEWS // LEONIDA MARKET FLASH breaking news ticker."""
+    """Render lower-third breaking ticker: WEAZEL NEWS (GTA VI) or DISASTER BROADCAST NETWORK (Doomsday)."""
+    doomsday = is_doomsday()
     joined = "   ✦   ".join(html.escape(h) for h in headlines if h)
     if not joined:
-        joined = "BAWSAQ / LCN EQUITIES MONITORING ACTIVE — NO EXTREME SIGNAL ALERTS TRIGGERED"
+        joined = (
+            "CRITICAL EMERGENCY MONITORING ACTIVE — BUNKER.NET NSE SURVEILLANCE LOCKED"
+            if doomsday
+            else "BAWSAQ / LCN EQUITIES MONITORING ACTIVE — NO EXTREME SIGNAL ALERTS TRIGGERED"
+        )
+    tag_text = "☣️ DISASTER BROADCAST NETWORK" if doomsday else "WEAZEL NEWS // LEONIDA MARKET FLASH"
     st.markdown(
         f'<div class="weazel-flash-bar">'
-        f'<div class="weazel-tag">WEAZEL NEWS // LEONIDA MARKET FLASH</div>'
+        f'<div class="weazel-tag">{tag_text}</div>'
         f'<div class="weazel-marquee-wrap">'
         f'<div class="weazel-marquee-track">{joined} &nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp; {joined}</div>'
         f"</div>"
@@ -1304,11 +1705,18 @@ def render_kpi_grid(cards: list[dict[str, str]]) -> None:
 
 
 def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = None) -> go.Figure:
-    """Apply deep indigo Vice City synthwave styling to Plotly figures."""
+    """Apply active world edition styling (Vice City synthwave or Doomsday bunker) to Plotly figures."""
+    doomsday = is_doomsday()
+    paper_bg = "rgba(16, 11, 9, 0.94)" if doomsday else "rgba(11, 5, 36, 0.92)"
+    plot_bg = "rgba(24, 15, 11, 0.92)" if doomsday else "rgba(16, 7, 46, 0.90)"
+    accent_primary = "#39ff14" if doomsday else "#00f5d4"
+    grid_x = "rgba(255, 69, 0, 0.18)" if doomsday else "rgba(255, 42, 133, 0.16)"
+    grid_y = "rgba(57, 255, 20, 0.14)" if doomsday else "rgba(0, 245, 212, 0.12)"
+
     layout_kwargs: dict = {
         "template": "plotly_dark",
-        "paper_bgcolor": "rgba(11, 5, 36, 0.92)",
-        "plot_bgcolor": "rgba(16, 7, 46, 0.90)",
+        "paper_bgcolor": paper_bg,
+        "plot_bgcolor": plot_bg,
         "font": {"family": "Share Tech Mono, Rajdhani, sans-serif", "color": "#f8fafc", "size": 12},
         "height": height,
         "margin": {"l": 16, "r": 16, "t": 58, "b": 28},
@@ -1319,26 +1727,26 @@ def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = N
             "y": 1.02,
             "xanchor": "right",
             "x": 1,
-            "bgcolor": "rgba(10, 4, 28, 0.65)",
-            "bordercolor": "rgba(0, 245, 212, 0.35)",
+            "bgcolor": "rgba(10, 4, 28, 0.65)" if not doomsday else "rgba(16, 10, 8, 0.78)",
+            "bordercolor": "rgba(57, 255, 20, 0.42)" if doomsday else "rgba(0, 245, 212, 0.35)",
             "borderwidth": 1,
         },
     }
     if title:
         layout_kwargs["title"] = {
             "text": title,
-            "font": {"family": "Orbitron, sans-serif", "size": 15, "color": "#00f5d4"},
+            "font": {"family": "Orbitron, sans-serif", "size": 15, "color": accent_primary},
         }
 
     fig.update_layout(**layout_kwargs)
     fig.update_xaxes(
-        gridcolor="rgba(255, 42, 133, 0.16)",
-        linecolor="rgba(0, 245, 212, 0.35)",
+        gridcolor=grid_x,
+        linecolor=accent_primary,
         zeroline=False,
     )
     fig.update_yaxes(
-        gridcolor="rgba(0, 245, 212, 0.12)",
-        linecolor="rgba(255, 42, 133, 0.35)",
+        gridcolor=grid_y,
+        linecolor="#ff4500" if doomsday else "rgba(255, 42, 133, 0.35)",
         zeroline=False,
     )
     return fig

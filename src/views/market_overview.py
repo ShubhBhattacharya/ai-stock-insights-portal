@@ -8,7 +8,7 @@ import streamlit as st
 
 from src.constants import NSE_STOCKS
 from src.services.market_data import clear_market_cache, fetch_batch_overview
-from src.state import compute_dynamic_wanted_stars, set_context_risk_heat
+from src.state import compute_dynamic_wanted_stars, is_doomsday, set_context_risk_heat
 from src.styles import (
     render_kpi_grid,
     render_page_header,
@@ -18,12 +18,17 @@ from src.styles import (
 
 
 def render_market_overview() -> None:
-    """Render concurrent multi-stock BAWSAQ / LCN heist board with Sector Turf Map & Weazel Flash."""
+    """Render concurrent multi-stock BAWSAQ / Fallout Sector Matrix with Treemap & Flash Ticker."""
+    doomsday = is_doomsday()
     wanted_stars = compute_dynamic_wanted_stars()
     render_page_header(
-        title="BAWSAQ / LCN — LIVE NSE HEIST BOARD",
-        subtitle="Real-time Leonida scanner of NSE equities, Sector Turf Map, and neon BUY/SELL triggers",
-        badge="BAWSAQ / LCN • LIVE NSE HEIST BOARD",
+        title="💥 FALLOUT / DEFCON SECTOR MATRIX" if doomsday else "BAWSAQ / LCN — LIVE NSE HEIST BOARD",
+        subtitle=(
+            "Emergency NSE telemetry diagnostics, Fallout Sector Matrix & Disaster Broadcast alerts"
+            if doomsday
+            else "Real-time Leonida scanner of NSE equities, Sector Turf Map, and neon BUY/SELL triggers"
+        ),
+        badge="DEFCON-1 MATRIX • FALLOUT DIAGNOSTICS" if doomsday else "BAWSAQ / LCN • LIVE NSE HEIST BOARD",
         wanted_stars=wanted_stars,
     )
 
@@ -141,15 +146,18 @@ def render_market_overview() -> None:
         )
 
     st.markdown("---")
-    st.subheader("🗺️ Leonida Sector Turf Map (BAWSAQ Heat Treemap)")
+    st.subheader(
+        "☢️ Fallout Sector Risk Treemap" if doomsday else "🗺️ Leonida Sector Turf Map (BAWSAQ Heat Treemap)"
+    )
     treemap_df = df_ov.copy()
     treemap_df["TurfWeight"] = treemap_df["Confidence"].clip(lower=20)
+    tree_scale = ["#ff2a00", "#1f120b", "#39ff14"] if doomsday else ["#ff2a85", "#1b0b3a", "#00f5d4"]
     fig_tree = px.treemap(
         treemap_df,
-        path=[px.Constant("NSE LEONIDA TURF"), "Sector", "Symbol"],
+        path=[px.Constant("DEFCON SECTOR GRID" if doomsday else "NSE LEONIDA TURF"), "Sector", "Symbol"],
         values="TurfWeight",
         color="Change %",
-        color_continuous_scale=["#ff2a85", "#1b0b3a", "#00f5d4"],
+        color_continuous_scale=tree_scale,
         color_continuous_midpoint=0.0,
         hover_data={
             "Company Name": True,
@@ -160,7 +168,11 @@ def render_market_overview() -> None:
             "Confidence": True,
         },
     )
-    style_plotly_figure(fig_tree, height=430, title="SECTOR CONTROL MAP (CYAN = GAIN // PINK = SELLOFF)")
+    style_plotly_figure(
+        fig_tree,
+        height=430,
+        title="DEFCON SECTOR DIAGNOSTICS" if doomsday else "SECTOR CONTROL MAP (CYAN = GAIN // PINK = SELLOFF)",
+    )
     fig_tree.update_traces(
         textinfo="label+text",
         texttemplate="<b>%{label}</b><br>%{customdata[2]:+.2f}%",

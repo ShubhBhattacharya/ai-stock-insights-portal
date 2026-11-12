@@ -14,6 +14,8 @@ def init_session_state() -> None:
     defaults = {
         "authenticated": False,
         "transitioning": False,
+        "edition_transitioning": False,
+        "world_edition": "GTA VI",
         "username": "Guest User",
         "users": dict(DEFAULT_USERS),
         "cash_balance": INITIAL_VIRTUAL_CAPITAL,
@@ -49,6 +51,23 @@ def logout() -> None:
     """Clear authentication and transition flags for the current session."""
     st.session_state["authenticated"] = False
     st.session_state["transitioning"] = False
+    st.session_state["edition_transitioning"] = False
+
+
+def is_doomsday() -> bool:
+    """Return True when the active world edition is Doomsday (Apocalypse)."""
+    return st.session_state.get("world_edition", "GTA VI") == "DOOMSDAY"
+
+
+def switch_world_edition(edition: str) -> None:
+    """Switch active world edition ('GTA VI' or 'DOOMSDAY') and trigger reboot transition for Doomsday."""
+    normalized = "DOOMSDAY" if edition == "DOOMSDAY" else "GTA VI"
+    current = st.session_state.get("world_edition", "GTA VI")
+    st.session_state["world_edition"] = normalized
+    if normalized == "DOOMSDAY" and current != "DOOMSDAY":
+        st.session_state["edition_transitioning"] = True
+    else:
+        st.session_state["edition_transitioning"] = False
 
 
 def reset_paper_portfolio() -> None:

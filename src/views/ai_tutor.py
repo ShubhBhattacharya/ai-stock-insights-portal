@@ -6,15 +6,16 @@ import html
 import streamlit as st
 
 from src.services.tutor import CURRICULUM_MODULES, QUICK_PROMPTS, generate_tutor_turn
-from src.state import compute_dynamic_wanted_stars
+from src.state import compute_dynamic_wanted_stars, is_doomsday
 from src.styles import render_page_header
 from src.views.character_stage import render_character_stage
 
 
 def _handle_chat_turn(prompt: str) -> None:
     """Append user prompt, analyze live NSE stocks if mentioned, and drive character state."""
+    edition = "DOOMSDAY" if is_doomsday() else "GTA VI"
     st.session_state.messages.append({"role": "user", "content": prompt})
-    reply, mood, scans = generate_tutor_turn(prompt)
+    reply, mood, scans = generate_tutor_turn(prompt, edition=edition)
     st.session_state.messages.append({"role": "assistant", "content": reply})
     st.session_state["tutor_mood"] = mood
     st.session_state["tutor_scans"] = scans
@@ -23,11 +24,25 @@ def _handle_chat_turn(prompt: str) -> None:
 
 
 def render_ai_tutor() -> None:
-    """Render full-body animated Vice City character stage + Arcade Chat Terminal + Curriculum."""
+    """Render full-body animated dual-world character stage + Chat Terminal + Curriculum."""
+    doomsday = is_doomsday()
+    edition = "DOOMSDAY" if doomsday else "GTA VI"
     render_page_header(
-        title="UNDERGROUND CYBER HACKER / LESTER INTEL TERMINAL",
-        subtitle="Full-body Vice City AI Insider powered by live NSE telemetry, RSI scanners & Hinglish chat",
-        badge="INTERACTIVE CHARACTER TERMINAL • LIVE NSE AI",
+        title=(
+            "UNDERGROUND SHELTER AI TERMINAL // BUNKER INTEL"
+            if doomsday
+            else "UNDERGROUND CYBER HACKER / LESTER INTEL TERMINAL"
+        ),
+        subtitle=(
+            "Full-body Doomsday Bunker Tactician powered by live NSE telemetry, radiation scanners & Hinglish chat"
+            if doomsday
+            else "Full-body Vice City AI Insider powered by live NSE telemetry, RSI scanners & Hinglish chat"
+        ),
+        badge=(
+            "DEFCON-1 BUNKER AI TERMINAL • LIVE NSE"
+            if doomsday
+            else "INTERACTIVE CHARACTER TERMINAL • LIVE NSE AI"
+        ),
         wanted_stars=compute_dynamic_wanted_stars(),
     )
 
@@ -36,7 +51,9 @@ def render_ai_tutor() -> None:
     st.session_state.setdefault("tutor_turn_id", 0)
 
     tab_assistant, tab_course = st.tabs(
-        ["🕹️ ARCADE CHAT TERMINAL", "📚 DECRYPTED CURRICULUM"]
+        ["🛡️ BUNKER AI CHAT TERMINAL", "📚 SURVIVAL INTEL ARCHIVE"]
+        if doomsday
+        else ["🕹️ ARCADE CHAT TERMINAL", "📚 DECRYPTED CURRICULUM"]
     )
 
     with tab_assistant:
@@ -49,19 +66,31 @@ def render_ai_tutor() -> None:
                 is_speaking=is_speaking,
                 turn_id=int(st.session_state.get("tutor_turn_id", 0)),
                 operator_name=str(st.session_state.get("username", "SHUBH")),
+                edition=edition,
             )
 
         with col_chat:
+            terminal_title = (
+                "☣️ BUNKER AI CHAT TERMINAL // ENCRYPTED UPLINK"
+                if doomsday
+                else "🕹️ ARCADE CHAT TERMINAL // LIVE NSE UPLINK"
+            )
+            terminal_title_color = "#39ff14" if doomsday else "#00f5d4"
+            terminal_status = (
+                "● DEFCON-1 LINK: ACTIVE"
+                if doomsday
+                else "● STATUS: ACTIVE / ENCRYPTED"
+            )
             st.markdown(
                 '<div class="steel-rivet-card" style="padding:0.8rem 1.15rem; margin-bottom:0.75rem;">'
                 '<span class="rivet-dot rivet-tl"></span><span class="rivet-dot rivet-tr"></span>'
                 '<span class="rivet-dot rivet-bl"></span><span class="rivet-dot rivet-br"></span>'
                 '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">'
-                '<span style="font-family:\'Orbitron\',sans-serif; font-size:0.95rem; font-weight:800; color:#00f5d4;">'
-                "🕹️ ARCADE CHAT TERMINAL // LIVE NSE UPLINK"
+                f'<span style="font-family:\'Orbitron\',sans-serif; font-size:0.95rem; font-weight:800; color:{terminal_title_color};">'
+                f"{terminal_title}"
                 "</span>"
                 '<span style="font-family:\'Share Tech Mono\',monospace; font-size:0.72rem; color:#39ff14;">'
-                "● STATUS: ACTIVE / ENCRYPTED"
+                f"{terminal_status}"
                 "</span>"
                 "</div></div>",
                 unsafe_allow_html=True,
@@ -109,7 +138,11 @@ def render_ai_tutor() -> None:
                 st.rerun()
 
     with tab_course:
-        st.subheader("📖 Classified Street Curriculum")
+        st.subheader(
+            "📖 Classified Survival Intelligence Archive"
+            if doomsday
+            else "📖 Classified Street Curriculum"
+        )
         topic = st.selectbox(
             "Select Intel File to Decrypt:",
             list(CURRICULUM_MODULES.keys()),

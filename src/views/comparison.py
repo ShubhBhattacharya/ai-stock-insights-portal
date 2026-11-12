@@ -9,7 +9,7 @@ import streamlit as st
 
 from src.constants import NSE_STOCKS
 from src.services.market_data import get_stock_analysis
-from src.state import compute_dynamic_wanted_stars, set_context_risk_heat
+from src.state import compute_dynamic_wanted_stars, is_doomsday, set_context_risk_heat
 from src.styles import render_page_header, render_signal_badge, render_wanted_stars_html, style_plotly_figure
 
 
@@ -36,7 +36,10 @@ def _compute_race_scores(metrics: dict) -> dict[str, int]:
 
 
 def _render_street_race_arena(name1: str, m1: dict, name2: str, m2: dict) -> None:
-    """Render animated Cyan vs. Hot Pink segmented racing bars with 🏆 WINNER crown."""
+    """Render animated segmented racing bars (Cyan/Pink in GTA VI or Green/Red in Doomsday)."""
+    doomsday = is_doomsday()
+    c1_color = "#39ff14" if doomsday else "#00f5d4"
+    c2_color = "#ff4500" if doomsday else "#ff2a85"
     s1 = _compute_race_scores(m1)
     s2 = _compute_race_scores(m2)
     if s1["overall"] >= s2["overall"]:
@@ -53,7 +56,7 @@ def _render_street_race_arena(name1: str, m1: dict, name2: str, m2: dict) -> Non
             f'<div style="display:flex; justify-content:space-between; font-family:\'Orbitron\',sans-serif; font-size:0.74rem; color:#fee440; margin-bottom:0.2rem;">'
             f'<span>▸ {html.escape(title)}</span>'
             f'<span style="font-family:\'Share Tech Mono\',monospace; color:#cbd5e1;">'
-            f'<span style="color:#00f5d4;">{t1}: {detail1}</span> &nbsp;|&nbsp; <span style="color:#ff2a85;">{t2}: {detail2}</span>'
+            f'<span style="color:{c1_color};">{t1}: {detail1}</span> &nbsp;|&nbsp; <span style="color:{c2_color};">{t2}: {detail2}</span>'
             f"</span></div>"
             f'<div class="race-track"><div class="race-fill-cyan" style="width:{v1}%;"></div></div>'
             f'<div class="race-track"><div class="race-fill-pink" style="width:{v2}%;"></div></div>'
@@ -61,18 +64,25 @@ def _render_street_race_arena(name1: str, m1: dict, name2: str, m2: dict) -> Non
         )
 
     bars_html = (
-        _bar_pair("OVERALL STREET RACE SCORE", s1["overall"], s2["overall"], f"{s1['overall']}/100", f"{s2['overall']}/100")
+        _bar_pair("OVERALL COMPOSITE SCORE", s1["overall"], s2["overall"], f"{s1['overall']}/100", f"{s2['overall']}/100")
         + _bar_pair("RSI MOMENTUM HEALTH", s1["rsi"], s2["rsi"], f"RSI {m1['rsi']:.1f} ({s1['rsi']} pts)", f"RSI {m2['rsi']:.1f} ({s2['rsi']} pts)")
         + _bar_pair("50-SMA TREND VECTOR", s1["sma"], s2["sma"], f"₹{m1['sma50']:,.0f} ({s1['sma']} pts)", f"₹{m2['sma50']:,.0f} ({s2['sma']} pts)")
         + _bar_pair("AI SIGNAL CONFIDENCE", s1["ai"], s2["ai"], f"{m1['signal']} {m1['confidence']}%", f"{m2['signal']} {m2['confidence']}%")
     )
 
+    arena_sub = (
+        "TACTICAL WAR SIMULATION // TOXIC GREEN VS WAR AMBER"
+        if doomsday
+        else "STREET RACE MODE: ACTIVE // CYAN VS HOT PINK"
+    )
+    arena_title = "⚔️ TACTICAL WAR SIMULATION" if doomsday else "🏁 HEAD-TO-HEAD STREET RACE"
+
     st.markdown(
         f'<div class="street-race-board">'
         f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem; margin-bottom:0.85rem;">'
-        f'<div><span style="font-family:\'Share Tech Mono\',monospace; color:#00f5d4; font-size:0.72rem; letter-spacing:0.08em;">'
-        f'STREET RACE MODE: ACTIVE // CYAN VS HOT PINK</span>'
-        f'<h3 style="margin:0.1rem 0 0 0; font-family:\'Orbitron\',sans-serif; color:#ffffff;">🏁 HEAD-TO-HEAD STREET RACE</h3></div>'
+        f'<div><span style="font-family:\'Share Tech Mono\',monospace; color:{c1_color}; font-size:0.72rem; letter-spacing:0.08em;">'
+        f"{arena_sub}</span>"
+        f'<h3 style="margin:0.1rem 0 0 0; font-family:\'Orbitron\',sans-serif; color:#ffffff;">{arena_title}</h3></div>'
         f'<span class="race-winner-pill">{html.escape(winner_label)}</span>'
         f"</div>"
         f"{bars_html}"
@@ -110,11 +120,16 @@ def _render_stock_summary_card(name: str, metrics: dict, corner_tag: str) -> Non
 
 
 def render_stock_comparison() -> None:
-    """Render head-to-head BAWSAQ vs LCN Street Race bars, metrics, and normalized returns."""
+    """Render edition-adaptive comparison racing bars, metrics, and normalized cumulative returns."""
+    doomsday = is_doomsday()
     render_page_header(
-        title="BAWSAQ vs LCN // Head-to-Head Street Race",
-        subtitle="Animated Cyan vs. Hot Pink segmented racing bars comparing RSI, SMA, and AI confidence",
-        badge="STREET RACE MODE • SYNDICATE DUEL",
+        title="DEFCON DUEL // Tactical War Simulation" if doomsday else "BAWSAQ vs LCN // Head-to-Head Street Race",
+        subtitle=(
+            "Side-by-side survival benchmark comparing RSI stability, SMA vector & AI confidence"
+            if doomsday
+            else "Animated Cyan vs. Hot Pink segmented racing bars comparing RSI, SMA, and AI confidence"
+        ),
+        badge="TACTICAL WAR SIMULATION • BUNKER DUEL" if doomsday else "STREET RACE MODE • SYNDICATE DUEL",
         wanted_stars=compute_dynamic_wanted_stars(),
     )
 
@@ -206,6 +221,7 @@ def render_stock_comparison() -> None:
     norm1 = ((aligned1 / aligned1.iloc[0]) - 1) * 100
     norm2 = ((aligned2 / aligned2.iloc[0]) - 1) * 100
 
+    doomsday = is_doomsday()
     fig_comp = go.Figure()
     fig_comp.add_trace(
         go.Scatter(
@@ -213,7 +229,7 @@ def render_stock_comparison() -> None:
             y=norm1,
             mode="lines",
             name=f"{s1_name} ({norm1.iloc[-1]:+.1f}%)",
-            line=dict(color="#00f0ff", width=2.4),
+            line=dict(color="#39ff14" if doomsday else "#00f0ff", width=2.4),
         )
     )
     fig_comp.add_trace(
@@ -222,10 +238,18 @@ def render_stock_comparison() -> None:
             y=norm2,
             mode="lines",
             name=f"{s2_name} ({norm2.iloc[-1]:+.1f}%)",
-            line=dict(color="#ff2a85", width=2.4),
+            line=dict(color="#ff4500" if doomsday else "#ff2a85", width=2.4),
         )
     )
-    fig_comp.add_hline(y=0, line_dash="dot", line_color="rgba(255, 230, 0, 0.45)")
-    style_plotly_figure(fig_comp, height=460, title="CUMULATIVE RETURN TURF WAR (%)")
+    fig_comp.add_hline(
+        y=0,
+        line_dash="dot",
+        line_color="rgba(255, 183, 3, 0.45)" if doomsday else "rgba(255, 230, 0, 0.45)",
+    )
+    style_plotly_figure(
+        fig_comp,
+        height=460,
+        title="BUNKER SECTOR SURVIVAL RETURN (%)" if doomsday else "CUMULATIVE RETURN TURF WAR (%)",
+    )
     fig_comp.update_yaxes(title_text="Return (%)")
     st.plotly_chart(fig_comp, width="stretch")
