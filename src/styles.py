@@ -225,24 +225,8 @@ html, body, [data-testid="stAppViewContainer"], .stApp {{
     background-position: left bottom, right bottom, center center, center center, center center, center center, center center, center center;
     background-size: 230px auto, 230px auto, 56px 56px, 56px 56px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
     background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-    background-attachment: fixed;
-    box-shadow: inset 0 0 0 2px rgba(255, 42, 133, 0.52), inset 0 0 30px rgba(0, 245, 212, 0.26);
-}}
-
-/* CRT Digital Scanline Overlay (Non-interactive) */
-.stApp::after {{
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 999;
-    background: repeating-linear-gradient(
-        0deg,
-        rgba(255, 255, 255, 0.024) 0px,
-        rgba(255, 255, 255, 0.024) 1px,
-        transparent 1px,
-        transparent 3px
-    );
+    border-top: 2px solid rgba(255, 42, 133, 0.52);
+    border-bottom: 2px solid rgba(0, 245, 212, 0.42);
 }}
 
 /* Main Container Spacing */
@@ -687,19 +671,18 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
 
 .kpi-card {{
     position: relative;
-    background: var(--bg-surface);
+    background: rgba(14, 7, 36, 0.94);
     border: 1.5px solid var(--border-neon);
     border-radius: var(--radius-md);
     padding: 0.95rem 1.1rem;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 16px rgba(0, 245, 212, 0.16), inset 0 0 12px rgba(255, 42, 133, 0.09);
-    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    box-shadow: 0 0 12px rgba(0, 245, 212, 0.16);
+    will-change: transform;
+    transition: transform 0.18s ease, border-color 0.18s ease;
 }}
 
 .kpi-card:hover {{
     transform: translateY(-2px);
     border-color: var(--neon-pink);
-    box-shadow: 0 0 22px rgba(255, 42, 133, 0.38), 0 0 12px rgba(0, 245, 212, 0.3);
 }}
 
 .kpi-label {{
@@ -921,8 +904,8 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(span.ifruit-anchor) {{
     border: 2px solid #00f5d4 !important;
     border-radius: 18px !important;
     padding: 0.55rem 0.7rem !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), 0 0 22px rgba(0, 245, 212, 0.36) !important;
-    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.78) !important;
+    will-change: transform;
 }}
 
 @media (max-width: 768px) {{
@@ -1030,8 +1013,122 @@ button[data-testid="baseButton-primary"] {{
     border: 2px solid #fee440 !important;
     border-radius: 10px !important;
     min-height: 46px !important;
-    animation: vice-pulse 2.4s infinite;
+    box-shadow: 0 0 14px rgba(0, 245, 212, 0.45);
+    will-change: transform;
     transition: transform 0.15s ease, filter 0.15s ease !important;
+}}
+
+/* Tactical Command Board Ticker Cards & Bottom Status Strip */
+.tactical-card {{
+    position: relative;
+    background: rgba(11, 5, 30, 0.94);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 0.85rem;
+    will-change: transform;
+    transition: transform 0.16s ease;
+}}
+.tactical-card:hover {{
+    transform: translateY(-2px);
+}}
+.tactical-card-cyan {{
+    border: 2px solid #00f5d4;
+    box-shadow: 0 0 14px rgba(0, 245, 212, 0.28);
+}}
+.tactical-card-magenta {{
+    border: 2px solid #ff2a85;
+    box-shadow: 0 0 14px rgba(255, 42, 133, 0.28);
+}}
+.tactical-hazard-strip {{
+    height: 7px;
+    width: 100%;
+    background: repeating-linear-gradient(
+        -55deg,
+        #fee440 0px,
+        #fee440 8px,
+        #0b0714 8px,
+        #0b0714 16px
+    );
+}}
+.tactical-card-inner {{
+    padding: 0.65rem 0.85rem;
+}}
+.tactical-grid-head,
+.tactical-grid-row {{
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 0.9fr;
+    gap: 0.35rem;
+    align-items: center;
+    font-family: 'Share Tech Mono', monospace;
+}}
+.tactical-grid-head {{
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #94a3b8;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    padding-bottom: 0.32rem;
+    margin-bottom: 0.32rem;
+}}
+.tactical-grid-row {{
+    font-size: 0.84rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+    font-variant-numeric: tabular-nums;
+}}
+.tactical-grid-row:last-child {{
+    border-bottom: none;
+    padding-bottom: 0.1rem;
+}}
+.tactical-sym {{
+    color: #f8fafc;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}}
+.tactical-pos {{ color: #39ff14; font-weight: 700; text-align: right; }}
+.tactical-neg {{ color: #ff4d6d; font-weight: 700; text-align: right; }}
+.tactical-rng {{ color: #cbd5e1; font-weight: 600; text-align: right; }}
+
+.tactical-center-shell {{
+    background: rgba(11, 5, 30, 0.95);
+    border: 2px solid #00f5d4;
+    border-radius: 12px;
+    padding: 0.55rem 0.75rem 0.25rem 0.75rem;
+    box-shadow: 0 0 16px rgba(0, 245, 212, 0.24);
+}}
+
+.tactical-status-strip {{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0.65rem 0 1.05rem 0;
+}}
+.tactical-status-card {{
+    background: rgba(12, 6, 32, 0.94);
+    border: 1.5px solid rgba(0, 245, 212, 0.52);
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.25rem;
+}}
+.tactical-status-wanted {{
+    border-color: #fee440;
+    background: linear-gradient(145deg, rgba(28, 12, 48, 0.95), rgba(14, 7, 32, 0.97));
+    animation: vice-pulse 2.2s ease-in-out infinite;
+    will-change: transform, opacity;
+}}
+@media (max-width: 900px) {{
+    .tactical-status-strip {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }}
+}}
+@media (max-width: 560px) {{
+    .tactical-status-strip {{
+        grid-template-columns: 1fr;
+    }}
 }}
 
 .stButton > button[kind="primary"]:hover,
@@ -1242,18 +1339,43 @@ DOOMSDAY_OVERRIDE_CSS = f"""
         linear-gradient(180deg, #160603 0%, #3d1205 46%, #260a04 78%, #090504 100%) !important;
     background-position: left bottom, right bottom, center center, center center, center center, center center, center center, center center !important;
     background-size: 245px auto, 245px auto, 48px 48px, 48px 48px, 100% 100%, 100% 100%, 100% 100%, 100% 100% !important;
-    box-shadow: inset 0 0 0 3px #2b2623, inset 0 0 34px rgba(255, 69, 0, 0.42) !important;
+    border-top: 2px solid #ff4500 !important;
+    border-bottom: 2px solid #39ff14 !important;
 }}
 
-/* Razor-Wire & Apocalyptic Noise Scanlines */
-.stApp::after {{
+/* Tactical Doomsday Command Board Overrides */
+.tactical-card {{
+    background: rgba(16, 12, 10, 0.96) !important;
+}}
+.tactical-card-cyan {{
+    border: 2px solid #39ff14 !important;
+    box-shadow: 0 0 14px rgba(57, 255, 20, 0.28) !important;
+}}
+.tactical-card-magenta {{
+    border: 2px solid #ff4500 !important;
+    box-shadow: 0 0 14px rgba(255, 69, 0, 0.28) !important;
+}}
+.tactical-hazard-strip {{
     background: repeating-linear-gradient(
-        0deg,
-        rgba(57, 255, 20, 0.025) 0px,
-        rgba(57, 255, 20, 0.025) 1px,
-        rgba(255, 69, 0, 0.015) 2px,
-        transparent 3px
+        -55deg,
+        #ffb703 0px,
+        #ffb703 8px,
+        #18120e 8px,
+        #18120e 16px
     ) !important;
+}}
+.tactical-center-shell {{
+    background: rgba(14, 12, 10, 0.96) !important;
+    border: 2px solid #39ff14 !important;
+    box-shadow: 0 0 14px rgba(57, 255, 20, 0.22) !important;
+}}
+.tactical-status-card {{
+    background: rgba(18, 14, 11, 0.96) !important;
+    border-color: rgba(57, 255, 20, 0.5) !important;
+}}
+.tactical-status-wanted {{
+    border-color: #ff4500 !important;
+    background: linear-gradient(145deg, rgba(44, 16, 10, 0.96), rgba(16, 12, 10, 0.98)) !important;
 }}
 
 /* Armored Blast-Shelter Sidebar HUD */

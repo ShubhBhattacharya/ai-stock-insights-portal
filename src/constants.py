@@ -200,6 +200,41 @@ IFRUIT_WATCHLIST: tuple[tuple[str, str], ...] = (
     ("SBI", "SBIN.NS"),
 )
 
+# 16 Watchlist Stocks for the 3-Column Tactical Command Board (4 quadrants x 4 stocks)
+TACTICAL_BOARD_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {
+    "left_top": (
+        ("ADANIENT", "ADANIENT.NS"),
+        ("INFY", "INFY.NS"),
+        ("SBIN", "SBIN.NS"),
+        ("RELIANCE", "RELIANCE.NS"),
+    ),
+    "left_bottom": (
+        ("TCS", "TCS.NS"),
+        ("HDFCBANK", "HDFCBANK.NS"),
+        ("ICICIBANK", "ICICIBANK.NS"),
+        ("TATAMOTORS", "TMPV.NS"),
+    ),
+    "right_top": (
+        ("BAJFINANCE", "BAJFINANCE.NS"),
+        ("LT", "LT.NS"),
+        ("SUNPHARMA", "SUNPHARMA.NS"),
+        ("MARUTI", "MARUTI.NS"),
+    ),
+    "right_bottom": (
+        ("TITAN", "TITAN.NS"),
+        ("WIPRO", "WIPRO.NS"),
+        ("AXISBANK", "AXISBANK.NS"),
+        ("BHARTIARTL", "BHARTIARTL.NS"),
+    ),
+}
+
+TACTICAL_BOARD_TICKERS: tuple[tuple[str, str], ...] = (
+    TACTICAL_BOARD_GROUPS["left_top"]
+    + TACTICAL_BOARD_GROUPS["left_bottom"]
+    + TACTICAL_BOARD_GROUPS["right_top"]
+    + TACTICAL_BOARD_GROUPS["right_bottom"]
+)
+
 
 def get_stock_sector(symbol: str) -> str:
     """Return the NSE industry sector name for a given ticker symbol."""

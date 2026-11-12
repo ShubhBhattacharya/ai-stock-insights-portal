@@ -23,25 +23,92 @@ def _handle_chat_turn(prompt: str) -> None:
     st.session_state["tutor_just_spoke"] = True
 
 
+def _render_chat_panel(doomsday: bool) -> None:
+    """Render the encrypted chat terminal panel, quick commands, and live market scanner."""
+    terminal_title = (
+        "☣️ BUNKER AI CHAT TERMINAL // ENCRYPTED UPLINK"
+        if doomsday
+        else "🕹️ ARCADE CHAT TERMINAL // LIVE NSE UPLINK"
+    )
+    terminal_title_color = "#39ff14" if doomsday else "#00f5d4"
+    terminal_status = "● DEFCON-1 LINK: ACTIVE" if doomsday else "● STATUS: ACTIVE / ENCRYPTED"
+    st.markdown(
+        '<div class="steel-rivet-card" style="padding:0.8rem 1.15rem; margin-bottom:0.75rem;">'
+        '<span class="rivet-dot rivet-tl"></span><span class="rivet-dot rivet-tr"></span>'
+        '<span class="rivet-dot rivet-bl"></span><span class="rivet-dot rivet-br"></span>'
+        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">'
+        f'<span style="font-family:\'Orbitron\',sans-serif; font-size:0.95rem; font-weight:800; color:{terminal_title_color};">'
+        f"{terminal_title}"
+        "</span>"
+        '<span style="font-family:\'Share Tech Mono\',monospace; font-size:0.72rem; color:#39ff14;">'
+        f"{terminal_status}"
+        "</span>"
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
+
+    st.caption("Quick terminal commands (live stock scan & rules):")
+    q_row1 = st.columns(2)
+    q_row2 = st.columns(2)
+    prompt_cols = [q_row1[0], q_row1[1], q_row2[0], q_row2[1]]
+    for idx, q_text in enumerate(QUICK_PROMPTS[:4]):
+        with prompt_cols[idx]:
+            if st.button(q_text, key=f"quick_prompt_{idx}", width="stretch"):
+                _handle_chat_turn(q_text)
+                st.rerun()
+
+    chat_box = st.container(height=330)
+    with chat_box:
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+
+    scans = st.session_state.get("tutor_scans", [])
+    if scans:
+        scan_badges = []
+        for m in scans:
+            sig = m["signal"]
+            tone_col = "#39ff14" if sig == "BUY" else ("#ff4d8d" if sig == "SELL" else "#fee440")
+            dot = "🟢" if sig == "BUY" else ("🔴" if sig == "SELL" else "🟡")
+            scan_badges.append(
+                f'<span style="color:{tone_col}; font-weight:700;">'
+                f"{html.escape(m['symbol'])} {dot} ₹{m['close']:,.2f} "
+                f"(RSI {m['rsi']:.1f} · {sig})</span>"
+            )
+        st.markdown(
+            '<div class="console-hud-ruler" style="margin-top:0.5rem;">'
+            f"<span>📡 LIVE MARKET SCANNER: {' &nbsp;|&nbsp; '.join(scan_badges)}</span>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+    if prompt := st.chat_input(
+        "Poochiye apna question... (e.g., Reliance ka price & RSI batao, or ₹10,000 budget)"
+    ):
+        _handle_chat_turn(prompt)
+        st.rerun()
+
+
 def render_ai_tutor() -> None:
-    """Render full-body animated dual-world character stage + Chat Terminal + Curriculum."""
+    """Render real-time 3D WebGL character stage + Chat Terminal + Curriculum."""
     doomsday = is_doomsday()
-    edition = "DOOMSDAY" if doomsday else "GTA VI"
+    world_ed = str(st.session_state.get("world_edition", "DOOMSDAY" if doomsday else "GTA VI")).strip().upper()
+    edition = world_ed if world_ed in {"DOOMSDAY", "GTA VI", "PRO", "STANDARD"} else ("DOOMSDAY" if doomsday else "GTA VI")
     render_page_header(
         title=(
-            "UNDERGROUND SHELTER AI TERMINAL // BUNKER INTEL"
+            "DOCTOR DOOM // DOOMSDAY ARCANUM TERMINAL"
             if doomsday
             else "UNDERGROUND CYBER HACKER / LESTER INTEL TERMINAL"
         ),
         subtitle=(
-            "Full-body Doomsday Bunker Tactician powered by live NSE telemetry, radiation scanners & Hinglish chat"
+            "Real-time 3D WebGL Doctor Doom Tactician powered by live NSE telemetry & Hinglish chat"
             if doomsday
-            else "Full-body Vice City AI Insider powered by live NSE telemetry, RSI scanners & Hinglish chat"
+            else "Real-time 3D WebGL Vice City Cyber-Broker powered by live NSE telemetry & Hinglish chat"
         ),
         badge=(
-            "DEFCON-1 BUNKER AI TERMINAL • LIVE NSE"
+            "AVENGERS: DOOMSDAY • 3D WEBGL AI TERMINAL"
             if doomsday
-            else "INTERACTIVE CHARACTER TERMINAL • LIVE NSE AI"
+            else "3D WEBGL CHARACTER TERMINAL • LIVE NSE AI"
         ),
         wanted_stars=compute_dynamic_wanted_stars(),
     )
@@ -57,85 +124,23 @@ def render_ai_tutor() -> None:
     )
 
     with tab_assistant:
-        col_avatar, col_chat = st.columns([1.2, 2], gap="medium")
+        if edition in {"PRO", "STANDARD"}:
+            _render_chat_panel(doomsday=False)
+        else:
+            col_avatar, col_chat = st.columns([1.2, 2], gap="medium")
 
-        with col_avatar:
-            is_speaking = bool(st.session_state.pop("tutor_just_spoke", False))
-            render_character_stage(
-                mood=str(st.session_state.get("tutor_mood", "neutral")),
-                is_speaking=is_speaking,
-                turn_id=int(st.session_state.get("tutor_turn_id", 0)),
-                operator_name=str(st.session_state.get("username", "SHUBH")),
-                edition=edition,
-            )
-
-        with col_chat:
-            terminal_title = (
-                "☣️ BUNKER AI CHAT TERMINAL // ENCRYPTED UPLINK"
-                if doomsday
-                else "🕹️ ARCADE CHAT TERMINAL // LIVE NSE UPLINK"
-            )
-            terminal_title_color = "#39ff14" if doomsday else "#00f5d4"
-            terminal_status = (
-                "● DEFCON-1 LINK: ACTIVE"
-                if doomsday
-                else "● STATUS: ACTIVE / ENCRYPTED"
-            )
-            st.markdown(
-                '<div class="steel-rivet-card" style="padding:0.8rem 1.15rem; margin-bottom:0.75rem;">'
-                '<span class="rivet-dot rivet-tl"></span><span class="rivet-dot rivet-tr"></span>'
-                '<span class="rivet-dot rivet-bl"></span><span class="rivet-dot rivet-br"></span>'
-                '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">'
-                f'<span style="font-family:\'Orbitron\',sans-serif; font-size:0.95rem; font-weight:800; color:{terminal_title_color};">'
-                f"{terminal_title}"
-                "</span>"
-                '<span style="font-family:\'Share Tech Mono\',monospace; font-size:0.72rem; color:#39ff14;">'
-                f"{terminal_status}"
-                "</span>"
-                "</div></div>",
-                unsafe_allow_html=True,
-            )
-
-            st.caption("Quick terminal commands (live stock scan & rules):")
-            q_row1 = st.columns(2)
-            q_row2 = st.columns(2)
-            prompt_cols = [q_row1[0], q_row1[1], q_row2[0], q_row2[1]]
-            for idx, q_text in enumerate(QUICK_PROMPTS[:4]):
-                with prompt_cols[idx]:
-                    if st.button(q_text, key=f"quick_prompt_{idx}", width="stretch"):
-                        _handle_chat_turn(q_text)
-                        st.rerun()
-
-            chat_box = st.container(height=330)
-            with chat_box:
-                for msg in st.session_state.messages:
-                    with st.chat_message(msg["role"]):
-                        st.markdown(msg["content"])
-
-            scans = st.session_state.get("tutor_scans", [])
-            if scans:
-                scan_badges = []
-                for m in scans:
-                    sig = m["signal"]
-                    tone_col = "#39ff14" if sig == "BUY" else ("#ff4d8d" if sig == "SELL" else "#fee440")
-                    dot = "🟢" if sig == "BUY" else ("🔴" if sig == "SELL" else "🟡")
-                    scan_badges.append(
-                        f'<span style="color:{tone_col}; font-weight:700;">'
-                        f"{html.escape(m['symbol'])} {dot} ₹{m['close']:,.2f} "
-                        f"(RSI {m['rsi']:.1f} · {sig})</span>"
-                    )
-                st.markdown(
-                    '<div class="console-hud-ruler" style="margin-top:0.5rem;">'
-                    f"<span>📡 LIVE MARKET SCANNER: {' &nbsp;|&nbsp; '.join(scan_badges)}</span>"
-                    "</div>",
-                    unsafe_allow_html=True,
+            with col_avatar:
+                is_speaking = bool(st.session_state.pop("tutor_just_spoke", False))
+                render_character_stage(
+                    mood=str(st.session_state.get("tutor_mood", "neutral")),
+                    is_speaking=is_speaking,
+                    turn_id=int(st.session_state.get("tutor_turn_id", 0)),
+                    operator_name=str(st.session_state.get("username", "SHUBH")),
+                    edition=edition,
                 )
 
-            if prompt := st.chat_input(
-                "Poochiye apna question... (e.g., Reliance ka price & RSI batao, or ₹10,000 budget)"
-            ):
-                _handle_chat_turn(prompt)
-                st.rerun()
+            with col_chat:
+                _render_chat_panel(doomsday=doomsday)
 
     with tab_course:
         st.subheader(

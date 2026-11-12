@@ -194,7 +194,7 @@ def render_risk_optimizer() -> None:
         )
         style_plotly_figure(fig_gauge, height=235)
         fig_gauge.update_layout(margin={"l": 18, "r": 18, "t": 36, "b": 8})
-        st.plotly_chart(fig_gauge, width="stretch")
+        st.plotly_chart(fig_gauge, width="stretch", config={"displayModeBar": False})
 
     st.markdown("---")
     col_heat, col_table = st.columns([3, 2])
@@ -217,7 +217,7 @@ def render_risk_optimizer() -> None:
         )
         style_plotly_figure(fig_corr, height=450)
         fig_corr.update_layout(hovermode="closest")
-        st.plotly_chart(fig_corr, width="stretch")
+        st.plotly_chart(fig_corr, width="stretch", config={"displayModeBar": False})
 
     with col_table:
         st.subheader("📊 Per-Asset Breakdown")

@@ -402,4 +402,4 @@ def render_single_stock_analysis() -> None:
         forecast_days=forecast_days,
         show_bbands=show_bbands,
     )
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})

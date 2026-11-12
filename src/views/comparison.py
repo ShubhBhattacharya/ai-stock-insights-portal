@@ -252,4 +252,4 @@ def render_stock_comparison() -> None:
         title="BUNKER SECTOR SURVIVAL RETURN (%)" if doomsday else "CUMULATIVE RETURN TURF WAR (%)",
     )
     fig_comp.update_yaxes(title_text="Return (%)")
-    st.plotly_chart(fig_comp, width="stretch")
+    st.plotly_chart(fig_comp, width="stretch", config={"displayModeBar": False})
