@@ -16,10 +16,10 @@ from src.styles import render_kpi_grid, render_page_header, render_signal_badge
 def render_paper_trading() -> None:
     """Render Broker-Heist virtual paper trading vault with live P&L and arcade feedback."""
     render_page_header(
-        title="Broker-Heist Map // Paper Trading Vault",
-        subtitle="Stage risk-free NSE drops & liquidations using ₹1,00,000 syndicate vault capital",
-        badge="BROKER-HEIST PREP • RISK-FREE SANDBOX",
-        wanted_stars=5,
+        title="PAPER TRADING SIMULATOR — THE UNDERGROUND MARKET",
+        subtitle="Arcade Heist Board: Execute covert NSE drops & dump shares using ₹1,00,000 vault capital",
+        badge="ARCADE HEIST BOARD • RISK-FREE VAULT",
+        wanted_stars=6,
     )
 
     last_banner = st.session_state.pop("heist_reward_banner", None)
@@ -119,7 +119,7 @@ def render_paper_trading() -> None:
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
             if st.button(
-                "🟢 BUY Shares — EXECUTE DROP",
+                "🟢 EXECUTE BUY",
                 width="stretch",
                 disabled=not can_buy,
                 type="primary",
@@ -135,7 +135,7 @@ def render_paper_trading() -> None:
                 st.caption("Insufficient liquid stash for this drop quantity.")
 
         with col_btn2:
-            if st.button("🔴 SELL Shares — LIQUIDATE STASH", width="stretch", disabled=not can_sell):
+            if st.button("🔴 DUMP SHARES", width="stretch", disabled=not can_sell):
                 ok, msg = execute_sell_order(trade_sym, trade_name, order_qty, live_price)
                 if ok:
                     st.session_state["heist_reward_banner"] = msg
@@ -148,7 +148,7 @@ def render_paper_trading() -> None:
 
     st.markdown("---")
 
-    st.subheader("💼 Active Syndicate Stash (Portfolio Holdings)")
+    st.subheader("💼 LIVE PORTFOLIO P&L HEIST BOARD")
     if portfolio:
         port_records = []
         for s_sym, data in portfolio.items():

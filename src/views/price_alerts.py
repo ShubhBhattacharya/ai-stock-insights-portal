@@ -93,13 +93,13 @@ def render_price_alerts() -> None:
                 )
                 if triggered:
                     st.markdown(
-                        f'<div class="steel-rivet-card" style="padding:0.85rem 1.15rem; border-color:#ff2a6d;">'
-                        f'<div style="font-family:\'Orbitron\',sans-serif; color:#ffe600; font-size:0.78rem;">'
-                        f'★★★★★★ WANTED THRESHOLD BREACHED!</div>'
-                        f'<div style="font-family:\'Share Tech Mono\',monospace; color:#ffffff; font-size:0.95rem; margin-top:0.2rem;">'
+                        f'<div class="wanted-alert-flash">'
+                        f'<div style="font-family:\'Orbitron\',sans-serif; color:#fee440; font-size:0.84rem; font-weight:800; letter-spacing:0.06em;">'
+                        f'🚨 TARGET TRIGGERED / WANTED · ★★★★★★</div>'
+                        f'<div style="font-family:\'Share Tech Mono\',monospace; color:#ffffff; font-size:0.95rem; margin-top:0.25rem;">'
                         f'<strong>{html.escape(alert["name"])} ({html.escape(alert["symbol"])})</strong> — '
                         f'{html.escape(alert["condition"])} ₹{alert["target"]:,.2f} | '
-                        f'<span style="color:#ff2a6d; font-weight:700;">LIVE: ₹{live_p:,.2f}</span>'
+                        f'<span style="color:#00f5d4; font-weight:700;">LIVE: ₹{live_p:,.2f}</span>'
                         f"</div></div>",
                         unsafe_allow_html=True,
                     )

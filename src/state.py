@@ -13,6 +13,7 @@ def init_session_state() -> None:
     """Ensure all required session state keys exist with safe defaults."""
     defaults = {
         "authenticated": False,
+        "transitioning": False,
         "username": "Guest User",
         "users": dict(DEFAULT_USERS),
         "cash_balance": INITIAL_VIRTUAL_CAPITAL,
@@ -34,15 +35,17 @@ def init_session_state() -> None:
             st.session_state[key] = value
 
 
-def login_as(username: str) -> None:
-    """Mark the current session as authenticated under the given display username."""
+def login_as(username: str, trigger_transition: bool = True) -> None:
+    """Mark the current session as authenticated and trigger the Leonida entry sequence."""
     st.session_state["authenticated"] = True
     st.session_state["username"] = username
+    st.session_state["transitioning"] = trigger_transition
 
 
 def logout() -> None:
-    """Clear authentication flag for the current session."""
+    """Clear authentication and transition flags for the current session."""
     st.session_state["authenticated"] = False
+    st.session_state["transitioning"] = False
 
 
 def reset_paper_portfolio() -> None:

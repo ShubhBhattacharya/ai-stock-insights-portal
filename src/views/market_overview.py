@@ -11,12 +11,12 @@ from src.styles import render_kpi_grid, render_page_header
 
 
 def render_market_overview() -> None:
-    """Render concurrent multi-stock BAWSAQ & LCN market scanner with signal filtering."""
+    """Render concurrent multi-stock BAWSAQ / LCN heist board with signal filtering."""
     render_page_header(
-        title="BAWSAQ & LCN // Live NSE Market Overview",
-        subtitle="Real-time Vice City scanner of NSE equities, RSI telemetry, and AI action signals",
-        badge="BAWSAQ & LCN • CONCURRENT SCANNER",
-        wanted_stars=3,
+        title="BAWSAQ / LCN — LIVE NSE HEIST BOARD",
+        subtitle="Real-time Leonida scanner of NSE equities, RSI telemetry, and neon BUY/SELL triggers",
+        badge="BAWSAQ / LCN • LIVE NSE HEIST BOARD",
+        wanted_stars=6,
     )
 
     st.markdown(

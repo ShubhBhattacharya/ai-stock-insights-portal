@@ -1,13 +1,19 @@
-"""AI Stock Insights Portal | NSE India — Vice City Neon Edition Entry Point."""
+"""AI Stock Insights Portal | NSE India — GTA VI / Vice City Neon Edition Entry Point."""
 
 from __future__ import annotations
 
 import html
+import time
 import streamlit as st
 
 from src.constants import NAV_ITEMS
 from src.state import init_session_state, logout
-from src.styles import inject_global_styles, render_wanted_stars_html
+from src.styles import (
+    inject_global_styles,
+    render_login_transition_overlay,
+    render_sidebar_minimap_html,
+    render_wanted_stars_html,
+)
 from src.views.ai_tutor import render_ai_tutor
 from src.views.auth import render_login_page
 from src.views.comparison import render_stock_comparison
@@ -19,7 +25,7 @@ from src.views.single_stock import render_single_stock_analysis
 from src.views.synopsis import render_synopsis
 
 st.set_page_config(
-    page_title="AI Stock Insights Portal | Vice City NSE Terminal",
+    page_title="AI Stock Insights Portal | GTA VI Leonida Terminal",
     page_icon="🌴",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -38,8 +44,8 @@ VIEW_DISPATCH = {
 
 
 def render_sidebar() -> str:
-    """Render Vice City cyber HUD sidebar profile card, arcade navigation, and dossier info."""
-    username = html.escape(str(st.session_state["username"]))
+    """Render Vice City HUD sidebar profile, navigation radio buttons, and bottom mini-map radar."""
+    username = html.escape(str(st.session_state["username"]).upper())
     cash_balance = float(st.session_state["cash_balance"])
     num_holdings = len(st.session_state["portfolio"])
     num_alerts = len(st.session_state["alerts"])
@@ -48,14 +54,11 @@ def render_sidebar() -> str:
 
     st.sidebar.markdown(
         f'<div class="sidebar-profile-card">'
-        f'<div style="font-family:\'Share Tech Mono\',monospace; font-size:0.68rem; color:#ff2a85; letter-spacing:0.1em; margin-bottom:0.2rem;">'
-        f'🌴 VICE TERMINAL // OPERATOR HUD'
-        f"</div>"
-        f'<div class="sidebar-profile-name">🕶️ {username}</div>'
-        f'<div style="margin:0.35rem 0;">{wanted_html}</div>'
-        f'<div class="sidebar-cash-pill">💵 STASH: ₹{cash_balance:,.2f}</div>'
-        f'<div style="font-family:\'Share Tech Mono\',monospace; color:#cbd5e1; font-size:0.76rem; margin-top:0.3rem;">'
-        f"💼 {num_holdings} Drops · 🎯 {num_alerts} Bounties"
+        f'<div class="sidebar-profile-name">👤 WELCOME, {username}</div>'
+        f'<div class="sidebar-cash-pill">💰 CASH: ₹{cash_balance:,.2f}</div>'
+        f'<div style="margin:0.38rem 0;">{wanted_html}</div>'
+        f'<div style="font-family:\'Share Tech Mono\',monospace; color:#cbd5e1; font-size:0.76rem;">'
+        f"💼 {num_holdings} Drops · 🎯 {num_alerts} Wanted Bounties"
         f"</div></div>",
         unsafe_allow_html=True,
     )
@@ -72,23 +75,32 @@ def render_sidebar() -> str:
         index=0,
     )
 
+    st.sidebar.markdown(render_sidebar_minimap_html(), unsafe_allow_html=True)
+
     st.sidebar.markdown("---")
     st.sidebar.info(
-        "**VICE INTEL TERMINAL:**\n"
+        "**LEONIDA INTEL TERMINAL:**\n"
         "- Mission: BCC 351 Mini Project\n"
         "- Stack: Streamlit, yfinance, Plotly, pandas-ta\n"
-        "- Feed: NSE India (BAWSAQ & LCN)"
+        "- Feed: NSE India (BAWSAQ / LCN)"
     )
     return selected_mode
 
 
 def main() -> None:
-    """Bootstrap Vice City synthwave styles, session state, and route views."""
+    """Bootstrap Leonida synthwave styles, session state, login transition, and dashboard."""
     inject_global_styles()
     init_session_state()
 
     if not st.session_state["authenticated"]:
         render_login_page()
+        return
+
+    if st.session_state.get("transitioning"):
+        render_login_transition_overlay(str(st.session_state["username"]))
+        time.sleep(2.0)
+        st.session_state["transitioning"] = False
+        st.rerun()
         return
 
     selected_mode = render_sidebar()

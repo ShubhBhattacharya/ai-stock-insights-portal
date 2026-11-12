@@ -9,21 +9,26 @@ import streamlit as st
 
 from src.constants import NSE_STOCKS
 from src.services.market_data import get_stock_analysis
-from src.styles import render_page_header, render_signal_badge, style_plotly_figure
+from src.styles import render_page_header, render_signal_badge, render_wanted_stars_html, style_plotly_figure
 
 
 def _render_stock_summary_card(name: str, metrics: dict, corner_tag: str) -> None:
-    """Render a neon Vice City comparison summary card for one stock."""
+    """Render a neon Vice City comparison summary card with Wanted-level volatility stars."""
     badge = render_signal_badge(metrics["signal"], metrics["confidence"])
     delta_color = "#39ff14" if metrics["day_change_pct"] >= 0 else "#ff2a6d"
+    abs_chg = abs(float(metrics["day_change_pct"]))
+    heat_stars = 6 if abs_chg >= 3 else (4 if abs_chg >= 1.5 else 2)
+    stars_html = render_wanted_stars_html(active_stars=heat_stars, total_stars=6)
     st.markdown(
         f'<div class="surface-card">'
-        f'<div style="font-family:\'Share Tech Mono\',monospace; font-size:0.7rem; color:#ff2a85; letter-spacing:0.08em; margin-bottom:0.25rem;">'
-        f"{html.escape(corner_tag)}"
+        f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.35rem;">'
+        f'<span style="font-family:\'Share Tech Mono\',monospace; font-size:0.7rem; color:#ff2a85; letter-spacing:0.08em;">'
+        f"{html.escape(corner_tag)}</span>"
+        f"{stars_html}"
         f"</div>"
         f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">'
         f'<div><strong style="font-family:\'Orbitron\',sans-serif; font-size:1.05rem;">{html.escape(name)}</strong>'
-        f'<div style="font-family:\'Share Tech Mono\',monospace; color:#00f0ff; font-size:0.8rem;">{html.escape(metrics["symbol"])}</div></div>'
+        f'<div style="font-family:\'Share Tech Mono\',monospace; color:#00f5d4; font-size:0.8rem;">{html.escape(metrics["symbol"])}</div></div>'
         f"{badge}"
         f"</div>"
         f'<div style="margin-top:0.75rem; font-family:\'Share Tech Mono\',monospace; font-size:1.5rem; font-weight:700; font-variant-numeric:tabular-nums;">'

@@ -1,4 +1,4 @@
-"""Module 2: Single Stock AI Technical Analysis & ML Price Forecast (Lester's Intel Edition)."""
+"""Module 2: Single Stock AI Technical Analysis & ML Price Forecast (Classified Intel Dossier)."""
 
 from __future__ import annotations
 
@@ -34,15 +34,15 @@ def _build_technical_chart(
     forecast_days: int,
     show_bbands: bool,
 ) -> go.Figure:
-    """Create a synthwave 3-panel Candlestick, Volume, and RSI Plotly figure."""
+    """Create a deep-indigo synthwave 3-panel Candlestick, Volume, and RSI Plotly figure."""
     fig = make_subplots(
         rows=3,
         cols=1,
         shared_xaxes=True,
         vertical_spacing=0.05,
         subplot_titles=(
-            f"▸ {symbol} // BAWSAQ OHLC + SMAs + {forecast_days}D ML VECTOR",
-            "▸ DETECTED VOLUME SURGE",
+            f"▸ {symbol} // CYAN-PINK CANDLES + NEON 50-SMA + {forecast_days}D ML FORECAST",
+            "▸ TRADING VOLUME PULSE",
             "▸ RSI-14 MOMENTUM RADAR",
         ),
         row_heights=[0.6, 0.2, 0.2],
@@ -55,11 +55,11 @@ def _build_technical_chart(
             high=df["High"],
             low=df["Low"],
             close=df["Close"],
-            name="OHLC Price",
-            increasing_line_color="#39ff14",
-            increasing_fillcolor="rgba(57, 255, 20, 0.72)",
-            decreasing_line_color="#ff2a6d",
-            decreasing_fillcolor="rgba(255, 42, 109, 0.75)",
+            name="OHLC (Cyan/Pink)",
+            increasing_line_color="#00f5d4",
+            increasing_fillcolor="rgba(0, 245, 212, 0.72)",
+            decreasing_line_color="#ff2a85",
+            decreasing_fillcolor="rgba(255, 42, 133, 0.76)",
         ),
         row=1,
         col=1,
@@ -72,7 +72,7 @@ def _build_technical_chart(
                 y=df["BBU"],
                 mode="lines",
                 name="Upper BB (20,2)",
-                line=dict(color="rgba(0, 240, 255, 0.5)", width=1.1, dash="dot"),
+                line=dict(color="rgba(0, 245, 212, 0.55)", width=1.1, dash="dot"),
             ),
             row=1,
             col=1,
@@ -83,7 +83,7 @@ def _build_technical_chart(
                 y=df["BBL"],
                 mode="lines",
                 name="Lower BB (20,2)",
-                line=dict(color="rgba(255, 42, 133, 0.5)", width=1.1, dash="dot"),
+                line=dict(color="rgba(255, 42, 133, 0.55)", width=1.1, dash="dot"),
                 fill="tonexty",
                 fillcolor="rgba(192, 132, 252, 0.08)",
             ),
@@ -96,8 +96,8 @@ def _build_technical_chart(
             x=df.index,
             y=df["SMA_50"],
             mode="lines",
-            name="50 SMA (Laser)",
-            line=dict(color="#ffe600", width=2.0),
+            name="50 SMA (Laser Yellow)",
+            line=dict(color="#fee440", width=2.1),
         ),
         row=1,
         col=1,
@@ -108,8 +108,8 @@ def _build_technical_chart(
             x=df.index,
             y=df["SMA_200"],
             mode="lines",
-            name="200 SMA (Cyber)",
-            line=dict(color="#00f0ff", width=2.0),
+            name="200 SMA (Electric Cyan)",
+            line=dict(color="#00f5d4", width=1.9),
         ),
         row=1,
         col=1,
@@ -121,16 +121,51 @@ def _build_technical_chart(
                 x=pred_df.index,
                 y=pred_df["Predicted_Close"],
                 mode="lines+markers",
-                name=f"{forecast_days}D Neon ML Forecast",
-                line=dict(color="#ff2a85", width=2.6, dash="dash"),
-                marker=dict(size=5, color="#ffe600", symbol="diamond"),
+                name=f"{forecast_days}D Magenta ML Curve",
+                line=dict(color="#ff2a85", width=2.6, dash="dot"),
+                marker=dict(size=5, color="#fee440", symbol="diamond"),
             ),
             row=1,
             col=1,
         )
+        last_pred_date = pred_df.index[-1]
+        last_pred_val = float(pred_df["Predicted_Close"].iloc[-1])
+        fig.add_annotation(
+            x=last_pred_date,
+            y=last_pred_val,
+            text=f"🎯 {forecast_days}D TARGET: ₹{last_pred_val:,.2f}",
+            showarrow=True,
+            arrowhead=2,
+            arrowcolor="#ff2a85",
+            font=dict(family="Share Tech Mono, monospace", size=11, color="#fee440"),
+            bgcolor="rgba(11, 5, 36, 0.88)",
+            bordercolor="#ff2a85",
+            borderwidth=1,
+            row=1,
+            col=1,
+        )
+
+    last_hist_date = df.index[-1]
+    last_hist_close = float(df["Close"].iloc[-1])
+    fig.add_annotation(
+        x=last_hist_date,
+        y=last_hist_close,
+        text=f"CROSSHAIR SPOT: ₹{last_hist_close:,.2f}",
+        showarrow=True,
+        arrowhead=2,
+        arrowcolor="#00f5d4",
+        font=dict(family="Share Tech Mono, monospace", size=11, color="#00f5d4"),
+        bgcolor="rgba(11, 5, 36, 0.88)",
+        bordercolor="#00f5d4",
+        borderwidth=1,
+        ax=-55,
+        ay=-36,
+        row=1,
+        col=1,
+    )
 
     vol_colors = [
-        "#39ff14" if close_v >= open_v else "#ff2a6d"
+        "#00f5d4" if close_v >= open_v else "#ff2a85"
         for close_v, open_v in zip(df["Close"], df["Open"])
     ]
     fig.add_trace(
@@ -139,7 +174,7 @@ def _build_technical_chart(
             y=df["Volume"],
             name="Volume",
             marker_color=vol_colors,
-            opacity=0.82,
+            opacity=0.84,
         ),
         row=2,
         col=1,
@@ -157,22 +192,22 @@ def _build_technical_chart(
         col=1,
     )
 
-    fig.add_hline(y=70, line_dash="dot", line_color="#ff2a6d", row=3, col=1)
-    fig.add_hline(y=30, line_dash="dot", line_color="#39ff14", row=3, col=1)
+    fig.add_hline(y=70, line_dash="dot", line_color="#ff2a85", row=3, col=1)
+    fig.add_hline(y=30, line_dash="dot", line_color="#00f5d4", row=3, col=1)
 
-    style_plotly_figure(fig, height=770)
-    fig.update_annotations(font=dict(family="Orbitron, sans-serif", size=12, color="#00f0ff"))
+    style_plotly_figure(fig, height=780)
+    fig.update_annotations(font=dict(family="Orbitron, sans-serif", size=12, color="#00f5d4"))
     fig.update_layout(xaxis_rangeslider_visible=False)
     return fig
 
 
 def render_single_stock_analysis() -> None:
-    """Render single-stock technical breakdown, Lester's Intel dossier, and ML forecast."""
+    """Render single-stock technical breakdown, Classified Intel Dossier, and ML forecast."""
     render_page_header(
         title="BAWSAQ Target Intel & ML Forecast",
-        subtitle="Deep synthwave technical telemetry, Lester's classified dossier, and ML trend vector",
-        badge="LESTER'S UNDERGROUND INTEL • ML ENGINE",
-        wanted_stars=4,
+        subtitle="Deep indigo synthwave candlestick radar, ML trend vector, and Classified Intel Dossiers",
+        badge="CLASSIFIED INTEL DOSSIERS • ML FORECASTING",
+        wanted_stars=6,
     )
 
     stock_names = list(NSE_STOCKS.keys())
@@ -205,7 +240,7 @@ def render_single_stock_analysis() -> None:
         st.info("Enter a valid NSE/BSE ticker symbol (e.g., `RELIANCE.NS`, `TCS.NS`, `INFY.NS`).")
         return
 
-    with st.spinner(f"Decrypting BAWSAQ telemetry & ML trendline for {custom_sym}..."):
+    with st.spinner(f"Decrypting Classified Intel Dossier & ML vector for {custom_sym}..."):
         metrics, error = get_stock_analysis(custom_sym)
 
     if error:
@@ -221,7 +256,7 @@ def render_single_stock_analysis() -> None:
 
     st.markdown(
         f'<div class="surface-card" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.75rem;">'
-        f'<h3 style="margin:0; font-family:\'Orbitron\',sans-serif; color:#00f0ff;">'
+        f'<h3 style="margin:0; font-family:\'Orbitron\',sans-serif; color:#00f5d4;">'
         f'🎯 TARGET LOCKED // {html.escape(metrics["symbol"])}</h3>'
         f"<div>{signal_badge_html}</div>"
         f"</div>",
@@ -269,10 +304,10 @@ def render_single_stock_analysis() -> None:
     col_dec1, col_dec2 = st.columns([3, 2])
     with col_dec1:
         st.subheader(
-            f"🕶️ Lester's Classified Directive: {metrics['signal']} ({metrics['confidence']}% Confidence)"
+            f"📁 CLASSIFIED INTEL DOSSIER: {metrics['signal']} ({metrics['confidence']}% Confidence)"
         )
         if metrics["signal"] == "BUY":
-            st.success(f"**Mission Intel:** {metrics['final_reason']}")
+            st.success(f"**Mission Directive:** {metrics['final_reason']}")
         elif metrics["signal"] == "SELL":
             st.error(f"**Heat Warning:** {metrics['final_reason']}")
         else:
@@ -304,9 +339,9 @@ def render_single_stock_analysis() -> None:
     dcol1, dcol2 = st.columns(2)
     with dcol1:
         st.download_button(
-            label="📥 Download Lester's Underground Dossier (.txt)",
+            label="📥 Download Classified Intel Dossier (.txt)",
             data=generate_text_report(metrics),
-            file_name=f"{metrics['symbol']}_Lester_Intel_Dossier.txt",
+            file_name=f"{metrics['symbol']}_Classified_Intel_Dossier.txt",
             mime="text/plain",
             width="stretch",
         )
@@ -324,7 +359,7 @@ def render_single_stock_analysis() -> None:
 
     chart_header_col1, chart_header_col2 = st.columns([3, 1])
     with chart_header_col1:
-        st.subheader(f"📈 Synthwave Technical Chart & {forecast_days}-Day Neon ML Forecast")
+        st.subheader(f"📈 Synthwave Technical Chart & {forecast_days}-Day Magenta ML Curve")
     with chart_header_col2:
         show_bbands = st.checkbox("Show Bollinger Bands (20, 2)", value=False)
 

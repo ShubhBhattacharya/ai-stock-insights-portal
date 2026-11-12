@@ -9,16 +9,16 @@ import streamlit as st
 
 from src.constants import NSE_STOCKS, RISK_FREE_RATE_PCT
 from src.services.market_data import fetch_batch_returns
-from src.styles import render_kpi_grid, render_page_header, style_plotly_figure
+from src.styles import render_kpi_grid, render_page_header, render_wanted_stars_html, style_plotly_figure
 
 
 def render_risk_optimizer() -> None:
     """Render portfolio volatility, Sharpe ratio, and synthwave correlation heatmap."""
     render_page_header(
         title="Syndicate Heat // Portfolio Risk Matrix",
-        subtitle="Quantify multi-stock annualized volatility, Sharpe ratio, and cross-asset heat",
+        subtitle="Quantify multi-stock annualized volatility, Sharpe ratio, and Wanted-level heat",
         badge="WANTED HEAT & QUANT ENGINE",
-        wanted_stars=4,
+        wanted_stars=6,
     )
 
     selected_stocks = st.multiselect(
@@ -91,15 +91,35 @@ def render_risk_optimizer() -> None:
     )
 
     if port_volatility < 18:
-        st.success(
-            "⭐ **1-STAR LOW HEAT PROFILE:** Smooth volatility — ideal for armored capital preservation."
+        heat_stars, heat_label, heat_color, heat_msg = (
+            2,
+            "LOW STREET HEAT PROFILE",
+            "#39ff14",
+            "Smooth volatility — ideal for armored capital preservation.",
         )
     elif port_volatility < 28:
-        st.warning("⭐⭐⭐ **3-STAR MODERATE HEAT PROFILE:** Balanced risk-reward street mix.")
-    else:
-        st.error(
-            "⭐⭐⭐⭐⭐⭐ **6-STAR MAX HEAT PROFILE:** Aggressive high-volatility basket; watch for sharp drawdowns!"
+        heat_stars, heat_label, heat_color, heat_msg = (
+            4,
+            "MODERATE HEAT PROFILE",
+            "#fee440",
+            "Balanced risk-reward street mix.",
         )
+    else:
+        heat_stars, heat_label, heat_color, heat_msg = (
+            6,
+            "MAX WANTED HEAT PROFILE",
+            "#ff2a6d",
+            "Aggressive high-volatility basket; watch for sharp drawdowns!",
+        )
+
+    st.markdown(
+        f'<div class="surface-card" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.75rem; border-color:{heat_color};">'
+        f'<div><strong style="font-family:\'Orbitron\',sans-serif; color:{heat_color};">{heat_label}</strong>'
+        f'<div style="font-family:\'Share Tech Mono\',monospace; color:#e2e8f0; font-size:0.86rem; margin-top:0.2rem;">{heat_msg}</div></div>'
+        f"{render_wanted_stars_html(active_stars=heat_stars, total_stars=6)}"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
 
     st.markdown("---")
     col_heat, col_table = st.columns([3, 2])

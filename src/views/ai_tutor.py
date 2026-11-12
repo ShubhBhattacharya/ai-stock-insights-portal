@@ -18,10 +18,10 @@ def _handle_chat_turn(prompt: str) -> None:
 def render_ai_tutor() -> None:
     """Render encrypted financial curriculum and Lester's cyber hacker assistant."""
     render_page_header(
-        title="Lester's Cyber Uplink // AI Stock Tutor",
-        subtitle="Decode RSI, moving averages, valuations & BAWSAQ heist rules with your hacker strategist",
-        badge="UNDERGROUND CYBER ASSISTANT • ENCRYPTED",
-        wanted_stars=4,
+        title="UNDERGROUND CYBER HACKER / LESTER INTEL TERMINAL",
+        subtitle="Decode RSI, moving averages, valuations & BAWSAQ heist rules with your cyber strategist",
+        badge="LESTER INTEL TERMINAL • ENCRYPTED",
+        wanted_stars=6,
     )
 
     tab_course, tab_assistant = st.tabs(["📚 DECRYPTED CURRICULUM", "🕶️ CYBER HACKER CHAT"])

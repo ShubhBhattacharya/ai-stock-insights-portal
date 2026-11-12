@@ -1,4 +1,4 @@
-"""GTA VI / Vice City Synthwave Neon UI Styling and Reusable HUD Components."""
+"""GTA VI / Vice City (Leonida Edition) Synthwave Neon UI Styling & HUD Components."""
 
 from __future__ import annotations
 
@@ -37,16 +37,16 @@ GLOBAL_CSS = f"""
 :root {{
     --bg-canvas: #070312;
     --bg-violet: #170631;
-    --bg-surface: rgba(14, 7, 34, 0.86);
-    --bg-steel: linear-gradient(160deg, rgba(35, 41, 66, 0.94) 0%, rgba(16, 13, 36, 0.96) 55%, rgba(28, 17, 48, 0.95) 100%);
+    --bg-surface: rgba(13, 6, 34, 0.9);
+    --bg-steel: linear-gradient(160deg, rgba(35, 41, 66, 0.95) 0%, rgba(16, 12, 38, 0.97) 55%, rgba(28, 15, 48, 0.96) 100%);
     --neon-pink: #ff2a85;
     --neon-orange: #ff7a00;
-    --neon-yellow: #ffe600;
-    --neon-cyan: #00f0ff;
+    --neon-yellow: #fee440;
+    --neon-cyan: #00f5d4;
     --neon-green: #39ff14;
     --neon-crimson: #ff2a6d;
-    --border-neon: rgba(0, 240, 255, 0.42);
-    --border-magenta: rgba(255, 42, 133, 0.55);
+    --border-neon: rgba(0, 245, 212, 0.45);
+    --border-magenta: rgba(255, 42, 133, 0.58);
     --text-primary: #f8fafc;
     --text-secondary: #cbd5e1;
     --radius-lg: 16px;
@@ -56,20 +56,16 @@ GLOBAL_CSS = f"""
 
 @keyframes vice-pulse {{
     0%, 100% {{
-        box-shadow: 0 0 12px rgba(0, 240, 255, 0.65), 0 0 26px rgba(255, 42, 133, 0.45), inset 0 0 12px rgba(255, 230, 0, 0.25);
+        box-shadow: 0 0 12px rgba(0, 245, 212, 0.7), 0 0 26px rgba(255, 42, 133, 0.45), inset 0 0 12px rgba(254, 228, 64, 0.25);
     }}
     50% {{
-        box-shadow: 0 0 22px rgba(0, 240, 255, 0.95), 0 0 38px rgba(255, 230, 0, 0.65), inset 0 0 18px rgba(0, 240, 255, 0.4);
+        box-shadow: 0 0 24px rgba(0, 245, 212, 0.98), 0 0 40px rgba(254, 228, 64, 0.65), inset 0 0 18px rgba(0, 245, 212, 0.45);
     }}
 }}
 
 @keyframes neon-flicker {{
-    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {{
-        opacity: 1;
-    }}
-    20%, 24%, 55% {{
-        opacity: 0.88;
-    }}
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {{ opacity: 1; }}
+    20%, 24%, 55% {{ opacity: 0.85; }}
 }}
 
 @keyframes badge-float {{
@@ -77,27 +73,78 @@ GLOBAL_CSS = f"""
     50% {{ transform: translateY(-2px); }}
 }}
 
-html, body, [class*="css"] {{
-    font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+@keyframes hazard-flash {{
+    0%, 100% {{
+        border-color: #ff2a6d;
+        box-shadow: 0 0 14px rgba(255, 42, 109, 0.72), inset 0 0 12px rgba(255, 42, 109, 0.24);
+    }}
+    50% {{
+        border-color: #00f5d4;
+        box-shadow: 0 0 22px rgba(0, 245, 212, 0.82), inset 0 0 14px rgba(0, 245, 212, 0.26);
+    }}
 }}
 
-/* Synthwave Dusk Sky + Neon Horizon Grid + Dual Palm Shadows */
+@keyframes spin-radar {{
+    from {{ transform: rotate(0deg); }}
+    to {{ transform: rotate(360deg); }}
+}}
+
+@keyframes progress-sweep {{
+    0% {{ width: 8%; }}
+    45% {{ width: 64%; }}
+    85% {{ width: 96%; }}
+    100% {{ width: 100%; }}
+}}
+
+@keyframes transition-zoom-in {{
+    0% {{ opacity: 0; transform: scale(1.04); }}
+    25% {{ opacity: 1; transform: scale(1); }}
+    100% {{ opacity: 1; transform: scale(1); }}
+}}
+
+@keyframes ticker-scroll {{
+    0% {{ transform: translateX(12%); }}
+    100% {{ transform: translateX(-18%); }}
+}}
+
+@keyframes phase-seq-1 {{
+    0%, 34% {{ opacity: 1; }}
+    36%, 100% {{ opacity: 0.28; }}
+}}
+
+@keyframes phase-seq-2 {{
+    0%, 33% {{ opacity: 0.28; }}
+    35%, 68% {{ opacity: 1; }}
+    70%, 100% {{ opacity: 0.28; }}
+}}
+
+@keyframes phase-seq-3 {{
+    0%, 67% {{ opacity: 0.28; }}
+    70%, 100% {{ opacity: 1; }}
+}}
+
+html, body, [class*="css"] {{
+    font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text-primary);
+}}
+
+/* Leonida Synthwave Dusk Sky + Neon Horizon Grid + Dual Palm Shadows */
 .stApp {{
     background-color: var(--bg-canvas);
     background-image:
         url("{_PALM_LEFT_SVG}"),
         url("{_PALM_RIGHT_SVG}"),
         linear-gradient(90deg, rgba(255, 42, 133, 0.14) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(0, 240, 255, 0.11) 1px, transparent 1px),
-        radial-gradient(circle at 18% 12%, rgba(255, 42, 133, 0.26), transparent 36%),
-        radial-gradient(circle at 82% 14%, rgba(0, 240, 255, 0.22), transparent 36%),
+        linear-gradient(0deg, rgba(0, 245, 212, 0.11) 1px, transparent 1px),
+        radial-gradient(circle at 18% 12%, rgba(255, 42, 133, 0.28), transparent 36%),
+        radial-gradient(circle at 82% 14%, rgba(0, 245, 212, 0.24), transparent 36%),
         radial-gradient(circle at 50% 85%, rgba(255, 122, 0, 0.16), transparent 45%),
         linear-gradient(180deg, #070312 0%, #15052e 48%, #210738 82%, #090418 100%);
     background-position: left bottom, right bottom, center center, center center, center center, center center, center center, center center;
     background-size: 230px auto, 230px auto, 56px 56px, 56px 56px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
     background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
     background-attachment: fixed;
-    box-shadow: inset 0 0 0 2px rgba(255, 42, 133, 0.48), inset 0 0 28px rgba(0, 240, 255, 0.24);
+    box-shadow: inset 0 0 0 2px rgba(255, 42, 133, 0.52), inset 0 0 30px rgba(0, 245, 212, 0.26);
 }}
 
 /* CRT Digital Scanline Overlay (Non-interactive) */
@@ -109,14 +156,14 @@ html, body, [class*="css"] {{
     z-index: 999;
     background: repeating-linear-gradient(
         0deg,
-        rgba(255, 255, 255, 0.025) 0px,
-        rgba(255, 255, 255, 0.025) 1px,
+        rgba(255, 255, 255, 0.024) 0px,
+        rgba(255, 255, 255, 0.024) 1px,
         transparent 1px,
         transparent 3px
     );
 }}
 
-/* Main Container Multi-Layer Neon HUD Frame */
+/* Main Container Spacing */
 .main .block-container,
 [data-testid="stMainBlockContainer"] {{
     padding-top: clamp(0.85rem, 2vw, 1.5rem);
@@ -126,21 +173,21 @@ html, body, [class*="css"] {{
     max-width: 1460px;
 }}
 
-/* Calibration Markings Divider */
+/* Calibration Neon Divider */
 hr {{
     border: none !important;
     height: 2px !important;
     background: linear-gradient(90deg, transparent 0%, var(--neon-pink) 20%, var(--neon-cyan) 50%, var(--neon-yellow) 80%, transparent 100%) !important;
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.45);
+    box-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
     margin: 1.15rem 0 !important;
 }}
 
-/* Sidebar Cyber Console */
+/* Sidebar Cyber HUD */
 section[data-testid="stSidebar"] {{
     background:
-        linear-gradient(180deg, rgba(13, 5, 34, 0.97) 0%, rgba(23, 6, 48, 0.96) 60%, rgba(8, 3, 22, 0.98) 100%);
+        linear-gradient(180deg, rgba(13, 5, 34, 0.98) 0%, rgba(23, 6, 48, 0.97) 60%, rgba(8, 3, 22, 0.99) 100%);
     border-right: 2px solid var(--neon-pink);
-    box-shadow: 4px 0 24px rgba(255, 42, 133, 0.28), inset -1px 0 12px rgba(0, 240, 255, 0.2);
+    box-shadow: 4px 0 26px rgba(255, 42, 133, 0.3), inset -1px 0 14px rgba(0, 245, 212, 0.22);
 }}
 
 section[data-testid="stSidebar"] .stRadio > div {{
@@ -149,20 +196,78 @@ section[data-testid="stSidebar"] .stRadio > div {{
 
 section[data-testid="stSidebar"] .stRadio label {{
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     letter-spacing: 0.03em;
-    padding: 0.55rem 0.72rem;
+    padding: 0.54rem 0.72rem;
     border-radius: 8px;
-    border: 1px solid rgba(0, 240, 255, 0.16);
-    background: rgba(15, 7, 36, 0.65);
+    border: 1px solid rgba(0, 245, 212, 0.2);
+    background: rgba(14, 6, 36, 0.75);
     transition: all 0.18s ease;
 }}
 
 section[data-testid="stSidebar"] .stRadio label:hover {{
-    background: linear-gradient(90deg, rgba(255, 42, 133, 0.22), rgba(0, 240, 255, 0.14));
+    background: linear-gradient(90deg, rgba(255, 42, 133, 0.24), rgba(0, 245, 212, 0.16));
     border-color: var(--neon-cyan);
-    box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+    box-shadow: 0 0 14px rgba(0, 245, 212, 0.38);
     transform: translateX(3px);
+}}
+
+/* Sidebar Mini-Map Radar Graphic */
+.sidebar-minimap-card {{
+    position: relative;
+    background: linear-gradient(155deg, rgba(12, 8, 30, 0.96), rgba(22, 10, 44, 0.96));
+    border: 2px solid var(--neon-cyan);
+    border-radius: 12px;
+    padding: 0.65rem 0.75rem 0.75rem 0.75rem;
+    margin-top: 0.85rem;
+    overflow: hidden;
+    box-shadow: 0 0 16px rgba(0, 245, 212, 0.26);
+}}
+
+.sidebar-minimap-card::before {{
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: repeating-linear-gradient(-45deg, #fee440 0 8px, #0b0422 8px 16px);
+}}
+
+.minimap-grid {{
+    position: relative;
+    height: 112px;
+    margin-top: 0.4rem;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 245, 212, 0.45);
+    background-color: #08041c;
+    background-image:
+        linear-gradient(90deg, rgba(0, 245, 212, 0.16) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 42, 133, 0.16) 1px, transparent 1px),
+        linear-gradient(35deg, transparent 42%, rgba(57, 255, 20, 0.22) 43%, rgba(57, 255, 20, 0.22) 46%, transparent 47%),
+        linear-gradient(-25deg, transparent 55%, rgba(0, 245, 212, 0.24) 56%, rgba(0, 245, 212, 0.24) 58%, transparent 59%);
+    background-size: 22px 22px, 22px 22px, 100% 100%, 100% 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}}
+
+.minimap-sweep {{
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(0, 245, 212, 0.36) 0deg, rgba(0, 245, 212, 0.0) 65deg, transparent 360deg);
+    animation: spin-radar 3.6s linear infinite;
+}}
+
+.minimap-player {{
+    position: relative;
+    z-index: 2;
+    font-size: 1rem;
+    color: #fee440;
+    text-shadow: 0 0 10px #fee440, 0 0 16px #ff2a85;
 }}
 
 /* Top GTA Wing Emblem + 6-Star Wanted Rack */
@@ -175,9 +280,9 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     padding: 0.5rem 0.9rem;
     margin-bottom: 0.75rem;
     border-radius: 12px;
-    background: linear-gradient(90deg, rgba(14, 5, 34, 0.92), rgba(34, 8, 60, 0.92), rgba(14, 5, 34, 0.92));
+    background: linear-gradient(90deg, rgba(14, 5, 34, 0.94), rgba(34, 8, 60, 0.94), rgba(14, 5, 34, 0.94));
     border: 1.5px solid var(--neon-pink);
-    box-shadow: 0 0 18px rgba(255, 42, 133, 0.38), inset 0 0 14px rgba(0, 240, 255, 0.16);
+    box-shadow: 0 0 18px rgba(255, 42, 133, 0.4), inset 0 0 14px rgba(0, 245, 212, 0.16);
 }}
 
 .vice-telemetry-tag {{
@@ -186,7 +291,7 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     color: var(--neon-cyan);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.65);
+    text-shadow: 0 0 8px rgba(0, 245, 212, 0.7);
 }}
 
 .vice-wing-emblem {{
@@ -210,7 +315,7 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     height: 10px;
     background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
     clip-path: polygon(0 50%, 28% 0, 100% 30%, 82% 50%, 100% 70%, 28% 100%);
-    filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.8));
+    filter: drop-shadow(0 0 6px rgba(0, 245, 212, 0.85));
 }}
 
 .wing-chevron.right {{
@@ -219,15 +324,15 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
 
 .wing-pill {{
     font-family: 'Orbitron', sans-serif;
-    font-size: clamp(0.66rem, 1.15vw, 0.82rem);
+    font-size: clamp(0.65rem, 1.12vw, 0.82rem);
     font-weight: 800;
     letter-spacing: 0.09em;
     color: #ffffff;
-    background: linear-gradient(90deg, rgba(255, 42, 133, 0.35), rgba(0, 240, 255, 0.25));
+    background: linear-gradient(90deg, rgba(255, 42, 133, 0.38), rgba(0, 245, 212, 0.25));
     border: 1px solid var(--neon-cyan);
     border-radius: 999px;
     padding: 0.22rem 0.85rem;
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.75);
+    text-shadow: 0 0 8px rgba(0, 245, 212, 0.8);
     box-shadow: 0 0 12px rgba(255, 42, 133, 0.45);
 }}
 
@@ -236,7 +341,7 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     font-size: 1.08rem;
     color: #ff6ec7;
     letter-spacing: 0.04em;
-    text-shadow: 0 0 8px rgba(255, 42, 133, 0.9), 0 0 16px rgba(0, 240, 255, 0.65);
+    text-shadow: 0 0 8px rgba(255, 42, 133, 0.9), 0 0 16px rgba(0, 245, 212, 0.7);
 }}
 
 .wanted-rack {{
@@ -245,15 +350,15 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     gap: 0.22rem;
     padding: 0.28rem 0.65rem;
     border-radius: 8px;
-    background: rgba(7, 3, 18, 0.82);
-    border: 1px solid rgba(255, 230, 0, 0.45);
-    box-shadow: 0 0 12px rgba(255, 230, 0, 0.25);
+    background: rgba(7, 3, 18, 0.86);
+    border: 1px solid rgba(254, 228, 64, 0.55);
+    box-shadow: 0 0 14px rgba(254, 228, 64, 0.3);
 }}
 
 .wanted-label {{
     font-family: 'Share Tech Mono', monospace;
     font-size: 0.65rem;
-    color: #94a3b8;
+    color: #cbd5e1;
     margin-right: 0.25rem;
     letter-spacing: 0.08em;
 }}
@@ -261,7 +366,7 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
 .wanted-star-on {{
     color: var(--neon-yellow);
     font-size: 1.05rem;
-    text-shadow: 0 0 8px rgba(255, 230, 0, 0.95), 0 0 16px rgba(255, 122, 0, 0.8);
+    text-shadow: 0 0 8px rgba(254, 228, 64, 0.95), 0 0 16px rgba(255, 122, 0, 0.85);
     animation: neon-flicker 4s infinite;
 }}
 
@@ -277,8 +382,8 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
         url("{_PALM_LEFT_SVG}"),
         url("{_PALM_RIGHT_SVG}"),
         linear-gradient(90deg, rgba(255, 42, 133, 0.14) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px),
-        linear-gradient(135deg, rgba(16, 6, 40, 0.96) 0%, rgba(44, 11, 78, 0.92) 48%, rgba(12, 34, 68, 0.94) 100%);
+        linear-gradient(0deg, rgba(0, 245, 212, 0.1) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(16, 6, 40, 0.96) 0%, rgba(44, 11, 78, 0.93) 48%, rgba(12, 34, 68, 0.95) 100%);
     background-position: left bottom, right bottom, center bottom, center bottom, center center;
     background-size: 165px auto, 165px auto, 32px 32px, 32px 32px, 100% 100%;
     background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat;
@@ -287,21 +392,21 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     padding: clamp(1.1rem, 2.5vw, 1.75rem) clamp(1.15rem, 3vw, 2rem);
     margin-bottom: 1.25rem;
     box-shadow:
-        0 0 24px rgba(0, 240, 255, 0.35),
-        0 0 42px rgba(255, 42, 133, 0.25),
-        inset 0 0 24px rgba(255, 42, 133, 0.15);
+        0 0 24px rgba(0, 245, 212, 0.36),
+        0 0 42px rgba(255, 42, 133, 0.26),
+        inset 0 0 24px rgba(255, 42, 133, 0.16);
     overflow: hidden;
 }}
 
 .portal-hero::before {{
-    content: "CALIBRATION // 00 -- 25 -- 50 -- 75 -- 100 // SYS.OK";
+    content: "LEONIDA CALIBRATION // 00 -- 25 -- 50 -- 75 -- 100 // SYS.OK";
     position: absolute;
     top: 6px;
     right: 14px;
     font-family: 'Share Tech Mono', monospace;
     font-size: 0.64rem;
     letter-spacing: 0.1em;
-    color: rgba(0, 240, 255, 0.62);
+    color: rgba(0, 245, 212, 0.68);
 }}
 
 .portal-hero-badge {{
@@ -314,12 +419,12 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--neon-yellow);
-    background: rgba(255, 42, 133, 0.22);
+    background: rgba(255, 42, 133, 0.24);
     border: 1px solid var(--neon-pink);
     padding: 0.25rem 0.75rem;
     border-radius: 999px;
     margin-bottom: 0.55rem;
-    box-shadow: 0 0 12px rgba(255, 42, 133, 0.45);
+    box-shadow: 0 0 12px rgba(255, 42, 133, 0.48);
 }}
 
 .portal-hero-row {{
@@ -337,10 +442,10 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     font-weight: 900;
     line-height: 1.18;
     letter-spacing: 0.02em;
-    background: linear-gradient(90deg, #ff2a85 0%, #ff7a00 50%, #ffe600 100%);
+    background: linear-gradient(90deg, #ff2a85 0%, #ff7a00 50%, #fee440 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.75));
+    filter: drop-shadow(0 0 10px rgba(0, 245, 212, 0.8));
 }}
 
 .portal-hero h1.vice-calligraphy {{
@@ -349,10 +454,10 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     font-weight: 400 !important;
     letter-spacing: 0.02em;
     padding-right: 0.4rem;
-    background: linear-gradient(180deg, #ff4da6 0%, #ff7a00 58%, #ffe600 100%);
+    background: linear-gradient(180deg, #ff4da6 0%, #ff7a00 58%, #fee440 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(2px 3px 0px #00f0ff) drop-shadow(0 0 14px rgba(0, 240, 255, 0.85));
+    filter: drop-shadow(2px 3px 0px #00f5d4) drop-shadow(0 0 14px rgba(0, 245, 212, 0.88));
 }}
 
 .portal-hero p {{
@@ -370,16 +475,16 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     gap: 0.35rem;
     padding: 0.25rem 0.65rem;
     border-radius: 6px;
-    background: rgba(7, 3, 18, 0.78);
+    background: rgba(7, 3, 18, 0.82);
     border: 1px solid var(--neon-green);
     color: var(--neon-green);
     font-family: 'Share Tech Mono', monospace;
     font-size: 0.8rem;
-    box-shadow: 0 0 12px rgba(57, 255, 20, 0.35);
+    box-shadow: 0 0 12px rgba(57, 255, 20, 0.38);
     animation: badge-float 2.8s ease-in-out infinite;
 }}
 
-/* Steel Panel + 4 Corner Rivets + Hazard Stripes + Graffiti VI */
+/* Steel Panel + 4 Corner Rivets + Hazard Stripes */
 .steel-rivet-card {{
     position: relative;
     background: var(--bg-steel);
@@ -389,8 +494,8 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     margin-bottom: 1rem;
     overflow: hidden;
     box-shadow:
-        0 0 24px rgba(0, 240, 255, 0.32),
-        0 14px 32px rgba(0, 0, 0, 0.75),
+        0 0 24px rgba(0, 245, 212, 0.32),
+        0 14px 32px rgba(0, 0, 0, 0.78),
         inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }}
 
@@ -403,12 +508,12 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     height: 9px;
     background: repeating-linear-gradient(
         -45deg,
-        #ffe600 0px,
-        #ffe600 10px,
+        #fee440 0px,
+        #fee440 10px,
         #0f172a 10px,
         #0f172a 20px
     );
-    opacity: 0.92;
+    opacity: 0.94;
 }}
 
 .steel-rivet-card::before {{ top: 0; border-bottom: 1px solid #000; }}
@@ -420,7 +525,7 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     height: 10px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #f8fafc, #64748b 60%, #1e293b 100%);
-    box-shadow: 0 0 4px rgba(0, 240, 255, 0.5);
+    box-shadow: 0 0 5px rgba(0, 245, 212, 0.55);
     z-index: 2;
 }}
 .rivet-tl {{ top: 14px; left: 10px; }}
@@ -434,14 +539,125 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     font-size: 2.65rem;
     line-height: 1;
     letter-spacing: -0.06em;
-    background: linear-gradient(135deg, #00f0ff 0%, #c084fc 45%, #ff2a85 75%, #ffe600 100%);
+    background: linear-gradient(135deg, #00f5d4 0%, #c084fc 45%, #ff2a85 75%, #fee440 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(2px 2px 0px #090314) drop-shadow(0 0 12px rgba(255, 42, 133, 0.9));
     user-select: none;
 }}
 
-/* Calibration HUD Box around Console Forms */
+/* Cinematic 2-Second Login Transition Sequence */
+.leonida-transition-shell {{
+    animation: transition-zoom-in 0.55s ease-out;
+    max-width: 820px;
+    margin: 1.5rem auto;
+}}
+
+.radar-reticle {{
+    position: relative;
+    width: 184px;
+    height: 184px;
+    margin: 0.75rem auto 1rem auto;
+    border-radius: 50%;
+    border: 2.5px solid var(--neon-cyan);
+    background:
+        radial-gradient(circle, rgba(0, 245, 212, 0.14) 0%, rgba(10, 4, 28, 0.92) 70%),
+        repeating-radial-gradient(circle, rgba(0, 245, 212, 0.28) 0px, rgba(0, 245, 212, 0.28) 1px, transparent 1px, transparent 30px);
+    box-shadow: 0 0 28px rgba(0, 245, 212, 0.55), inset 0 0 22px rgba(255, 42, 133, 0.25);
+    overflow: hidden;
+}}
+
+.radar-reticle::before {{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg, transparent 49.5%, rgba(0, 245, 212, 0.45) 50%, transparent 50.5%),
+        linear-gradient(0deg, transparent 49.5%, rgba(0, 245, 212, 0.45) 50%, transparent 50.5%);
+}}
+
+.radar-beam {{
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(0, 245, 212, 0.65) 0deg, rgba(255, 42, 133, 0.22) 38deg, transparent 78deg, transparent 360deg);
+    animation: spin-radar 1.15s linear infinite;
+}}
+
+.radar-center-dot {{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--neon-yellow);
+    box-shadow: 0 0 12px var(--neon-yellow);
+}}
+
+.neon-progress-track {{
+    width: 100%;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(7, 3, 18, 0.9);
+    border: 1.5px solid var(--neon-cyan);
+    padding: 2px;
+    overflow: hidden;
+    box-shadow: 0 0 16px rgba(0, 245, 212, 0.4);
+}}
+
+.neon-progress-fill {{
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff2a85 0%, #ff7a00 45%, #fee440 75%, #00f5d4 100%);
+    box-shadow: 0 0 16px rgba(255, 42, 133, 0.85);
+    animation: progress-sweep 1.85s ease-out forwards;
+}}
+
+.holo-ticker-strip {{
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0.8rem 0;
+    padding: 0.35rem 0.6rem;
+    border-top: 1px dashed rgba(0, 245, 212, 0.45);
+    border-bottom: 1px dashed rgba(255, 42, 133, 0.45);
+    background: rgba(7, 3, 18, 0.72);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--neon-cyan);
+}}
+
+.holo-ticker-inner {{
+    display: inline-block;
+    animation: ticker-scroll 3.8s linear infinite;
+}}
+
+.glitch-seq-line {{
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.82rem, 1.5vw, 1rem);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-align: center;
+    margin: 0.25rem 0;
+}}
+
+.seq-1 {{ color: var(--neon-pink); text-shadow: 0 0 10px rgba(255, 42, 133, 0.85); animation: phase-seq-1 1.9s linear forwards; }}
+.seq-2 {{ color: var(--neon-yellow); text-shadow: 0 0 10px rgba(254, 228, 64, 0.85); animation: phase-seq-2 1.9s linear forwards; }}
+.seq-3 {{ color: var(--neon-green); text-shadow: 0 0 12px rgba(57, 255, 20, 0.9); animation: phase-seq-3 1.9s linear forwards; }}
+
+/* Wanted Flashing Triggered Alert Card */
+.wanted-alert-flash {{
+    position: relative;
+    background: linear-gradient(135deg, rgba(45, 7, 28, 0.94), rgba(14, 7, 36, 0.96));
+    border: 2px solid #ff2a6d;
+    border-radius: 12px;
+    padding: 0.9rem 1.2rem;
+    margin-bottom: 0.65rem;
+    animation: hazard-flash 1.4s ease-in-out infinite;
+}}
+
+/* Calibration HUD Ruler */
 .console-hud-ruler {{
     display: flex;
     justify-content: space-between;
@@ -449,11 +665,11 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     font-family: 'Share Tech Mono', monospace;
     font-size: 0.68rem;
     color: var(--neon-cyan);
-    border-top: 1px dashed rgba(0, 240, 255, 0.45);
+    border-top: 1px dashed rgba(0, 245, 212, 0.45);
     border-bottom: 1px dashed rgba(255, 42, 133, 0.45);
     padding: 0.25rem 0.5rem;
     margin: 0.35rem 0 0.65rem 0;
-    background: rgba(7, 3, 18, 0.65);
+    background: rgba(7, 3, 18, 0.72);
     letter-spacing: 0.08em;
 }}
 
@@ -472,14 +688,14 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     border-radius: var(--radius-md);
     padding: 0.95rem 1.1rem;
     backdrop-filter: blur(10px);
-    box-shadow: 0 0 16px rgba(0, 240, 255, 0.14), inset 0 0 12px rgba(255, 42, 133, 0.08);
+    box-shadow: 0 0 16px rgba(0, 245, 212, 0.16), inset 0 0 12px rgba(255, 42, 133, 0.09);
     transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }}
 
 .kpi-card:hover {{
     transform: translateY(-2px);
     border-color: var(--neon-pink);
-    box-shadow: 0 0 22px rgba(255, 42, 133, 0.35), 0 0 12px rgba(0, 240, 255, 0.28);
+    box-shadow: 0 0 22px rgba(255, 42, 133, 0.38), 0 0 12px rgba(0, 245, 212, 0.3);
 }}
 
 .kpi-label {{
@@ -500,7 +716,7 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     font-variant-numeric: tabular-nums;
     line-height: 1.2;
     word-break: break-word;
-    text-shadow: 0 0 10px rgba(0, 240, 255, 0.32);
+    text-shadow: 0 0 10px rgba(0, 245, 212, 0.34);
 }}
 
 .kpi-delta {{
@@ -514,29 +730,10 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     font-variant-numeric: tabular-nums;
 }}
 
-.tone-up {{
-    color: #39ff14;
-    background: rgba(57, 255, 20, 0.12);
-    border: 1px solid rgba(57, 255, 20, 0.45);
-}}
-
-.tone-down {{
-    color: #ff4d8d;
-    background: rgba(255, 42, 109, 0.16);
-    border: 1px solid rgba(255, 42, 109, 0.5);
-}}
-
-.tone-neutral {{
-    color: #7dd3fc;
-    background: rgba(0, 240, 255, 0.12);
-    border: 1px solid rgba(0, 240, 255, 0.35);
-}}
-
-.tone-warn {{
-    color: #ffe600;
-    background: rgba(255, 230, 0, 0.13);
-    border: 1px solid rgba(255, 230, 0, 0.45);
-}}
+.tone-up {{ color: #39ff14; background: rgba(57, 255, 20, 0.12); border: 1px solid rgba(57, 255, 20, 0.45); }}
+.tone-down {{ color: #ff4d8d; background: rgba(255, 42, 109, 0.16); border: 1px solid rgba(255, 42, 109, 0.5); }}
+.tone-neutral {{ color: #7dd3fc; background: rgba(0, 245, 212, 0.12); border: 1px solid rgba(0, 245, 212, 0.38); }}
+.tone-warn {{ color: #fee440; background: rgba(254, 228, 64, 0.13); border: 1px solid rgba(254, 228, 64, 0.48); }}
 
 /* Signal Badges */
 .signal-badge {{
@@ -551,26 +748,9 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     letter-spacing: 0.06em;
 }}
 
-.badge-buy {{
-    background: rgba(57, 255, 20, 0.14);
-    color: #39ff14;
-    border: 1.5px solid #39ff14;
-    box-shadow: 0 0 14px rgba(57, 255, 20, 0.4);
-}}
-
-.badge-sell {{
-    background: rgba(255, 42, 109, 0.18);
-    color: #ff4d8d;
-    border: 1.5px solid #ff2a6d;
-    box-shadow: 0 0 14px rgba(255, 42, 109, 0.45);
-}}
-
-.badge-hold {{
-    background: rgba(255, 230, 0, 0.14);
-    color: #ffe600;
-    border: 1.5px solid #ffe600;
-    box-shadow: 0 0 14px rgba(255, 230, 0, 0.38);
-}}
+.badge-buy {{ background: rgba(57, 255, 20, 0.14); color: #39ff14; border: 1.5px solid #39ff14; box-shadow: 0 0 14px rgba(57, 255, 20, 0.4); }}
+.badge-sell {{ background: rgba(255, 42, 109, 0.18); color: #ff4d8d; border: 1.5px solid #ff2a6d; box-shadow: 0 0 14px rgba(255, 42, 109, 0.45); }}
+.badge-hold {{ background: rgba(254, 228, 64, 0.14); color: #fee440; border: 1.5px solid #fee440; box-shadow: 0 0 14px rgba(254, 228, 64, 0.38); }}
 
 /* Surface & Sidebar Profile Cards */
 .surface-card {{
@@ -579,25 +759,37 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     border-radius: var(--radius-md);
     padding: 1.05rem 1.2rem;
     margin-bottom: 1rem;
-    box-shadow: 0 0 16px rgba(0, 240, 255, 0.14);
+    box-shadow: 0 0 16px rgba(0, 245, 212, 0.16);
 }}
 
 .sidebar-profile-card {{
-    background: linear-gradient(145deg, rgba(22, 8, 48, 0.94), rgba(10, 5, 28, 0.96));
-    border: 1.5px solid var(--neon-cyan);
+    position: relative;
+    background: linear-gradient(145deg, rgba(22, 8, 48, 0.96), rgba(10, 5, 28, 0.98));
+    border: 2px solid var(--neon-cyan);
     border-radius: var(--radius-md);
-    padding: 0.9rem 1rem;
+    padding: 1.05rem 1rem 0.95rem 1rem;
     margin-bottom: 0.85rem;
-    box-shadow: 0 0 16px rgba(0, 240, 255, 0.25), inset 0 0 12px rgba(255, 42, 133, 0.15);
+    overflow: hidden;
+    box-shadow: 0 0 16px rgba(0, 245, 212, 0.28), inset 0 0 12px rgba(255, 42, 133, 0.16);
+}}
+
+.sidebar-profile-card::before {{
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: repeating-linear-gradient(-45deg, #fee440 0 8px, #0b0422 8px 16px);
 }}
 
 .sidebar-profile-name {{
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     font-weight: 800;
     color: #ffffff;
     margin-bottom: 0.25rem;
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+    text-shadow: 0 0 8px rgba(0, 245, 212, 0.55);
 }}
 
 .sidebar-cash-pill {{
@@ -609,8 +801,8 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
 }}
 
 .news-item-card {{
-    background: rgba(14, 6, 36, 0.86);
-    border: 1px solid rgba(255, 42, 133, 0.35);
+    background: rgba(14, 6, 36, 0.88);
+    border: 1px solid rgba(255, 42, 133, 0.38);
     border-radius: var(--radius-sm);
     padding: 0.72rem 0.9rem;
     margin-bottom: 0.55rem;
@@ -619,7 +811,7 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
 
 .news-item-card:hover {{
     border-color: var(--neon-cyan);
-    box-shadow: 0 0 14px rgba(0, 240, 255, 0.25);
+    box-shadow: 0 0 14px rgba(0, 245, 212, 0.28);
 }}
 
 .news-item-card a {{
@@ -642,7 +834,7 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     margin-top: 0.25rem;
 }}
 
-/* Hazard / VIP Access Primary Buttons & Arcade Controls */
+/* Primary Arcade Buttons */
 .stButton > button[kind="primary"],
 button[data-testid="stBaseButton-primary"],
 button[data-testid="baseButton-primary"] {{
@@ -651,8 +843,8 @@ button[data-testid="baseButton-primary"] {{
     letter-spacing: 0.06em !important;
     text-transform: uppercase;
     color: #070312 !important;
-    background: linear-gradient(90deg, #00f0ff 0%, #39ff14 48%, #ffe600 100%) !important;
-    border: 2px solid #ffe600 !important;
+    background: linear-gradient(90deg, #00f5d4 0%, #39ff14 48%, #fee440 100%) !important;
+    border: 2px solid #fee440 !important;
     border-radius: 10px !important;
     min-height: 46px !important;
     animation: vice-pulse 2.4s infinite;
@@ -673,8 +865,8 @@ button[data-testid="baseButton-primary"]:hover {{
     border-radius: 10px;
     font-weight: 700;
     min-height: 42px;
-    border: 1.5px solid rgba(0, 240, 255, 0.45);
-    background: rgba(16, 7, 38, 0.85);
+    border: 1.5px solid rgba(0, 245, 212, 0.48);
+    background: rgba(16, 7, 38, 0.88);
     color: #f8fafc;
     transition: all 0.15s ease;
 }}
@@ -685,27 +877,56 @@ button[data-testid="baseButton-primary"]:hover {{
     box-shadow: 0 0 14px rgba(255, 42, 133, 0.45);
 }}
 
-/* Arcade Inputs, Forms & Selectors */
+/* Zero Standard White/Grey Boxes: Forms, Inputs, Expanders, Alerts, Chat Bubbles */
 div[data-testid="stForm"] {{
-    background: rgba(11, 5, 28, 0.85);
+    background: rgba(11, 5, 28, 0.9);
     border: 1.5px solid var(--neon-pink);
     border-radius: 12px;
     padding: 1rem 1.1rem;
-    box-shadow: 0 0 20px rgba(255, 42, 133, 0.22), inset 0 0 14px rgba(0, 240, 255, 0.12);
+    box-shadow: 0 0 20px rgba(255, 42, 133, 0.24), inset 0 0 14px rgba(0, 245, 212, 0.14);
 }}
 
 div[data-baseweb="input"] > div,
 div[data-baseweb="select"] > div {{
-    background-color: rgba(9, 4, 24, 0.92) !important;
-    border: 1px solid rgba(0, 240, 255, 0.45) !important;
+    background-color: rgba(9, 4, 24, 0.94) !important;
+    border: 1px solid rgba(0, 245, 212, 0.48) !important;
     border-radius: 8px !important;
     font-family: 'Share Tech Mono', monospace !important;
+    color: #f8fafc !important;
 }}
 
 div[data-baseweb="input"] > div:focus-within,
 div[data-baseweb="select"] > div:focus-within {{
     border-color: var(--neon-pink) !important;
     box-shadow: 0 0 12px rgba(255, 42, 133, 0.55) !important;
+}}
+
+div[data-testid="stExpander"] {{
+    background: rgba(12, 5, 32, 0.9) !important;
+    border: 1.5px solid rgba(0, 245, 212, 0.42) !important;
+    border-radius: 12px !important;
+}}
+
+div[data-testid="stAlert"] {{
+    background: rgba(14, 6, 36, 0.92) !important;
+    border: 1.5px solid rgba(0, 245, 212, 0.45) !important;
+    border-radius: 10px !important;
+}}
+
+div[data-testid="stChatMessage"] {{
+    background: rgba(13, 6, 36, 0.92) !important;
+    border: 1.5px solid rgba(0, 245, 212, 0.48) !important;
+    border-radius: 12px !important;
+    padding: 0.75rem 1rem !important;
+    margin-bottom: 0.6rem !important;
+    box-shadow: 0 0 14px rgba(0, 245, 212, 0.16);
+}}
+
+div[data-testid="stChatInput"] > div {{
+    background: rgba(11, 4, 28, 0.95) !important;
+    border: 1.5px solid var(--neon-pink) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 0 16px rgba(255, 42, 133, 0.28);
 }}
 
 /* Tabs */
@@ -715,6 +936,9 @@ button[data-baseweb="tab"] {{
     font-weight: 700 !important;
     letter-spacing: 0.05em;
     border-radius: 8px 8px 0 0;
+    background: rgba(15, 6, 38, 0.72) !important;
+    border: 1px solid rgba(0, 245, 212, 0.25) !important;
+    margin-right: 0.25rem;
 }}
 
 /* Native Metrics & DataFrames */
@@ -736,7 +960,7 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
     border: 1.5px solid var(--border-magenta);
     border-radius: var(--radius-md);
     overflow-x: auto;
-    box-shadow: 0 0 18px rgba(255, 42, 133, 0.18);
+    box-shadow: 0 0 18px rgba(255, 42, 133, 0.2);
 }}
 
 /* Tablet & Mobile Responsive Breakpoints */
@@ -791,7 +1015,7 @@ def inject_global_styles() -> None:
     st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 
-def render_wanted_stars_html(active_stars: int = 5, total_stars: int = 6) -> str:
+def render_wanted_stars_html(active_stars: int = 6, total_stars: int = 6) -> str:
     """Return HTML markup for a retro 6-star GTA Wanted Level bar."""
     clamped = max(0, min(active_stars, total_stars))
     stars_on = "".join('<span class="wanted-star-on">★</span>' for _ in range(clamped))
@@ -804,7 +1028,7 @@ def render_wanted_stars_html(active_stars: int = 5, total_stars: int = 6) -> str
     )
 
 
-def render_vice_hud_banner(wanted_stars: int = 5, telemetry: str = "BAWSAQ // LCN LIVE LINK") -> None:
+def render_vice_hud_banner(wanted_stars: int = 6, telemetry: str = "BAWSAQ // LCN LIVE LINK") -> None:
     """Render top GTA-style neon wing emblem banner and 6-star wanted level rack."""
     stars_html = render_wanted_stars_html(active_stars=wanted_stars, total_stars=6)
     safe_telemetry = html.escape(telemetry)
@@ -817,7 +1041,7 @@ def render_vice_hud_banner(wanted_stars: int = 5, telemetry: str = "BAWSAQ // LC
         f'<span class="wing-pill">🦅 ★ DRONACHARYA GROUP OF INSTITUTIONS • AKTU ★ 🦅</span>'
         f'<span class="wing-chevron right"></span>'
         f"</div>"
-        f'<div class="vice-sub-ribbon">★ ★ ★ Vice City Special Events • BAWSAQ Terminal ★ ★ ★</div>'
+        f'<div class="vice-sub-ribbon">★ ★ ★ Vice City Special Events • Leonida Terminal ★ ★ ★</div>'
         f"</div>"
         f"{stars_html}"
         f"</div>",
@@ -830,7 +1054,7 @@ def render_page_header(
     subtitle: str,
     badge: str = "NSE INDIA • BAWSAQ LIVE",
     use_calligraphy: bool = False,
-    wanted_stars: int = 5,
+    wanted_stars: int = 6,
 ) -> None:
     """Render the GTA VI neon wing HUD bar and Vice City synthwave hero banner."""
     render_vice_hud_banner(wanted_stars=wanted_stars)
@@ -850,6 +1074,64 @@ def render_page_header(
         f"</div>"
         f"</div>",
         unsafe_allow_html=True,
+    )
+
+
+def render_login_transition_overlay(username: str) -> None:
+    """Render the 2-second cinematic GTA VI radar & neon progress transition screen."""
+    render_vice_hud_banner(wanted_stars=6, telemetry="LEONIDA ENTRY PROTOCOL")
+    safe_user = html.escape(username)
+    st.markdown(
+        f"""
+        <div class="leonida-transition-shell">
+            <div class="steel-rivet-card" style="text-align:center; padding:1.75rem 1.5rem;">
+                <span class="rivet-dot rivet-tl"></span>
+                <span class="rivet-dot rivet-tr"></span>
+                <span class="rivet-dot rivet-bl"></span>
+                <span class="rivet-dot rivet-br"></span>
+                <div style="font-family:'Orbitron',sans-serif; color:#00f5d4; font-size:0.82rem; letter-spacing:0.14em;">
+                    OPERATOR VERIFIED // {safe_user.upper()}
+                </div>
+                <div class="radar-reticle">
+                    <div class="radar-beam"></div>
+                    <div class="radar-center-dot"></div>
+                </div>
+                <div class="neon-progress-track">
+                    <div class="neon-progress-fill"></div>
+                </div>
+                <div class="holo-ticker-strip">
+                    <div class="holo-ticker-inner">
+                        RELIANCE.NS ▲ +1.84% &nbsp;//&nbsp; TCS.NS ▲ +0.92% &nbsp;//&nbsp; HDFCBANK.NS ▲ +1.15%
+                        &nbsp;//&nbsp; INFY.NS ▼ -0.38% &nbsp;//&nbsp; SBIN.NS ▲ +2.07% &nbsp;//&nbsp; ADANIENT.NS ▲ +1.02%
+                    </div>
+                </div>
+                <div class="glitch-seq-line seq-1">▸ INITIALIZING BAWSAQ / NSE FEED...</div>
+                <div class="glitch-seq-line seq-2">▸ BYPASSING SECURITY...</div>
+                <div class="glitch-seq-line seq-3">▸ ACCESS GRANTED // WELCOME TO LEONIDA</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_sidebar_minimap_html() -> str:
+    """Return HTML markup for the bottom sidebar mini-map radar graphic."""
+    return (
+        '<div class="sidebar-minimap-card">'
+        '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.2rem;">'
+        '<span style="font-family:\'Orbitron\',sans-serif; font-size:0.68rem; color:#00f5d4; letter-spacing:0.08em;">'
+        '🗺️ LEONIDA RADAR'
+        "</span>"
+        '<span style="font-family:\'Share Tech Mono\',monospace; font-size:0.66rem; color:#39ff14;">ACTIVE</span>'
+        "</div>"
+        '<div class="minimap-grid">'
+        '<div class="minimap-sweep"></div>'
+        '<div class="minimap-player">▲</div>'
+        "</div>"
+        '<div style="font-family:\'Share Tech Mono\',monospace; font-size:0.66rem; color:#cbd5e1; margin-top:0.35rem; text-align:center;">'
+        "BAWSAQ SECTOR · 100% ENCRYPTED"
+        "</div></div>"
     )
 
 
@@ -888,11 +1170,11 @@ def render_kpi_grid(cards: list[dict[str, str]]) -> None:
 
 
 def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = None) -> go.Figure:
-    """Apply retro Vice City synthwave styling and responsive margins to Plotly figures."""
+    """Apply deep indigo Vice City synthwave styling to Plotly figures."""
     layout_kwargs: dict = {
         "template": "plotly_dark",
-        "paper_bgcolor": "rgba(10, 4, 28, 0.88)",
-        "plot_bgcolor": "rgba(18, 7, 42, 0.85)",
+        "paper_bgcolor": "rgba(11, 5, 36, 0.92)",
+        "plot_bgcolor": "rgba(16, 7, 46, 0.90)",
         "font": {"family": "Share Tech Mono, Rajdhani, sans-serif", "color": "#f8fafc", "size": 12},
         "height": height,
         "margin": {"l": 16, "r": 16, "t": 58, "b": 28},
@@ -903,25 +1185,25 @@ def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = N
             "y": 1.02,
             "xanchor": "right",
             "x": 1,
-            "bgcolor": "rgba(10, 4, 28, 0.55)",
-            "bordercolor": "rgba(0, 240, 255, 0.3)",
+            "bgcolor": "rgba(10, 4, 28, 0.65)",
+            "bordercolor": "rgba(0, 245, 212, 0.35)",
             "borderwidth": 1,
         },
     }
     if title:
         layout_kwargs["title"] = {
             "text": title,
-            "font": {"family": "Orbitron, sans-serif", "size": 15, "color": "#00f0ff"},
+            "font": {"family": "Orbitron, sans-serif", "size": 15, "color": "#00f5d4"},
         }
 
     fig.update_layout(**layout_kwargs)
     fig.update_xaxes(
         gridcolor="rgba(255, 42, 133, 0.16)",
-        linecolor="rgba(0, 240, 255, 0.35)",
+        linecolor="rgba(0, 245, 212, 0.35)",
         zeroline=False,
     )
     fig.update_yaxes(
-        gridcolor="rgba(0, 240, 255, 0.12)",
+        gridcolor="rgba(0, 245, 212, 0.12)",
         linecolor="rgba(255, 42, 133, 0.35)",
         zeroline=False,
     )
