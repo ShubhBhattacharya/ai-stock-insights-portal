@@ -1,4 +1,4 @@
-"""Module 5: Dynamic Portfolio Risk & Correlation Analyzer."""
+"""Module 5: Dynamic Portfolio Risk & Correlation Analyzer (Syndicate Heat Matrix)."""
 
 from __future__ import annotations
 
@@ -13,15 +13,16 @@ from src.styles import render_kpi_grid, render_page_header, style_plotly_figure
 
 
 def render_risk_optimizer() -> None:
-    """Render portfolio volatility, Sharpe ratio, asset breakdown, and correlation heatmap."""
+    """Render portfolio volatility, Sharpe ratio, and synthwave correlation heatmap."""
     render_page_header(
-        title="🎯 Dynamic Portfolio Risk & Correlation Analyzer",
-        subtitle="Analyze multi-stock annualized volatility, Sharpe ratio, and asset correlations",
-        badge="QUANTITATIVE RISK ENGINE",
+        title="Syndicate Heat // Portfolio Risk Matrix",
+        subtitle="Quantify multi-stock annualized volatility, Sharpe ratio, and cross-asset heat",
+        badge="WANTED HEAT & QUANT ENGINE",
+        wanted_stars=4,
     )
 
     selected_stocks = st.multiselect(
-        "Select Basket of Equities to Analyze:",
+        "Select Basket of BAWSAQ Equities to Analyze:",
         list(NSE_STOCKS.keys()),
         default=[
             "Reliance Industries",
@@ -32,16 +33,16 @@ def render_risk_optimizer() -> None:
     )
 
     if len(selected_stocks) < 2:
-        st.warning("Please select at least 2 stocks to compute portfolio risk and correlation.")
+        st.warning("Select at least 2 equities to calculate syndicate portfolio heat and correlation.")
         return
 
     items = tuple((name, NSE_STOCKS[name]) for name in selected_stocks)
 
-    with st.spinner("Analyzing returns and covariance matrix..."):
+    with st.spinner("Calculating syndicate returns and covariance matrix..."):
         returns_dict = fetch_batch_returns(items)
 
     if len(returns_dict) < 2:
-        st.error("Unable to retrieve sufficient historical data for at least 2 selected stocks.")
+        st.error("Unable to retrieve sufficient historical data for at least 2 selected equities.")
         return
 
     returns_df = pd.DataFrame(returns_dict).dropna()
@@ -71,19 +72,19 @@ def render_risk_optimizer() -> None:
             {
                 "label": "Annualized Volatility",
                 "value": f"{port_volatility:.2f}%",
-                "delta": f"{num_assets} equal-weight assets",
+                "delta": f"{num_assets} equal-weight drops",
                 "tone": vol_tone,
             },
             {
                 "label": "Expected Annual Return",
                 "value": f"{port_return:.2f}%",
-                "delta": f"vs {RISK_FREE_RATE_PCT:.1f}% risk-free proxy",
+                "delta": f"vs {RISK_FREE_RATE_PCT:.1f}% safe-house yield",
                 "tone": ret_tone,
             },
             {
-                "label": "Estimated Sharpe Ratio",
+                "label": "Syndicate Sharpe Ratio",
                 "value": f"{sharpe_ratio:.2f}",
-                "delta": "Strong" if sharpe_ratio >= 1.0 else ("Moderate" if sharpe_ratio >= 0 else "Negative"),
+                "delta": "Elite" if sharpe_ratio >= 1.0 else ("Moderate" if sharpe_ratio >= 0 else "Negative"),
                 "tone": sharpe_tone,
             },
         ]
@@ -91,20 +92,20 @@ def render_risk_optimizer() -> None:
 
     if port_volatility < 18:
         st.success(
-            "🟢 **Conservative Risk Profile:** Low volatility, ideal for capital preservation."
+            "⭐ **1-STAR LOW HEAT PROFILE:** Smooth volatility — ideal for armored capital preservation."
         )
     elif port_volatility < 28:
-        st.warning("🟡 **Moderate Risk Profile:** Balanced risk-reward structure.")
+        st.warning("⭐⭐⭐ **3-STAR MODERATE HEAT PROFILE:** Balanced risk-reward street mix.")
     else:
         st.error(
-            "🔴 **Aggressive Risk Profile:** High volatility basket; prone to sharp drawdowns."
+            "⭐⭐⭐⭐⭐⭐ **6-STAR MAX HEAT PROFILE:** Aggressive high-volatility basket; watch for sharp drawdowns!"
         )
 
     st.markdown("---")
     col_heat, col_table = st.columns([3, 2])
 
     with col_heat:
-        st.subheader("🔥 Asset Correlation Heatmap")
+        st.subheader("🔥 Synthwave Asset Correlation Heatmap")
         corr_df = returns_df.corr()
         fig_corr = px.imshow(
             corr_df,
@@ -112,8 +113,8 @@ def render_risk_optimizer() -> None:
             aspect="auto",
             zmin=-1.0,
             zmax=1.0,
-            color_continuous_scale="RdBu_r",
-            title="Cross-Asset Return Correlation (-1 to +1)",
+            color_continuous_scale=["#ff2a85", "#14082d", "#00f0ff"],
+            title="CROSS-ASSET RETURN CORRELATION (-1 TO +1)",
         )
         style_plotly_figure(fig_corr, height=450)
         fig_corr.update_layout(hovermode="closest")

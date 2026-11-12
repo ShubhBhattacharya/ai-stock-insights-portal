@@ -1,4 +1,4 @@
-"""Module 2: Single Stock AI Technical Analysis & ML Price Forecast."""
+"""Module 2: Single Stock AI Technical Analysis & ML Price Forecast (Lester's Intel Edition)."""
 
 from __future__ import annotations
 
@@ -34,16 +34,16 @@ def _build_technical_chart(
     forecast_days: int,
     show_bbands: bool,
 ) -> go.Figure:
-    """Create a 3-panel Candlestick, Volume, and RSI Plotly figure."""
+    """Create a synthwave 3-panel Candlestick, Volume, and RSI Plotly figure."""
     fig = make_subplots(
         rows=3,
         cols=1,
         shared_xaxes=True,
-        vertical_spacing=0.045,
+        vertical_spacing=0.05,
         subplot_titles=(
-            f"{symbol} Price Candlesticks, SMAs & {forecast_days}-Day Forecast",
-            "Trading Volume",
-            "RSI (14-Period Oscillator)",
+            f"▸ {symbol} // BAWSAQ OHLC + SMAs + {forecast_days}D ML VECTOR",
+            "▸ DETECTED VOLUME SURGE",
+            "▸ RSI-14 MOMENTUM RADAR",
         ),
         row_heights=[0.6, 0.2, 0.2],
     )
@@ -56,8 +56,10 @@ def _build_technical_chart(
             low=df["Low"],
             close=df["Close"],
             name="OHLC Price",
-            increasing_line_color="#10b981",
-            decreasing_line_color="#ef4444",
+            increasing_line_color="#39ff14",
+            increasing_fillcolor="rgba(57, 255, 20, 0.72)",
+            decreasing_line_color="#ff2a6d",
+            decreasing_fillcolor="rgba(255, 42, 109, 0.75)",
         ),
         row=1,
         col=1,
@@ -70,7 +72,7 @@ def _build_technical_chart(
                 y=df["BBU"],
                 mode="lines",
                 name="Upper BB (20,2)",
-                line=dict(color="rgba(148, 163, 184, 0.45)", width=1, dash="dot"),
+                line=dict(color="rgba(0, 240, 255, 0.5)", width=1.1, dash="dot"),
             ),
             row=1,
             col=1,
@@ -81,9 +83,9 @@ def _build_technical_chart(
                 y=df["BBL"],
                 mode="lines",
                 name="Lower BB (20,2)",
-                line=dict(color="rgba(148, 163, 184, 0.45)", width=1, dash="dot"),
+                line=dict(color="rgba(255, 42, 133, 0.5)", width=1.1, dash="dot"),
                 fill="tonexty",
-                fillcolor="rgba(56, 189, 248, 0.06)",
+                fillcolor="rgba(192, 132, 252, 0.08)",
             ),
             row=1,
             col=1,
@@ -94,8 +96,8 @@ def _build_technical_chart(
             x=df.index,
             y=df["SMA_50"],
             mode="lines",
-            name="50 SMA",
-            line=dict(color="#f59e0b", width=1.8),
+            name="50 SMA (Laser)",
+            line=dict(color="#ffe600", width=2.0),
         ),
         row=1,
         col=1,
@@ -106,8 +108,8 @@ def _build_technical_chart(
             x=df.index,
             y=df["SMA_200"],
             mode="lines",
-            name="200 SMA",
-            line=dict(color="#38bdf8", width=1.8),
+            name="200 SMA (Cyber)",
+            line=dict(color="#00f0ff", width=2.0),
         ),
         row=1,
         col=1,
@@ -119,16 +121,16 @@ def _build_technical_chart(
                 x=pred_df.index,
                 y=pred_df["Predicted_Close"],
                 mode="lines+markers",
-                name=f"{forecast_days}-Day ML Forecast",
-                line=dict(color="#f472b6", width=2.2, dash="dash"),
-                marker=dict(size=4),
+                name=f"{forecast_days}D Neon ML Forecast",
+                line=dict(color="#ff2a85", width=2.6, dash="dash"),
+                marker=dict(size=5, color="#ffe600", symbol="diamond"),
             ),
             row=1,
             col=1,
         )
 
     vol_colors = [
-        "#10b981" if close_v >= open_v else "#ef4444"
+        "#39ff14" if close_v >= open_v else "#ff2a6d"
         for close_v, open_v in zip(df["Close"], df["Open"])
     ]
     fig.add_trace(
@@ -137,7 +139,7 @@ def _build_technical_chart(
             y=df["Volume"],
             name="Volume",
             marker_color=vol_colors,
-            opacity=0.85,
+            opacity=0.82,
         ),
         row=2,
         col=1,
@@ -149,26 +151,28 @@ def _build_technical_chart(
             y=df["RSI"],
             mode="lines",
             name="RSI (14)",
-            line=dict(color="#a78bfa", width=1.6),
+            line=dict(color="#c084fc", width=1.9),
         ),
         row=3,
         col=1,
     )
 
-    fig.add_hline(y=70, line_dash="dot", line_color="#ef4444", row=3, col=1)
-    fig.add_hline(y=30, line_dash="dot", line_color="#10b981", row=3, col=1)
+    fig.add_hline(y=70, line_dash="dot", line_color="#ff2a6d", row=3, col=1)
+    fig.add_hline(y=30, line_dash="dot", line_color="#39ff14", row=3, col=1)
 
-    style_plotly_figure(fig, height=760)
+    style_plotly_figure(fig, height=770)
+    fig.update_annotations(font=dict(family="Orbitron, sans-serif", size=12, color="#00f0ff"))
     fig.update_layout(xaxis_rangeslider_visible=False)
     return fig
 
 
 def render_single_stock_analysis() -> None:
-    """Render single-stock technical breakdown, decision rationale, sentiment, and ML forecast."""
+    """Render single-stock technical breakdown, Lester's Intel dossier, and ML forecast."""
     render_page_header(
-        title="🤖 Single Stock AI Analysis & ML Price Forecast",
-        subtitle="Comprehensive technical breakdown, rule-based decision logic, news sentiment, and linear projection",
-        badge="TECHNICALS & ML FORECASTING",
+        title="BAWSAQ Target Intel & ML Forecast",
+        subtitle="Deep synthwave technical telemetry, Lester's classified dossier, and ML trend vector",
+        badge="LESTER'S UNDERGROUND INTEL • ML ENGINE",
+        wanted_stars=4,
     )
 
     stock_names = list(NSE_STOCKS.keys())
@@ -178,7 +182,7 @@ def render_single_stock_analysis() -> None:
     col_s1, col_s2, col_s3 = st.columns([2, 1.2, 1])
     with col_s1:
         st.selectbox(
-            "Select NSE Stock from List:",
+            "LOCK NSE TARGET FROM LIST:",
             stock_names,
             index=0,
             key="single_stock_select",
@@ -187,7 +191,7 @@ def render_single_stock_analysis() -> None:
     with col_s2:
         custom_sym = (
             st.text_input(
-                "Or Enter Custom Symbol:",
+                "OR ENTER CUSTOM TICKER:",
                 key="single_stock_symbol",
                 placeholder="e.g. RELIANCE.NS",
             )
@@ -195,17 +199,17 @@ def render_single_stock_analysis() -> None:
             .strip()
         )
     with col_s3:
-        forecast_days = st.selectbox("Forecast Horizon:", [7, 15, 30], index=2)
+        forecast_days = st.selectbox("ML HORIZON:", [7, 15, 30], index=2)
 
     if not custom_sym:
         st.info("Enter a valid NSE/BSE ticker symbol (e.g., `RELIANCE.NS`, `TCS.NS`, `INFY.NS`).")
         return
 
-    with st.spinner(f"Running technical & ML pipeline for {custom_sym}..."):
+    with st.spinner(f"Decrypting BAWSAQ telemetry & ML trendline for {custom_sym}..."):
         metrics, error = get_stock_analysis(custom_sym)
 
     if error:
-        st.error(f"❌ {error}")
+        st.error(f"🚨 {error}")
         st.info("Tip: Ensure the symbol is a valid NSE/BSE ticker, e.g., `RELIANCE.NS`, `TCS.NS`, `INFY.NS`.")
         return
 
@@ -216,8 +220,9 @@ def render_single_stock_analysis() -> None:
     signal_badge_html = render_signal_badge(metrics["signal"], metrics["confidence"])
 
     st.markdown(
-        f'<div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.75rem; margin-bottom:0.4rem;">'
-        f'<h3 style="margin:0;">📌 Live Market Snapshot — {html.escape(metrics["symbol"])}</h3>'
+        f'<div class="surface-card" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.75rem;">'
+        f'<h3 style="margin:0; font-family:\'Orbitron\',sans-serif; color:#00f0ff;">'
+        f'🎯 TARGET LOCKED // {html.escape(metrics["symbol"])}</h3>'
         f"<div>{signal_badge_html}</div>"
         f"</div>",
         unsafe_allow_html=True,
@@ -229,31 +234,31 @@ def render_single_stock_analysis() -> None:
     render_kpi_grid(
         [
             {
-                "label": "Live Close",
+                "label": "Live Market Quote",
                 "value": f"₹{metrics['close']:,.2f}",
                 "delta": f"{metrics['day_change']:+.2f} ({metrics['day_change_pct']:+.2f}%)",
                 "tone": change_tone,
             },
             {
-                "label": "RSI (14)",
+                "label": "RSI (14) Radar",
                 "value": f"{metrics['rsi']:.1f}",
                 "delta": "Oversold" if metrics["rsi"] < 35 else ("Overbought" if metrics["rsi"] > 70 else "Neutral Zone"),
                 "tone": rsi_tone,
             },
             {
-                "label": "50-Day SMA",
+                "label": "50-Day SMA (Laser)",
                 "value": f"₹{metrics['sma50']:,.2f}",
                 "delta": "Above SMA50" if metrics["close"] >= metrics["sma50"] else "Below SMA50",
                 "tone": "up" if metrics["close"] >= metrics["sma50"] else "down",
             },
             {
-                "label": "200-Day SMA",
+                "label": "200-Day SMA (Cyber)",
                 "value": f"₹{metrics['sma200']:,.2f}",
                 "delta": "Golden Bias" if metrics["sma50"] > metrics["sma200"] else "Bearish Bias",
                 "tone": "up" if metrics["sma50"] > metrics["sma200"] else "down",
             },
             {
-                "label": "52-Week Range",
+                "label": "52-Week Perimeter",
                 "value": f"₹{metrics['low_52w']:,.0f} – ₹{metrics['high_52w']:,.0f}",
                 "delta": f"Vol: {metrics['volume']:,}",
                 "tone": "neutral",
@@ -264,23 +269,23 @@ def render_single_stock_analysis() -> None:
     col_dec1, col_dec2 = st.columns([3, 2])
     with col_dec1:
         st.subheader(
-            f"🧠 Rule-Based Decision: {metrics['signal']} ({metrics['confidence']}% Confidence)"
+            f"🕶️ Lester's Classified Directive: {metrics['signal']} ({metrics['confidence']}% Confidence)"
         )
         if metrics["signal"] == "BUY":
-            st.success(f"**Strategic Rationale:** {metrics['final_reason']}")
+            st.success(f"**Mission Intel:** {metrics['final_reason']}")
         elif metrics["signal"] == "SELL":
-            st.error(f"**Strategic Rationale:** {metrics['final_reason']}")
+            st.error(f"**Heat Warning:** {metrics['final_reason']}")
         else:
-            st.warning(f"**Strategic Rationale:** {metrics['final_reason']}")
+            st.warning(f"**Hold Position:** {metrics['final_reason']}")
 
-        st.markdown("**Explainable Technical Triggers:**")
+        st.markdown("**Explainable Signal Tripwires:**")
         for reason in metrics["reasons"]:
             st.markdown(f"- {reason}")
 
     with col_dec2:
-        st.subheader("📰 Market News Sentiment")
+        st.subheader("📡 Street Wire & News Sentiment")
         sentiment, msg, news_items = fetch_news_sentiment(metrics["symbol"])
-        st.markdown(f"**Sentiment Verdict:** {sentiment}")
+        st.markdown(f"**Wire Sentiment:** {sentiment}")
         st.caption(msg)
         if news_items:
             for item in news_items[:3]:
@@ -299,18 +304,18 @@ def render_single_stock_analysis() -> None:
     dcol1, dcol2 = st.columns(2)
     with dcol1:
         st.download_button(
-            label="📥 Download Executive Technical Report (.txt)",
+            label="📥 Download Lester's Underground Dossier (.txt)",
             data=generate_text_report(metrics),
-            file_name=f"{metrics['symbol']}_Technical_Report.txt",
+            file_name=f"{metrics['symbol']}_Lester_Intel_Dossier.txt",
             mime="text/plain",
             width="stretch",
         )
     with dcol2:
         csv_data = df.to_csv().encode("utf-8")
         st.download_button(
-            label="📊 Export Historical Data & Indicators (.csv)",
+            label="📊 Export Intercepted Telemetry & Bars (.csv)",
             data=csv_data,
-            file_name=f"{metrics['symbol']}_1Y_Data.csv",
+            file_name=f"{metrics['symbol']}_1Y_Telemetry.csv",
             mime="text/csv",
             width="stretch",
         )
@@ -319,7 +324,7 @@ def render_single_stock_analysis() -> None:
 
     chart_header_col1, chart_header_col2 = st.columns([3, 1])
     with chart_header_col1:
-        st.subheader(f"📈 Interactive Technical Chart & {forecast_days}-Day ML Price Forecast")
+        st.subheader(f"📈 Synthwave Technical Chart & {forecast_days}-Day Neon ML Forecast")
     with chart_header_col2:
         show_bbands = st.checkbox("Show Bollinger Bands (20, 2)", value=False)
 
@@ -328,11 +333,11 @@ def render_single_stock_analysis() -> None:
         target_price = float(pred_df["Predicted_Close"].iloc[-1])
         proj_pct = ((target_price - metrics["close"]) / metrics["close"]) * 100 if metrics["close"] else 0.0
         st.caption(
-            f"Machine Learning Model: Linear Trend Regression ($R^2$ Fit = {r2_score:.2f}) · "
+            f"ML Vector Engine: Linear Trend Regression ($R^2$ Fit = {r2_score:.2f}) · "
             f"{forecast_days}-Trading-Day Projected Target: **₹{target_price:,.2f}** ({proj_pct:+.2f}%)"
         )
     else:
-        st.caption(f"Machine Learning Model: Linear Trend Regression ($R^2$ Fit = {r2_score:.2f})")
+        st.caption(f"ML Vector Engine: Linear Trend Regression ($R^2$ Fit = {r2_score:.2f})")
 
     fig = _build_technical_chart(
         df=df,

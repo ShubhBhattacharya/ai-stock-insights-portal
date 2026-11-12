@@ -1,4 +1,4 @@
-"""Module 1: Real-Time NSE Market Overview."""
+"""Module 1: Real-Time NSE Market Overview (BAWSAQ & LCN Vice Market Scanner)."""
 
 from __future__ import annotations
 
@@ -11,17 +11,27 @@ from src.styles import render_kpi_grid, render_page_header
 
 
 def render_market_overview() -> None:
-    """Render concurrent multi-stock market scanner with signal filtering."""
+    """Render concurrent multi-stock BAWSAQ & LCN market scanner with signal filtering."""
     render_page_header(
-        title="📊 Indian Equities - Real-Time Market Overview",
-        subtitle="Live snapshot of major NSE stocks, technical indicators, and AI decision signals",
-        badge="CONCURRENT MARKET SCANNER",
+        title="BAWSAQ & LCN // Live NSE Market Overview",
+        subtitle="Real-time Vice City scanner of NSE equities, RSI telemetry, and AI action signals",
+        badge="BAWSAQ & LCN • CONCURRENT SCANNER",
+        wanted_stars=3,
+    )
+
+    st.markdown(
+        '<div class="console-hud-ruler">'
+        "<span>FEED: BAWSAQ // LCN EQUITY RELAY</span>"
+        "<span>UPTIME: 99.9% · MULTI-THREAD SCANNER</span>"
+        "<span>SECTOR: NSE INDIA</span>"
+        "</div>",
+        unsafe_allow_html=True,
     )
 
     col_ctrl1, col_ctrl2 = st.columns([3, 1])
     with col_ctrl1:
         stock_count = st.slider(
-            "Select number of stocks to scan:",
+            "Select number of BAWSAQ / NSE targets to scan:",
             min_value=5,
             max_value=50,
             value=15,
@@ -31,15 +41,15 @@ def render_market_overview() -> None:
         st.markdown("<div style='height: 1.65rem;'></div>", unsafe_allow_html=True)
         if st.button("🔄 Refresh Data", type="primary", width="stretch"):
             clear_market_cache()
-            st.toast("Market cache cleared — fetching fresh NSE quotes!", icon="🔄")
+            st.toast("BAWSAQ cache wiped — pulling fresh NSE quotes!", icon="🔄")
 
     selected_items = tuple(list(NSE_STOCKS.items())[:stock_count])
 
-    with st.spinner(f"Analyzing {stock_count} NSE Equities via concurrent threads..."):
+    with st.spinner(f"Scanning {stock_count} BAWSAQ / NSE Equities via cyber threads..."):
         overview_data = fetch_batch_overview(selected_items)
 
     if not overview_data:
-        st.warning("Unable to load market overview right now. Please try refreshing in a moment.")
+        st.warning("Unable to load BAWSAQ / LCN market overview right now. Please try refreshing in a moment.")
         return
 
     df_ov = pd.DataFrame(overview_data)
@@ -50,23 +60,23 @@ def render_market_overview() -> None:
 
     render_kpi_grid(
         [
-            {"label": "Total Scanned", "value": str(total_scanned), "delta": "NSE Equities", "tone": "neutral"},
+            {"label": "BAWSAQ Targets", "value": str(total_scanned), "delta": "NSE Live Tickers", "tone": "neutral"},
             {
-                "label": "BUY Signals",
+                "label": "🟢 BAWSAQ BUY",
                 "value": str(buy_signals),
-                "delta": f"{(buy_signals / total_scanned) * 100:.0f}% of scan",
+                "delta": f"{(buy_signals / total_scanned) * 100:.0f}% surge signal",
                 "tone": "up",
             },
             {
-                "label": "SELL Signals",
+                "label": "🔴 LCN SELL",
                 "value": str(sell_signals),
-                "delta": f"{(sell_signals / total_scanned) * 100:.0f}% of scan",
+                "delta": f"{(sell_signals / total_scanned) * 100:.0f}% heat warning",
                 "tone": "down",
             },
             {
-                "label": "HOLD Signals",
+                "label": "🟡 STANDBY HOLD",
                 "value": str(hold_signals),
-                "delta": f"{(hold_signals / total_scanned) * 100:.0f}% of scan",
+                "delta": f"{(hold_signals / total_scanned) * 100:.0f}% neutral",
                 "tone": "warn",
             },
         ]
@@ -75,13 +85,13 @@ def render_market_overview() -> None:
     col_f1, col_f2 = st.columns([2, 1.5])
     with col_f1:
         filter_choice = st.radio(
-            "Filter by Signal:",
+            "Filter BAWSAQ Feed by Signal:",
             ["All", "BUY Only", "SELL Only", "HOLD Only"],
             horizontal=True,
         )
     with col_f2:
         search_query = st.text_input(
-            "Quick Search (Company or Symbol):",
+            "Quick Target Search (Company or Symbol):",
             placeholder="e.g. TCS, Reliance, Bank...",
         ).strip().lower()
 
@@ -101,7 +111,7 @@ def render_market_overview() -> None:
         df_filtered = df_filtered[mask]
 
     if df_filtered.empty:
-        st.info("No stocks match the selected signal filter or search query.")
+        st.info("No BAWSAQ / LCN targets match the selected signal filter or search query.")
         return
 
     st.dataframe(

@@ -1,7 +1,8 @@
-"""Module 4: Virtual Paper Trading Simulator."""
+"""Module 4: Virtual Paper Trading Simulator (Broker-Heist Map & Vault Prep)."""
 
 from __future__ import annotations
 
+import html
 import math
 import pandas as pd
 import streamlit as st
@@ -13,12 +14,23 @@ from src.styles import render_kpi_grid, render_page_header, render_signal_badge
 
 
 def render_paper_trading() -> None:
-    """Render risk-free virtual paper trading simulator with live P&L tracking."""
+    """Render Broker-Heist virtual paper trading vault with live P&L and arcade feedback."""
     render_page_header(
-        title="💼 Virtual Paper Trading Simulator",
-        subtitle="Practice trading live NSE equities with ₹1,00,000 risk-free virtual balance",
-        badge="PAPER TRADING SANDBOX",
+        title="Broker-Heist Map // Paper Trading Vault",
+        subtitle="Stage risk-free NSE drops & liquidations using ₹1,00,000 syndicate vault capital",
+        badge="BROKER-HEIST PREP • RISK-FREE SANDBOX",
+        wanted_stars=5,
     )
+
+    last_banner = st.session_state.pop("heist_reward_banner", None)
+    if last_banner:
+        st.markdown(
+            f'<div class="steel-rivet-card" style="padding:0.9rem 1.25rem; border-color:#39ff14;">'
+            f'<div style="font-family:\'Orbitron\',sans-serif; color:#39ff14; font-size:0.95rem; font-weight:800;">'
+            f'🏆 MISSION PASSED // +RESPECT · {html.escape(last_banner)}'
+            f"</div></div>",
+            unsafe_allow_html=True,
+        )
 
     portfolio = st.session_state["portfolio"]
     live_prices: dict[str, float] = {}
@@ -38,19 +50,19 @@ def render_paper_trading() -> None:
     render_kpi_grid(
         [
             {
-                "label": "Available Cash",
+                "label": "Heist Liquid Cash",
                 "value": f"₹{cash_balance:,.2f}",
                 "delta": f"{(cash_balance / total_net_worth) * 100:.1f}% liquid" if total_net_worth else "0%",
                 "tone": "neutral",
             },
             {
-                "label": "Holdings Value",
+                "label": "Stash Asset Value",
                 "value": f"₹{holdings_value:,.2f}",
-                "delta": f"{len(portfolio)} active positions",
+                "delta": f"{len(portfolio)} active drops",
                 "tone": "neutral",
             },
             {
-                "label": "Total Net Worth",
+                "label": "Syndicate Net Worth",
                 "value": f"₹{total_net_worth:,.2f}",
                 "delta": f"₹{total_pnl:+,.2f} ({total_pnl_pct:+.2f}%)",
                 "tone": "up" if total_pnl >= 0 else "down",
@@ -58,13 +70,13 @@ def render_paper_trading() -> None:
         ]
     )
 
-    st.subheader("🛒 Execute New Order")
-    trade_name = st.selectbox("Select Stock to Trade:", list(NSE_STOCKS.keys()), key="paper_trade_stock")
+    st.subheader("🗺️ Heist Drop Console — Execute Order")
+    trade_name = st.selectbox("Select BAWSAQ Target to Trade:", list(NSE_STOCKS.keys()), key="paper_trade_stock")
     trade_sym = NSE_STOCKS[trade_name]
 
     trade_metric, trade_err = get_stock_analysis(trade_sym)
     if trade_err or not trade_metric:
-        st.error(f"Could not fetch live quote for {trade_name}: {trade_err or 'Unavailable'}")
+        st.error(f"Could not lock live quote for {trade_name}: {trade_err or 'Unavailable'}")
     else:
         live_price = float(trade_metric["close"])
         held_qty = int(portfolio.get(trade_sym, {}).get("qty", 0))
@@ -72,14 +84,17 @@ def render_paper_trading() -> None:
 
         badge_html = render_signal_badge(trade_metric["signal"], trade_metric["confidence"])
         st.markdown(
-            f'<div class="surface-card" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.75rem;">'
-            f'<div><span style="color:#94a3b8; font-size:0.82rem;">LIVE QUOTE</span><br/>'
-            f'<strong style="font-size:1.15rem;">{trade_name} ({trade_sym})</strong> — '
-            f'<strong style="color:#38bdf8; font-size:1.15rem;">₹{live_price:,.2f}</strong></div>'
+            f'<div class="steel-rivet-card" style="padding:1rem 1.25rem;">'
+            f'<span class="rivet-dot rivet-tl"></span><span class="rivet-dot rivet-tr"></span>'
+            f'<span class="rivet-dot rivet-bl"></span><span class="rivet-dot rivet-br"></span>'
+            f'<div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.75rem;">'
+            f'<div><span style="font-family:\'Share Tech Mono\',monospace; color:#ffe600; font-size:0.76rem;">▸▸ LIVE TARGET TELEMETRY</span><br/>'
+            f'<strong style="font-family:\'Orbitron\',sans-serif; font-size:1.1rem;">{html.escape(trade_name)} ({html.escape(trade_sym)})</strong> — '
+            f'<strong style="font-family:\'Share Tech Mono\',monospace; color:#00f0ff; font-size:1.2rem;">₹{live_price:,.2f}</strong></div>'
             f'<div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">'
-            f'<span style="color:#cbd5e1; font-size:0.85rem;">Owned: <strong>{held_qty}</strong> · Max Buy: <strong>{max_affordable}</strong></span>'
+            f'<span style="font-family:\'Share Tech Mono\',monospace; color:#e2e8f0; font-size:0.86rem;">STASHED: <strong>{held_qty}</strong> · MAX DROP: <strong>{max_affordable}</strong></span>'
             f"{badge_html}"
-            f"</div></div>",
+            f"</div></div></div>",
             unsafe_allow_html=True,
         )
 
@@ -92,8 +107,8 @@ def render_paper_trading() -> None:
         with col_val:
             st.markdown(
                 f'<div class="surface-card" style="padding:0.7rem 1rem; margin-top:1.45rem;">'
-                f'<span style="color:#94a3b8; font-size:0.8rem;">ESTIMATED ORDER VALUE</span><br/>'
-                f'<strong style="font-size:1.15rem; font-variant-numeric:tabular-nums;">₹{order_val:,.2f}</strong>'
+                f'<span style="font-family:\'Share Tech Mono\',monospace; color:#ff2a85; font-size:0.76rem;">ESTIMATED HEIST DROP VALUE</span><br/>'
+                f'<strong style="font-family:\'Share Tech Mono\',monospace; color:#39ff14; font-size:1.2rem; font-variant-numeric:tabular-nums;">₹{order_val:,.2f}</strong>'
                 f"</div>",
                 unsafe_allow_html=True,
             )
@@ -104,34 +119,36 @@ def render_paper_trading() -> None:
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
             if st.button(
-                "🟢 BUY Shares",
+                "🟢 BUY Shares — EXECUTE DROP",
                 width="stretch",
                 disabled=not can_buy,
                 type="primary",
             ):
                 ok, msg = execute_buy_order(trade_sym, trade_name, order_qty, live_price)
                 if ok:
-                    st.toast(msg, icon="🟢")
+                    st.session_state["heist_reward_banner"] = msg
+                    st.toast(f"+RP // {msg}", icon="🟢")
                     st.rerun()
                 else:
                     st.error(msg)
             if not can_buy:
-                st.caption("Insufficient cash for this quantity.")
+                st.caption("Insufficient liquid stash for this drop quantity.")
 
         with col_btn2:
-            if st.button("🔴 SELL Shares", width="stretch", disabled=not can_sell):
+            if st.button("🔴 SELL Shares — LIQUIDATE STASH", width="stretch", disabled=not can_sell):
                 ok, msg = execute_sell_order(trade_sym, trade_name, order_qty, live_price)
                 if ok:
-                    st.toast(msg, icon="🔴")
+                    st.session_state["heist_reward_banner"] = msg
+                    st.toast(f"CASHED OUT // {msg}", icon="🔴")
                     st.rerun()
                 else:
                     st.error(msg)
             if not can_sell:
-                st.caption(f"You hold {held_qty} shares of this stock.")
+                st.caption(f"You hold {held_qty} shares of this target.")
 
     st.markdown("---")
 
-    st.subheader("📁 Current Portfolio Holdings")
+    st.subheader("💼 Active Syndicate Stash (Portfolio Holdings)")
     if portfolio:
         port_records = []
         for s_sym, data in portfolio.items():
@@ -167,10 +184,10 @@ def render_paper_trading() -> None:
             },
         )
     else:
-        st.info("No active holdings. Execute a BUY order above to start building your portfolio.")
+        st.info("Vault holds zero active drops. Execute a BUY drop above to build your syndicate portfolio.")
 
     if st.session_state["trade_history"]:
-        with st.expander("📜 Order Execution Log", expanded=False):
+        with st.expander("📜 Heist Execution Log", expanded=False):
             history_df = pd.DataFrame(list(reversed(st.session_state["trade_history"])))
             st.dataframe(
                 history_df,
@@ -184,5 +201,5 @@ def render_paper_trading() -> None:
 
     if st.button("🔄 Reset Portfolio to ₹1,00,000 Starting Cash"):
         reset_paper_portfolio()
-        st.toast("Portfolio reset to ₹1,00,000!", icon="🔄")
+        st.toast("Vault reset to ₹1,00,000 clean stash!", icon="🔄")
         st.rerun()

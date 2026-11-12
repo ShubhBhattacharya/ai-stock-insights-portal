@@ -1,4 +1,4 @@
-"""Module 7: AI Stock Tutor & Interactive Learning Assistant."""
+"""Module 7: Lester's Cyber Uplink — AI Stock Tutor & Underground Learning Console."""
 
 from __future__ import annotations
 
@@ -9,35 +9,36 @@ from src.styles import render_page_header
 
 
 def _handle_chat_turn(prompt: str) -> None:
-    """Append user prompt and assistant response to chat history."""
+    """Append user prompt and Lester's cyber-hacker response to chat history."""
     st.session_state.messages.append({"role": "user", "content": prompt})
     reply = generate_bot_response(prompt)
     st.session_state.messages.append({"role": "assistant", "content": reply})
 
 
 def render_ai_tutor() -> None:
-    """Render structured financial curriculum and conversational AI tutor."""
+    """Render encrypted financial curriculum and Lester's cyber hacker assistant."""
     render_page_header(
-        title="🎓 AI Stock Tutor & Learning Assistant",
-        subtitle="Learn financial concepts, technical indicators, and ask investment strategy questions",
-        badge="INTERACTIVE LEARNING HUB",
+        title="Lester's Cyber Uplink // AI Stock Tutor",
+        subtitle="Decode RSI, moving averages, valuations & BAWSAQ heist rules with your hacker strategist",
+        badge="UNDERGROUND CYBER ASSISTANT • ENCRYPTED",
+        wanted_stars=4,
     )
 
-    tab_course, tab_assistant = st.tabs(["📚 Interactive Learning Modules", "🤖 Ask AI Tutor"])
+    tab_course, tab_assistant = st.tabs(["📚 DECRYPTED CURRICULUM", "🕶️ CYBER HACKER CHAT"])
 
     with tab_course:
-        st.subheader("📖 Curated Financial Curriculum")
+        st.subheader("📖 Classified Street Curriculum")
         topic = st.selectbox(
-            "Choose Concept to Explore:",
+            "Select Intel File to Decrypt:",
             list(CURRICULUM_MODULES.keys()),
         )
         st.markdown("---")
         st.markdown(CURRICULUM_MODULES[topic])
 
     with tab_assistant:
-        st.subheader("💬 Ask Your AI Financial Tutor")
+        st.subheader("💬 Encrypted Uplink — Ask Lester")
 
-        st.caption("Quick starter questions:")
+        st.caption("Quick terminal commands:")
         quick_cols = st.columns(len(QUICK_PROMPTS))
         for idx, q_text in enumerate(QUICK_PROMPTS):
             with quick_cols[idx]:
@@ -50,7 +51,7 @@ def render_ai_tutor() -> None:
                 st.markdown(msg["content"])
 
         if prompt := st.chat_input(
-            "E.g., How does the BUY signal trigger? Or: Recommend strategy for ₹10,000 budget..."
+            "Transmit query... E.g., How does the BUY signal trigger? Or ₹10,000 budget drop..."
         ):
             st.session_state.messages.append({"role": "user", "content": prompt})
             with st.chat_message("user"):

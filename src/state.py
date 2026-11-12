@@ -23,8 +23,8 @@ def init_session_state() -> None:
             {
                 "role": "assistant",
                 "content": (
-                    "Hello! I am your AI Stock Tutor. Ask me any question about "
-                    "technical indicators, financial metrics, or how the Buy/Sell rules work!"
+                    "`[ENCRYPTED UPLINK ESTABLISHED]` Yo runner — **Lester** on the wire. "
+                    "Ask me anything about BAWSAQ RSI telemetry, valuation intel, or the BUY/SELL heist triggers!"
                 ),
             }
         ],

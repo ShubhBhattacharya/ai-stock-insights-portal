@@ -1,4 +1,4 @@
-"""Executive technical report generator (.txt)."""
+"""Lester's Underground Intel — Executive Technical Dossier Generator (.txt)."""
 
 from __future__ import annotations
 
@@ -7,35 +7,35 @@ from typing import Any
 
 
 def generate_text_report(metrics: dict[str, Any]) -> str:
-    """Build a formatted plain-text technical summary report for download."""
+    """Build a classified Vice City / Lester's Underground Intel dossier for download."""
     timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     report = f"""================================================================================
-AI STOCK INSIGHTS PORTAL - EXECUTIVE TECHNICAL REPORT
-Academic Project: BCC 351 (Mini Project) | Dronacharya Group of Institutions
+🌴 LESTER'S UNDERGROUND INTEL // CLASSIFIED BAWSAQ DOSSIER [CLEARANCE: VI]
+AI STOCK INSIGHTS PORTAL | BCC 351 MINI PROJECT | DRONACHARYA GROUP (AKTU)
 ================================================================================
-Ticker Symbol       : {metrics['symbol']}
-Generated At        : {timestamp_str}
-Current Market Price: INR {metrics['close']:,.2f}
-Day Change          : INR {metrics['day_change']:+.2f} ({metrics['day_change_pct']:+.2f}%)
-52-Week Range       : INR {metrics['low_52w']:,.2f} - INR {metrics['high_52w']:,.2f}
-Trading Volume      : {metrics['volume']:,}
+TARGET TICKER       : {metrics['symbol']}
+INTERCEPT TIMESTAMP : {timestamp_str}
+LIVE MARKET QUOTE   : INR {metrics['close']:,.2f}
+24H VOLATILITY      : INR {metrics['day_change']:+.2f} ({metrics['day_change_pct']:+.2f}%)
+52-WEEK PERIMETER   : INR {metrics['low_52w']:,.2f} - INR {metrics['high_52w']:,.2f}
+DETECTED VOLUME     : {metrics['volume']:,}
 
 --------------------------------------------------------------------------------
-1. TECHNICAL INDICATORS OVERVIEW
+[01] TELEMETRY & TECHNICAL SCANS
 --------------------------------------------------------------------------------
 - RSI (14 Periods)  : {metrics['rsi']}
 - 50-Day SMA        : INR {metrics['sma50']:,.2f}
 - 200-Day SMA       : INR {metrics['sma200']:,.2f}
 
 --------------------------------------------------------------------------------
-2. AI RULE-BASED DECISION & CONFIDENCE
+[02] SYNDICATE DECISION ENGINE & CONFIDENCE RATING
 --------------------------------------------------------------------------------
-Final Signal        : {metrics['signal']}
-Confidence Level    : {metrics['confidence']}%
-Executive Rationale : {metrics['final_reason']}
+ACTION DIRECTIVE    : {metrics['signal']}
+CONFIDENCE LEVEL    : {metrics['confidence']}%
+MISSION BRIEFING    : {metrics['final_reason']}
 
 --------------------------------------------------------------------------------
-3. EXPLAINABLE TECHNICAL BREAKDOWN
+[03] EXPLAINABLE SIGNAL TRIGGERS
 --------------------------------------------------------------------------------
 """
     for reason in metrics["reasons"]:
@@ -46,12 +46,12 @@ Executive Rationale : {metrics['final_reason']}
             .replace("**", "")
             .strip()
         )
-        report += f"  * {cleaned}\n"
+        report += f"  >> {cleaned}\n"
 
     report += """
 ================================================================================
 DISCLAIMER:
-This report is generated strictly for academic and educational purposes under
+This dossier is generated strictly for academic and educational purposes under
 B.Tech Mini Project BCC 351 and must NOT be considered financial or investment advice.
 ================================================================================
 """

@@ -1,4 +1,4 @@
-"""Module 8: Academic Project Synopsis & Credits."""
+"""Module 8: Academic Project Synopsis & Syndicate Credits."""
 
 from __future__ import annotations
 
@@ -12,14 +12,15 @@ from src.styles import render_page_header
 def render_synopsis() -> None:
     """Render academic credentials, team members, 5-layer architecture, and disclaimer."""
     render_page_header(
-        title="📜 Academic Project Synopsis & Architecture",
+        title="Vice Intel Dossier // Synopsis & Credits",
         subtitle="B.Tech. II Year III Semester Mini Project (BCC 351) | Dronacharya Group of Institutions",
-        badge="PROJECT DOCUMENTATION",
+        badge="CLASSIFIED PROJECT BRIEFING",
+        wanted_stars=2,
     )
 
     col_cred, col_team = st.columns([1, 1.3])
     with col_cred:
-        st.subheader("🎓 Project Credentials")
+        st.subheader("🎓 Mission Credentials")
         st.markdown(
             """
 - **Course:** BCC 351 (Internship / Mini Project)
@@ -30,18 +31,18 @@ def render_synopsis() -> None:
         )
 
     with col_team:
-        st.subheader("👥 Project Team Members")
+        st.subheader("🕶️ Syndicate Team Roster")
         st.dataframe(pd.DataFrame(TEAM_MEMBERS), width="stretch", hide_index=True)
 
     st.markdown("---")
-    st.subheader("🏛️ Software Architecture (5-Layer Design)")
+    st.subheader("🏛️ 5-Layer Terminal Architecture")
     st.markdown(
         """
-1. **Presentation Layer:** Built with Streamlit with responsive cards, tabs, forms, Plotly figures, and multi-mode navigation.
-2. **Data-Access Layer:** Integrated with `yfinance` to retrieve historical daily OHLCV equity bars with caching (`@st.cache_data`) and concurrent batch execution.
-3. **Analytics Layer:** Utilizes `pandas-ta` to calculate 14-period RSI, 50-day SMA, 200-day SMA, and Bollinger Bands.
-4. **Decision Layer:** Executes rule-based heuristic logic to generate transparent BUY, SELL, or HOLD decisions with confidence scores alongside Scikit-Learn trend forecasting.
-5. **Visualisation Layer:** Employs `plotly.graph_objects` and `plotly.express` to generate interactive multi-panel candlestick, volume, RSI, comparison, and correlation charts.
+1. **Presentation Layer:** Vice City synthwave HUD built on Streamlit with glassmorphic steel-rivet cards, neon Plotly figures, and responsive grid layouts.
+2. **Data-Access Layer:** Integrated with `yfinance` for 1Y NSE OHLCV feeds using `@st.cache_data` TTL caching and concurrent worker threads.
+3. **Analytics Layer:** Uses `pandas-ta` to compute 14-period RSI, 50-day SMA, 200-day SMA, and Bollinger Bands.
+4. **Decision Layer:** Executes transparent heuristic BUY / SELL / HOLD rules with confidence levels alongside Scikit-Learn linear trend forecasting.
+5. **Visualisation Layer:** Employs `plotly.graph_objects` and `plotly.express` for interactive candlestick, volume, RSI, turf-war comparison, and correlation heatmaps.
 """
     )
 
