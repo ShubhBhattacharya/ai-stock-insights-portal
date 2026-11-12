@@ -36,6 +36,9 @@ def init_session_state() -> None:
         "ifruit_open": False,
         "ifruit_feedback": "",
         "active_risk_heat": 0,
+        "voice_enabled": True,
+        "latest_bot_reply": "",
+        "reply_id": "",
         "messages": [
             {
                 "role": "assistant",

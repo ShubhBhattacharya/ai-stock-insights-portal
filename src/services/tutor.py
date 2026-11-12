@@ -631,3 +631,24 @@ def generate_bot_response(query: str, edition: str = "GTA VI") -> str:
     """Return a dual-world Cyber-Broker / Bunker AI response (backward-compatible string interface)."""
     reply, _, _ = generate_tutor_turn(query, edition=edition)
     return reply
+
+
+_EMOJI_RE = re.compile(
+    r"[\U0001F300-\U0001FAFF\U00002600-\U000027BF\u200d\ufe0f]+",
+    flags=re.UNICODE,
+)
+
+
+def sanitize_speech_text(text: str) -> str:
+    """Strip Markdown tokens, bullets, and emojis and expand INR symbols for fluent speech dictation."""
+    cleaned = str(text or "")
+    cleaned = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", cleaned)
+    cleaned = cleaned.replace("₹", "Rupees ")
+    cleaned = _EMOJI_RE.sub(" ", cleaned)
+    cleaned = re.sub(r"[`*_~]+", "", cleaned)
+    cleaned = re.sub(r"^\s{0,3}#{1,6}\s*", "", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"^\s*[-•>]+\s+", "", cleaned, flags=re.MULTILINE)
+    cleaned = cleaned.replace("//", ", ").replace("|", ", ")
+    cleaned = cleaned.replace("[", "").replace("]", "")
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned

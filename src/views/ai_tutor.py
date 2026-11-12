@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import time
 import streamlit as st
 
 from src.services.tutor import (
@@ -10,14 +11,27 @@ from src.services.tutor import (
     adapt_tutor_text_for_edition,
     generate_tutor_turn,
     get_curriculum_modules,
+    sanitize_speech_text,
 )
 from src.state import compute_dynamic_wanted_stars, get_portal_theme, is_default_theme, is_doomsday
 from src.styles import render_page_header
 from src.views.character_stage import render_character_stage
 
 
+def _latest_assistant_speech_text(edition: str) -> str:
+    """Resolve and sanitize the latest assistant reply for voice dictation."""
+    raw = str(st.session_state.get("latest_bot_reply", "")).strip()
+    if not raw:
+        for msg in reversed(st.session_state.get("messages", [])):
+            if msg.get("role") == "assistant" and msg.get("content"):
+                raw = str(msg["content"])
+                break
+    adapted = adapt_tutor_text_for_edition(raw, edition=edition)
+    return sanitize_speech_text(adapted)
+
+
 def _handle_chat_turn(prompt: str) -> None:
-    """Append user prompt, analyze live NSE stocks if mentioned, and drive character state."""
+    """Append user prompt, analyze live NSE stocks if mentioned, and drive voice & character state."""
     edition = get_portal_theme()
     st.session_state.messages.append({"role": "user", "content": prompt})
     reply, mood, scans = generate_tutor_turn(prompt, edition=edition)
@@ -26,6 +40,9 @@ def _handle_chat_turn(prompt: str) -> None:
     st.session_state["tutor_scans"] = scans
     st.session_state["tutor_turn_id"] = int(st.session_state.get("tutor_turn_id", 0)) + 1
     st.session_state["tutor_just_spoke"] = True
+    adapted_reply = adapt_tutor_text_for_edition(reply, edition=edition)
+    st.session_state["latest_bot_reply"] = sanitize_speech_text(adapted_reply)
+    st.session_state["reply_id"] = f"{len(st.session_state.messages)}-{time.time_ns()}"
 
 
 def _render_chat_panel(doomsday: bool, default_pro: bool = False) -> None:
@@ -141,11 +158,50 @@ def render_ai_tutor() -> None:
     st.session_state.setdefault("tutor_mood", "neutral")
     st.session_state.setdefault("tutor_scans", [])
     st.session_state.setdefault("tutor_turn_id", 0)
+    st.session_state.setdefault("voice_enabled", True)
+    st.session_state.setdefault("latest_bot_reply", "")
+    st.session_state.setdefault("reply_id", "")
 
     tab_assistant, tab_course = st.tabs(tab_labels)
 
     with tab_assistant:
+        voice_enabled = bool(st.session_state.get("voice_enabled", True))
+        vcol1, vcol2, _ = st.columns([1.2, 1.15, 2.2])
+        with vcol1:
+            toggle_label = "🔊 Voice Dictation: ON" if voice_enabled else "🔇 Voice Dictation: MUTE"
+            if st.button(
+                toggle_label,
+                key="voice_dictation_toggle",
+                type="primary" if voice_enabled else "secondary",
+                width="stretch",
+            ):
+                st.session_state["voice_enabled"] = not voice_enabled
+                st.rerun()
+        with vcol2:
+            if st.button("🔁 Re-Dictate Answer", key="redictate_answer_btn", width="stretch"):
+                spoken = _latest_assistant_speech_text(edition=edition)
+                if spoken:
+                    st.session_state["voice_enabled"] = True
+                    st.session_state["latest_bot_reply"] = spoken
+                    st.session_state["reply_id"] = f"replay-{time.time_ns()}"
+                    st.session_state["tutor_just_spoke"] = True
+                    st.rerun()
+
+        active_reply_id = str(st.session_state.get("reply_id", ""))
+        active_spoken_text = _latest_assistant_speech_text(edition=edition) if active_reply_id else ""
+        active_voice_enabled = bool(st.session_state.get("voice_enabled", True))
+
         if default_pro:
+            render_character_stage(
+                mood=str(st.session_state.get("tutor_mood", "neutral")),
+                is_speaking=bool(st.session_state.pop("tutor_just_spoke", False)),
+                turn_id=int(st.session_state.get("tutor_turn_id", 0)),
+                operator_name=str(st.session_state.get("username", "SHUBH")),
+                edition=edition,
+                latest_bot_reply=active_spoken_text,
+                reply_id=active_reply_id,
+                voice_enabled=active_voice_enabled,
+            )
             _render_chat_panel(doomsday=False, default_pro=True)
         else:
             col_avatar, col_chat = st.columns([1.2, 2], gap="medium")
@@ -158,6 +214,9 @@ def render_ai_tutor() -> None:
                     turn_id=int(st.session_state.get("tutor_turn_id", 0)),
                     operator_name=str(st.session_state.get("username", "SHUBH")),
                     edition=edition,
+                    latest_bot_reply=active_spoken_text,
+                    reply_id=active_reply_id,
+                    voice_enabled=active_voice_enabled,
                 )
 
             with col_chat:

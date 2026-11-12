@@ -25,25 +25,382 @@ def _load_character_data_uri(doomsday: bool) -> str:
     return f"data:image/jpeg;base64,{b64}"
 
 
+def _build_speech_driver_js(
+    portal_theme: str,
+    latest_bot_reply: str,
+    reply_id: str,
+    voice_enabled: bool,
+    listen_label: str,
+    dictating_label: str,
+) -> str:
+    """Build synchronized Web Speech API + Web Audio resonance driver JS shared across editions."""
+    template = r"""
+      const PORTAL_THEME = __PORTAL_THEME__;
+      const VOICE_ENABLED = __VOICE_ENABLED__;
+      const RAW_REPLY = __LATEST_BOT_REPLY__;
+      const REPLY_ID = __REPLY_ID__;
+      const STAND_BY_TEXT = __LISTEN_LABEL__;
+      const DICTATING_TEXT = __DICTATING_LABEL__;
+
+      const cardEl = document.getElementById("holoCard") || document.getElementById("voiceCard");
+      const statusEl = document.getElementById("speakStatus");
+      let activeSpeech = false;
+      let doomNodes = null;
+      let voiceWaitTimer = null;
+
+      function safeGetStorage(k) {
+        try { return window.localStorage ? window.localStorage.getItem(k) : null; } catch (_) { return null; }
+      }
+      function safeSetStorage(k, v) {
+        try { if (window.localStorage) window.localStorage.setItem(k, v); } catch (_) {}
+      }
+
+      function sanitizeSpeechText(raw) {
+        if (!raw) return "";
+        return String(raw)
+          .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1")
+          .replace(/₹/g, "Rupees ")
+          .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u200D\uFE0F]/gu, " ")
+          .replace(/[`*_~]+/g, "")
+          .replace(/^\s{0,3}#{1,6}\s*/gm, "")
+          .replace(/^\s*[-•>]+\s+/gm, "")
+          .replace(/\/\/|\||\[|\]/g, ", ")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function setDictatingUI(speaking) {
+        activeSpeech = Boolean(speaking);
+        if (window.__setActiveSpeechState) {
+          window.__setActiveSpeechState(activeSpeech);
+        }
+        if (cardEl) {
+          cardEl.classList.toggle("is-speaking", activeSpeech);
+        }
+        if (statusEl) {
+          statusEl.textContent = activeSpeech ? DICTATING_TEXT : STAND_BY_TEXT;
+        }
+      }
+
+      function startDoomResonance() {
+        stopDoomResonance();
+        if (PORTAL_THEME !== "DOOMSDAY") return;
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          const actx = new AudioCtx();
+          if (actx.state === "suspended") {
+            actx.resume().catch(function() {});
+          }
+          const osc55 = actx.createOscillator();
+          const osc82 = actx.createOscillator();
+          osc55.type = "sawtooth";
+          osc55.frequency.value = 55;
+          osc82.type = "triangle";
+          osc82.frequency.value = 82;
+
+          const bandpass = actx.createBiquadFilter();
+          bandpass.type = "bandpass";
+          bandpass.frequency.value = 92;
+          bandpass.Q.value = 3.2;
+
+          const gain = actx.createGain();
+          const now = actx.currentTime;
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(0.045, now + 0.18);
+
+          osc55.connect(bandpass);
+          osc82.connect(bandpass);
+          bandpass.connect(gain);
+          gain.connect(actx.destination);
+
+          osc55.start();
+          osc82.start();
+          doomNodes = { actx: actx, osc55: osc55, osc82: osc82, gain: gain };
+        } catch (_) {
+          doomNodes = null;
+        }
+      }
+
+      function stopDoomResonance() {
+        if (!doomNodes) return;
+        const nodes = doomNodes;
+        doomNodes = null;
+        try {
+          const now = nodes.actx.currentTime;
+          nodes.gain.gain.cancelScheduledValues(now);
+          nodes.gain.gain.setValueAtTime(Math.max(0.0001, nodes.gain.gain.value || 0.02), now);
+          nodes.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+          setTimeout(function() {
+            try { nodes.osc55.stop(); } catch (_) {}
+            try { nodes.osc82.stop(); } catch (_) {}
+            try { nodes.actx.close(); } catch (_) {}
+          }, 95);
+        } catch (_) {
+          try { nodes.osc55.stop(); } catch (_) {}
+          try { nodes.osc82.stop(); } catch (_) {}
+          try { nodes.actx.close(); } catch (_) {}
+        }
+      }
+
+      function cancelAllSpeech() {
+        if (voiceWaitTimer) {
+          clearTimeout(voiceWaitTimer);
+          voiceWaitTimer = null;
+        }
+        try {
+          if (window.speechSynthesis) window.speechSynthesis.cancel();
+        } catch (_) {}
+        try {
+          if (window.parent && window.parent.speechSynthesis && window.parent !== window) {
+            window.parent.speechSynthesis.cancel();
+          }
+        } catch (_) {}
+        stopDoomResonance();
+        setDictatingUI(false);
+      }
+
+      function pickVoice(theme) {
+        if (!window.speechSynthesis) return null;
+        const voices = window.speechSynthesis.getVoices() || [];
+        if (!voices.length) return null;
+        const enVoices = voices.filter(function(v) { return /^en/i.test(v.lang || ""); });
+        const pool = enVoices.length ? enVoices : voices;
+
+        if (theme === "GTA VI" || theme === "DOOMSDAY") {
+          const patterns = [
+            /microsoft david/i,
+            /\bdaniel\b/i,
+            /google uk english male/i,
+            /microsoft mark|microsoft george|arthur|ryan|guy|christopher|eric|alex|fred|aaron|\bmale\b/i
+          ];
+          for (let i = 0; i < patterns.length; i++) {
+            const match = pool.find(function(v) { return patterns[i].test(v.name || ""); });
+            if (match) return match;
+          }
+          return pool[0];
+        }
+
+        const neutralPatterns = [
+          /google us english/i,
+          /microsoft aria|microsoft jenny|samantha|karen|natural/i
+        ];
+        for (let i = 0; i < neutralPatterns.length; i++) {
+          const match = pool.find(function(v) { return neutralPatterns[i].test(v.name || ""); });
+          if (match) return match;
+        }
+        return pool[0];
+      }
+
+      function speakReply(rawText) {
+        const cleanText = sanitizeSpeechText(rawText);
+        if (!cleanText || typeof window.speechSynthesis === "undefined" || typeof SpeechSynthesisUtterance === "undefined") {
+          setDictatingUI(false);
+          return;
+        }
+
+        cancelAllSpeech();
+
+        let dispatched = false;
+        function dispatchUtterance() {
+          if (dispatched) return;
+          dispatched = true;
+          if (voiceWaitTimer) {
+            clearTimeout(voiceWaitTimer);
+            voiceWaitTimer = null;
+          }
+
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          const chosenVoice = pickVoice(PORTAL_THEME);
+          if (chosenVoice) {
+            utterance.voice = chosenVoice;
+            utterance.lang = chosenVoice.lang || "en-IN";
+          } else {
+            utterance.lang = "en-IN";
+          }
+
+          if (PORTAL_THEME === "DOOMSDAY") {
+            utterance.pitch = 0.35;
+            utterance.rate = 0.84;
+          } else if (PORTAL_THEME === "GTA VI") {
+            utterance.pitch = 0.78;
+            utterance.rate = 0.96;
+          } else {
+            utterance.pitch = 1.0;
+            utterance.rate = 1.02;
+          }
+          utterance.volume = 1.0;
+
+          utterance.onstart = function() {
+            setDictatingUI(true);
+            if (PORTAL_THEME === "DOOMSDAY") {
+              startDoomResonance();
+            }
+          };
+          utterance.onend = function() {
+            stopDoomResonance();
+            setDictatingUI(false);
+          };
+          utterance.onerror = function() {
+            stopDoomResonance();
+            setDictatingUI(false);
+          };
+
+          // Prevent Chromium GC from dropping onend mid-utterance
+          window._agyActiveUtterance = utterance;
+          try {
+            window.speechSynthesis.speak(utterance);
+          } catch (_) {
+            stopDoomResonance();
+            setDictatingUI(false);
+          }
+        }
+
+        const existingVoices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+        if (existingVoices && existingVoices.length > 0) {
+          dispatchUtterance();
+        } else {
+          const onVoices = function() {
+            try { window.speechSynthesis.removeEventListener("voiceschanged", onVoices); } catch (_) {}
+            dispatchUtterance();
+          };
+          try {
+            window.speechSynthesis.addEventListener("voiceschanged", onVoices);
+          } catch (_) {}
+          voiceWaitTimer = setTimeout(function() {
+            try { window.speechSynthesis.removeEventListener("voiceschanged", onVoices); } catch (_) {}
+            dispatchUtterance();
+          }, 220);
+        }
+      }
+
+      window.addEventListener("pagehide", cancelAllSpeech);
+      window.addEventListener("beforeunload", cancelAllSpeech);
+
+      const prevTheme = safeGetStorage("last_spoken_portal_theme");
+      if (prevTheme && prevTheme !== PORTAL_THEME) {
+        cancelAllSpeech();
+      }
+      safeSetStorage("last_spoken_portal_theme", PORTAL_THEME);
+
+      if (!VOICE_ENABLED) {
+        cancelAllSpeech();
+      } else if (REPLY_ID && RAW_REPLY) {
+        const lastSpokenId = safeGetStorage("last_spoken_reply_id");
+        if (lastSpokenId !== REPLY_ID) {
+          safeSetStorage("last_spoken_reply_id", REPLY_ID);
+          speakReply(RAW_REPLY);
+        }
+      }
+    """
+    return (
+        template.replace("__PORTAL_THEME__", json.dumps(portal_theme))
+        .replace("__VOICE_ENABLED__", json.dumps(bool(voice_enabled)))
+        .replace("__LATEST_BOT_REPLY__", json.dumps(str(latest_bot_reply or "")))
+        .replace("__REPLY_ID__", json.dumps(str(reply_id or "")))
+        .replace("__LISTEN_LABEL__", json.dumps(listen_label))
+        .replace("__DICTATING_LABEL__", json.dumps(dictating_label))
+    )
+
+
+def _render_pro_voice_bar(
+    latest_bot_reply: str,
+    reply_id: str,
+    voice_enabled: bool,
+) -> None:
+    """Render a minimal institutional speech status bar and Web Speech driver for Default Pro."""
+    eq_bars_html = "".join(
+        f'<span class="eq-bar" style="--i:{idx}; --d:{0.42 + (idx % 6) * 0.08:.2f}s;"></span>'
+        for idx in range(18)
+    )
+    standby_lbl = "🔇 VOICE MUTED" if not voice_enabled else "🎧 STANDBY IDLE"
+    dictating_lbl = "🎙️ DICTATING LIVE"
+    speech_js = _build_speech_driver_js(
+        portal_theme="DEFAULT",
+        latest_bot_reply=latest_bot_reply,
+        reply_id=reply_id,
+        voice_enabled=voice_enabled,
+        listen_label=standby_lbl,
+        dictating_label=dictating_lbl,
+    )
+    pro_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  html, body {{ width: 100%; background: transparent; font-family: 'Inter', 'Segoe UI', sans-serif; }}
+  .voice-bar {{
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 14px; border-radius: 10px;
+    background: #111827; border: 1px solid rgba(148, 163, 184, 0.24);
+  }}
+  .voice-bar.is-speaking {{
+    border-color: rgba(16, 185, 129, 0.7);
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.18);
+  }}
+  #speakStatus {{
+    font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: #94a3b8; white-space: nowrap;
+  }}
+  .voice-bar.is-speaking #speakStatus {{ color: #10b981; }}
+  .eq-bars {{
+    display: flex; align-items: flex-end; gap: 3px; height: 18px; width: 140px;
+  }}
+  .eq-bar {{
+    flex: 1; height: 22%; border-radius: 2px; background: linear-gradient(180deg, #10b981, #3b82f6);
+    transform-origin: bottom center; opacity: 0.4;
+  }}
+  .voice-bar.is-speaking .eq-bar {{
+    height: 92%; opacity: 1;
+    animation: eqSpeak var(--d) ease-in-out infinite alternate;
+    animation-delay: calc(var(--i) * -0.05s);
+  }}
+  @keyframes eqSpeak {{
+    0% {{ transform: scaleY(0.2); opacity: 0.65; }}
+    100% {{ transform: scaleY(1.0); opacity: 1.0; }}
+  }}
+</style>
+</head>
+<body>
+  <div class="voice-bar" id="voiceCard">
+    <span id="speakStatus">{html.escape(standby_lbl)}</span>
+    <div class="eq-bars" aria-hidden="true">{eq_bars_html}</div>
+  </div>
+  <script>
+    (function() {{
+      {speech_js}
+    }})();
+  </script>
+</body>
+</html>"""
+    components.html(pro_html, height=58, scrolling=False)
+
+
 def render_character_stage(
     mood: str = "neutral",
     is_speaking: bool = False,
     turn_id: int = 0,
     operator_name: str = "SHUBH",
     edition: str = "GTA VI",
+    latest_bot_reply: str = "",
+    reply_id: str = "",
+    voice_enabled: bool = True,
 ) -> None:
     """
-    Render a 60fps 3D perspective holographic character stage featuring the local
-    photorealistic GTA VI (Jason) or Avengers: Doomsday (Doctor Doom) asset encoded
-    as a cached base64 data URI, with mouse-tracking 3D tilt, breathing motion,
-    ambient light sweep, atmospheric particles/mist, floating HUD header, and live
-    audio waveform equalizer.
+    Render a 60fps 3D perspective holographic character stage (GTA VI / Doomsday) or
+    clean voice status bar (Default Pro) with Web Speech API + Web Audio API dictation.
     """
     ed_norm = edition.strip().upper()
-    if ed_norm in {"PRO", "STANDARD"}:
+    if ed_norm in {"DEFAULT", "PRO", "STANDARD"}:
+        _render_pro_voice_bar(
+            latest_bot_reply=latest_bot_reply,
+            reply_id=reply_id,
+            voice_enabled=voice_enabled,
+        )
         return
 
     doomsday = ed_norm == "DOOMSDAY"
+    portal_theme = "DOOMSDAY" if doomsday else "GTA VI"
     safe_mood = mood if mood in {"bullish", "bearish", "neutral"} else "neutral"
     safe_name = html.escape(operator_name.upper()[:14])
     data_uri = _load_character_data_uri(doomsday=doomsday)
@@ -59,8 +416,8 @@ def render_character_stage(
             border_color, mood_color, mood_label = "#ff4500", "#ff6b35", "☢️ DOOM PROTOCOL"
         else:
             border_color, mood_color, mood_label = "#39ff14", "#39ff14", "🛡️ DOOM STANDBY"
-        speak_status = "⚡ CHANNELING INTEL..."
-        listen_status = f"🎧 LISTENING • {mood_label}"
+        speak_status = "🎙️ DICTATING LIVE"
+        listen_status = f"{'🔇 MUTED' if not voice_enabled else '🎧 STANDBY IDLE'} • {mood_label}"
         rim_shadow = (
             f"inset 0 0 42px rgba(57, 255, 20, 0.24), "
             f"inset 0 -54px 68px rgba(4, 14, 7, 0.88), "
@@ -78,8 +435,8 @@ def render_character_stage(
             border_color, mood_color, mood_label = "#ff2a85", "#ff4d8d", "🚨 RISK ALERT"
         else:
             border_color, mood_color, mood_label = "#00f5d4", "#00f5d4", "🕶️ STANDBY IDLE"
-        speak_status = "🔊 TRANSMITTING INTEL..."
-        listen_status = f"🎧 LISTENING • {mood_label}"
+        speak_status = "🎙️ DICTATING LIVE"
+        listen_status = f"{'🔇 MUTED' if not voice_enabled else '🎧 STANDBY IDLE'} • {mood_label}"
         rim_shadow = (
             "inset 18px 0 42px rgba(0, 245, 212, 0.22), "
             "inset -18px 0 42px rgba(255, 42, 133, 0.24), "
@@ -114,8 +471,16 @@ def render_character_stage(
         """
     )
 
-    initial_status = speak_status if is_speaking else listen_status
-    active_class = "is-speaking" if is_speaking else ""
+    initial_status = listen_status
+    active_class = ""
+    speech_driver_js = _build_speech_driver_js(
+        portal_theme=portal_theme,
+        latest_bot_reply=latest_bot_reply,
+        reply_id=reply_id,
+        voice_enabled=voice_enabled,
+        listen_label=listen_status,
+        dictating_label=speak_status,
+    )
 
     stage_html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -555,13 +920,10 @@ def render_character_stage(
     (function() {{
       const IS_DOOMSDAY = {json.dumps(doomsday)};
       const INITIAL_SPEAK = {json.dumps(is_speaking)};
-      const LISTEN_LABEL = {json.dumps(listen_status)};
-      const SPEAK_LABEL = {json.dumps(speak_status)};
       const TURN_ID = {int(turn_id)};
 
       const viewport = document.getElementById("stageViewport");
       const card = document.getElementById("holoCard");
-      const statusEl = document.getElementById("speakStatus");
       const canvas = document.getElementById("particleCanvas");
       const ctx = canvas.getContext("2d");
 
@@ -570,12 +932,13 @@ def render_character_stage(
       let curRx = 0;
       let curRy = 0;
       let isHovering = false;
+      let activeSpeechState = false;
 
-      // Active speaking equalizer window after each AI response
-      let speakUntil = INITIAL_SPEAK ? (performance.now() + 4200) : 0;
-      if (INITIAL_SPEAK && TURN_ID >= 0) {{
-        card.classList.add("is-speaking");
-      }}
+      window.__setActiveSpeechState = function(flag) {{
+        activeSpeechState = Boolean(flag);
+      }};
+
+      {speech_driver_js}
 
       viewport.addEventListener("pointermove", function(e) {{
         const rect = viewport.getBoundingClientRect();
@@ -636,20 +999,12 @@ def render_character_stage(
         card.style.transform =
           "rotateX(" + curRx.toFixed(2) + "deg) rotateY(" + curRy.toFixed(2) + "deg)";
 
-        // Equalizer state transition after speaking burst finishes
-        const speakingNow = now < speakUntil;
-        if (!speakingNow && card.classList.contains("is-speaking")) {{
-          card.classList.remove("is-speaking");
-          statusEl.textContent = LISTEN_LABEL;
-        }} else if (speakingNow) {{
-          statusEl.textContent = SPEAK_LABEL;
-        }}
-
-        // Draw floating particles
+        // Draw floating particles synced with live Web Speech dictation state
         const w = card.clientWidth || 360;
         const h = card.clientHeight || 540;
         ctx.clearRect(0, 0, w, h);
-        const boost = speakingNow ? 1.8 : 1.0;
+        const speakingNow = activeSpeechState || (INITIAL_SPEAK && TURN_ID < 0);
+        const boost = speakingNow ? 1.85 : 1.0;
         for (let i = 0; i < particles.length; i++) {{
           const p = particles[i];
           p.x += p.vx + Math.sin(t + i) * 0.12;
@@ -673,7 +1028,4 @@ def render_character_stage(
 </body>
 </html>
 """
-    if hasattr(st, "iframe"):
-        st.iframe(stage_html, width="stretch", height=560)
-    else:
-        components.html(stage_html, height=560, scrolling=False)
+    components.html(stage_html, height=560, scrolling=False)
