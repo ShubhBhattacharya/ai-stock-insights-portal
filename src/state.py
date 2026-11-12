@@ -9,12 +9,23 @@ import streamlit as st
 from src.constants import DEFAULT_USERS, INITIAL_VIRTUAL_CAPITAL
 
 
+def _normalize_portal_theme(edition: str | None) -> str:
+    """Normalize any edition/theme label to 'DEFAULT', 'GTA VI', or 'DOOMSDAY'."""
+    val = str(edition or "GTA VI").strip().upper()
+    if val in {"DEFAULT", "PRO", "STANDARD", "PRO STANDARD", "DEFAULT (PRO STANDARD)"}:
+        return "DEFAULT"
+    if "DOOMSDAY" in val or "APOCALYPSE" in val:
+        return "DOOMSDAY"
+    return "GTA VI"
+
+
 def init_session_state() -> None:
     """Ensure all required session state keys exist with safe defaults."""
     defaults = {
         "authenticated": False,
         "transitioning": False,
         "edition_transitioning": False,
+        "portal_theme": "GTA VI",
         "world_edition": "GTA VI",
         "username": "Guest User",
         "users": dict(DEFAULT_USERS),
@@ -29,8 +40,8 @@ def init_session_state() -> None:
             {
                 "role": "assistant",
                 "content": (
-                    "`[ENCRYPTED UPLINK ESTABLISHED]` Yo runner — **Lester** on the wire. "
-                    "Ask me anything about BAWSAQ RSI telemetry, valuation intel, or the BUY/SELL heist triggers!"
+                    "Hello! I am your NSE Equity AI Assistant. Ask me about RSI, 50/200-SMA trends, "
+                    "BUY/SELL signal rules, portfolio allocation, or any NSE-listed stock!"
                 ),
             }
         ],
@@ -39,9 +50,27 @@ def init_session_state() -> None:
         if key not in st.session_state:
             st.session_state[key] = value
 
+    # Keep portal_theme and world_edition synchronized in session state
+    st.session_state["portal_theme"] = _normalize_portal_theme(
+        st.session_state.get("portal_theme", st.session_state.get("world_edition", "GTA VI"))
+    )
+    st.session_state["world_edition"] = st.session_state["portal_theme"]
+
+
+def get_portal_theme() -> str:
+    """Return active portal theme: 'DEFAULT', 'GTA VI', or 'DOOMSDAY'."""
+    return _normalize_portal_theme(
+        st.session_state.get("portal_theme", st.session_state.get("world_edition", "GTA VI"))
+    )
+
+
+def is_default_theme() -> bool:
+    """Return True when active portal theme is Default (Pro Standard)."""
+    return get_portal_theme() == "DEFAULT"
+
 
 def login_as(username: str, trigger_transition: bool = True) -> None:
-    """Mark the current session as authenticated and trigger the Leonida entry sequence."""
+    """Mark the current session as authenticated and trigger the entry sequence."""
     st.session_state["authenticated"] = True
     st.session_state["username"] = username
     st.session_state["transitioning"] = trigger_transition
@@ -56,13 +85,14 @@ def logout() -> None:
 
 def is_doomsday() -> bool:
     """Return True when the active world edition is Doomsday (Apocalypse)."""
-    return st.session_state.get("world_edition", "GTA VI") == "DOOMSDAY"
+    return get_portal_theme() == "DOOMSDAY"
 
 
 def switch_world_edition(edition: str) -> None:
-    """Switch active world edition ('GTA VI' or 'DOOMSDAY') and trigger reboot transition for Doomsday."""
-    normalized = "DOOMSDAY" if edition == "DOOMSDAY" else "GTA VI"
-    current = st.session_state.get("world_edition", "GTA VI")
+    """Switch active portal theme ('DEFAULT', 'GTA VI', or 'DOOMSDAY') seamlessly."""
+    current = get_portal_theme()
+    normalized = _normalize_portal_theme(edition)
+    st.session_state["portal_theme"] = normalized
     st.session_state["world_edition"] = normalized
     if normalized == "DOOMSDAY" and current != "DOOMSDAY":
         st.session_state["edition_transitioning"] = True

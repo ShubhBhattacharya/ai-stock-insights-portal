@@ -17,8 +17,14 @@ from src.services.market_data import (
     fetch_tactical_board_quotes,
     get_stock_analysis,
 )
-from src.state import compute_dynamic_wanted_stars, is_doomsday, set_context_risk_heat
+from src.state import (
+    compute_dynamic_wanted_stars,
+    is_default_theme,
+    is_doomsday,
+    set_context_risk_heat,
+)
 from src.styles import (
+    render_kpi_grid,
     render_page_header,
     render_wanted_stars_html,
     render_weazel_flash_ticker,
@@ -238,8 +244,253 @@ def _build_tactical_center_chart(
     return fig
 
 
+def _render_pro_market_overview() -> None:
+    """Render clean institutional Default (Pro Standard) NSE Market Overview."""
+    render_page_header(
+        title="Indian Market Overview",
+        subtitle="Real-time NSE Equity Breadth, Rule-Based Signals, ML Trend Benchmark & Sector Allocation",
+        badge="NSE INDIA • PRO STANDARD",
+    )
+
+    c_top1, c_top2 = st.columns([3.5, 1], gap="small")
+    with c_top1:
+        stock_count = st.slider(
+            "Select number of NSE stocks to screen:",
+            min_value=5,
+            max_value=50,
+            value=15,
+            step=5,
+            key="pro_market_stock_count",
+        )
+    with c_top2:
+        st.markdown("<div style='height:1.45rem;'></div>", unsafe_allow_html=True)
+        if st.button("🔄 Refresh Feed", key="pro_market_sync_btn", width="stretch"):
+            clear_market_cache()
+            st.toast("Market cache cleared — refreshed NSE feed.", icon="🔄")
+            st.rerun()
+
+    selected_items = tuple(list(NSE_STOCKS.items())[:stock_count])
+    overview_data = fetch_batch_overview(selected_items)
+
+    if not overview_data:
+        st.warning("Unable to load NSE market data at this moment.")
+        return
+
+    df_ov = pd.DataFrame(overview_data)
+    if "Sector" not in df_ov.columns:
+        df_ov["Sector"] = "Broad Market"
+
+    total_n = len(df_ov)
+    advancers = int((df_ov["Change %"] >= 0).sum())
+    decliners = total_n - advancers
+    buy_cnt = int((df_ov["Signal"] == "BUY").sum())
+    sell_cnt = int((df_ov["Signal"] == "SELL").sum())
+    hold_cnt = int((df_ov["Signal"] == "HOLD").sum())
+    avg_vol_chg = float(df_ov["Change %"].abs().mean()) if total_n else 0.0
+
+    breadth_pct = (advancers / total_n) * 100 if total_n else 50.0
+    if breadth_pct >= 60:
+        sentiment_lbl, sentiment_tone = "Bullish", "up"
+    elif breadth_pct <= 40:
+        sentiment_lbl, sentiment_tone = "Bearish", "down"
+    else:
+        sentiment_lbl, sentiment_tone = "Neutral", "neutral"
+
+    vol_lbl = "Low" if avg_vol_chg < 0.8 else ("Moderate" if avg_vol_chg < 1.8 else "Elevated")
+    vol_tone = "up" if avg_vol_chg < 0.8 else ("warn" if avg_vol_chg < 1.8 else "down")
+
+    render_kpi_grid(
+        [
+            {
+                "label": "NIFTY 50 Sentiment",
+                "value": sentiment_lbl,
+                "delta": f"{advancers} Advancers · {decliners} Decliners ({breadth_pct:.0f}%)",
+                "tone": sentiment_tone,
+            },
+            {
+                "label": "Bullish Signals",
+                "value": str(buy_cnt),
+                "delta": f"{(buy_cnt / total_n) * 100:.0f}% of scanned universe" if total_n else "0%",
+                "tone": "up" if buy_cnt > 0 else "neutral",
+            },
+            {
+                "label": "Bearish Signals",
+                "value": str(sell_cnt),
+                "delta": f"{hold_cnt} HOLD · {(sell_cnt / total_n) * 100:.0f}% SELL" if total_n else "0%",
+                "tone": "down" if sell_cnt > 0 else "neutral",
+            },
+            {
+                "label": "Market Volatility",
+                "value": vol_lbl,
+                "delta": f"Avg |Δ| {avg_vol_chg:.2f}% intraday move",
+                "tone": vol_tone,
+            },
+        ]
+    )
+
+    # Interactive Benchmark Price & 30-Day ML Forecast Chart
+    col_chart_ctrl, col_chart_info = st.columns([2.2, 3], gap="medium")
+    with col_chart_ctrl:
+        bench_name = st.selectbox(
+            "Select NSE Benchmark Stock:",
+            list(NSE_STOCKS.keys())[:stock_count],
+            index=0,
+            key="pro_overview_bench_stock",
+        )
+    bench_sym = NSE_STOCKS[bench_name]
+    bench_metrics, _ = get_stock_analysis(bench_sym)
+    if bench_metrics and not bench_metrics["df"].empty:
+        recent = bench_metrics["df"].tail(75).copy()
+        ema20 = recent["Close"].astype(float).ewm(span=20, adjust=False).mean()
+        pred_df, r2_val = predict_stock_prices(bench_metrics["df"], days=30)
+
+        with col_chart_info:
+            proj_txt = ""
+            if not pred_df.empty:
+                proj_px = float(pred_df["Predicted_Close"].iloc[-1])
+                proj_pct = ((proj_px - bench_metrics["close"]) / bench_metrics["close"]) * 100
+                proj_txt = f" · 30D ML Target: ₹{proj_px:,.2f} ({proj_pct:+.2f}%, R²={r2_val:.2f})"
+            st.info(
+                f"**{bench_name} ({bench_sym})** — Close: ₹{bench_metrics['close']:,.2f} "
+                f"({bench_metrics['day_change_pct']:+.2f}%) · RSI(14): {bench_metrics['rsi']:.1f} · "
+                f"Signal: **{bench_metrics['signal']}** ({bench_metrics['confidence']}%){proj_txt}"
+            )
+
+        fig_bench = go.Figure()
+        fig_bench.add_trace(
+            go.Candlestick(
+                x=recent.index,
+                open=recent["Open"],
+                high=recent["High"],
+                low=recent["Low"],
+                close=recent["Close"],
+                name=bench_sym,
+                increasing_line_color="#10b981",
+                increasing_fillcolor="rgba(16, 185, 129, 0.72)",
+                decreasing_line_color="#ef4444",
+                decreasing_fillcolor="rgba(239, 68, 68, 0.72)",
+            )
+        )
+        if "SMA_50" in recent.columns:
+            fig_bench.add_trace(
+                go.Scatter(
+                    x=recent.index,
+                    y=recent["SMA_50"],
+                    mode="lines",
+                    name="50-Day SMA",
+                    line=dict(color="#3b82f6", width=1.8),
+                )
+            )
+        fig_bench.add_trace(
+            go.Scatter(
+                x=recent.index,
+                y=ema20,
+                mode="lines",
+                name="20-Day EMA",
+                line=dict(color="#f59e0b", width=1.5),
+            )
+        )
+        if not pred_df.empty:
+            anchor_x = [recent.index[-1]] + list(pred_df.index)
+            anchor_y = [float(recent["Close"].iloc[-1])] + list(pred_df["Predicted_Close"])
+            fig_bench.add_trace(
+                go.Scatter(
+                    x=anchor_x,
+                    y=anchor_y,
+                    mode="lines",
+                    name="30-Day ML Trend",
+                    line=dict(color="#10b981", width=2.2, dash="dot"),
+                )
+            )
+        style_plotly_figure(fig_bench, height=400, title=f"{bench_name} ({bench_sym}) — Price & 30-Day ML Trend")
+        fig_bench.update_layout(xaxis_rangeslider_visible=False)
+        st.plotly_chart(fig_bench, width="stretch", config={"displayModeBar": False})
+
+    st.markdown("---")
+    st.subheader("NSE Watchlist Screener")
+    col_f1, col_f2 = st.columns([2, 1.5])
+    with col_f1:
+        filter_choice = st.radio(
+            "Filter by Signal:",
+            ["All", "BUY Only", "SELL Only", "HOLD Only"],
+            horizontal=True,
+            key="pro_filter_signal",
+        )
+    with col_f2:
+        search_query = st.text_input(
+            "Search Watchlist (Company or Symbol):",
+            placeholder="e.g. TCS, Reliance, Bank...",
+            key="pro_search_query",
+        ).strip().lower()
+
+    df_filtered = df_ov.copy()
+    if filter_choice == "BUY Only":
+        df_filtered = df_filtered[df_filtered["Signal"] == "BUY"]
+    elif filter_choice == "SELL Only":
+        df_filtered = df_filtered[df_filtered["Signal"] == "SELL"]
+    elif filter_choice == "HOLD Only":
+        df_filtered = df_filtered[df_filtered["Signal"] == "HOLD"]
+
+    if search_query:
+        mask = (
+            df_filtered["Company Name"].str.lower().str.contains(search_query, na=False, regex=False)
+            | df_filtered["Symbol"].str.lower().str.contains(search_query, na=False, regex=False)
+        )
+        df_filtered = df_filtered[mask]
+
+    if df_filtered.empty:
+        st.info("No equities match the selected signal filter or search query.")
+    else:
+        st.dataframe(
+            df_filtered,
+            width="stretch",
+            hide_index=True,
+            column_config={
+                "Price": st.column_config.NumberColumn(format="₹%.2f"),
+                "Change %": st.column_config.NumberColumn(format="%.2f%%"),
+                "RSI": st.column_config.NumberColumn(format="%.2f"),
+                "SMA 50": st.column_config.NumberColumn(format="₹%.2f"),
+                "Confidence": st.column_config.ProgressColumn(
+                    "Confidence", format="%d%%", min_value=0, max_value=100
+                ),
+            },
+        )
+
+    st.markdown("---")
+    st.subheader("Sector Allocation & Performance Treemap")
+    treemap_df = df_ov.copy()
+    treemap_df["AllocationWeight"] = treemap_df["Confidence"].clip(lower=20)
+    fig_tree = px.treemap(
+        treemap_df,
+        path=[px.Constant("NSE Universe"), "Sector", "Symbol"],
+        values="AllocationWeight",
+        color="Change %",
+        color_continuous_scale=["#ef4444", "#1e293b", "#10b981"],
+        color_continuous_midpoint=0.0,
+        hover_data={
+            "Company Name": True,
+            "Price": ":₹,.2f",
+            "Change %": ":+.2f%",
+            "RSI": ":.1f",
+            "Signal": True,
+            "Confidence": True,
+        },
+    )
+    style_plotly_figure(fig_tree, height=430, title="Sector Allocation & Daily Performance (%)")
+    fig_tree.update_traces(
+        textinfo="label+text",
+        texttemplate="<b>%{label}</b><br>%{customdata[2]:+.2f}%",
+        marker=dict(line=dict(width=1.2, color="#0b1120")),
+    )
+    fig_tree.update_layout(hovermode="closest")
+    st.plotly_chart(fig_tree, width="stretch", config={"displayModeBar": False})
+
+
 def render_market_overview() -> None:
-    """Render the 3-column GTA VI / Doomsday Tactical Command Board + expandable screener."""
+    """Render active edition Market Overview (Pro Standard or 3-column GTA VI / Doomsday Board)."""
+    if is_default_theme():
+        _render_pro_market_overview()
+        return
     doomsday = is_doomsday()
     render_page_header(
         title=(

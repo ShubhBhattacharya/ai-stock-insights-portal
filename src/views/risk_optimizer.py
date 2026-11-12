@@ -10,34 +10,42 @@ import streamlit as st
 
 from src.constants import NSE_STOCKS, RISK_FREE_RATE_PCT
 from src.services.market_data import fetch_batch_returns
-from src.state import compute_dynamic_wanted_stars, is_doomsday, set_context_risk_heat
+from src.state import (
+    compute_dynamic_wanted_stars,
+    is_default_theme,
+    is_doomsday,
+    set_context_risk_heat,
+)
 from src.styles import render_kpi_grid, render_page_header, render_wanted_stars_html, style_plotly_figure
 
 
 def render_risk_optimizer() -> None:
-    """Render portfolio volatility gauge meter, Sharpe ratio, and dual-world heatmap."""
+    """Render portfolio volatility gauge, Sharpe ratio, and correlation matrix."""
+    default_pro = is_default_theme()
     doomsday = is_doomsday()
+
+    if default_pro:
+        hdr_title = "Portfolio Risk & Correlation Optimizer"
+        hdr_sub = "Analyze multi-asset annualized volatility, expected return, Sharpe ratio, and covariance"
+        hdr_badge = "QUANT RISK ANALYTICS • PRO STANDARD"
+    elif doomsday:
+        hdr_title = "FALLOUT HEAT // Radiation & Risk Matrix"
+        hdr_sub = "Quantify bunker basket annualized volatility meters, Sharpe ratio, and DEFCON radiation heat"
+        hdr_badge = "EMERGENCY RADIATION & QUANT ENGINE"
+    else:
+        hdr_title = "Syndicate Heat // Portfolio Risk Matrix"
+        hdr_sub = "Quantify multi-stock annualized volatility meters, Sharpe ratio, and Wanted-level heat"
+        hdr_badge = "WANTED HEAT & QUANT ENGINE"
+
     render_page_header(
-        title=(
-            "FALLOUT HEAT // Radiation & Risk Matrix"
-            if doomsday
-            else "Syndicate Heat // Portfolio Risk Matrix"
-        ),
-        subtitle=(
-            "Quantify bunker basket annualized volatility meters, Sharpe ratio, and DEFCON radiation heat"
-            if doomsday
-            else "Quantify multi-stock annualized volatility meters, Sharpe ratio, and Wanted-level heat"
-        ),
-        badge=(
-            "EMERGENCY RADIATION & QUANT ENGINE"
-            if doomsday
-            else "WANTED HEAT & QUANT ENGINE"
-        ),
+        title=hdr_title,
+        subtitle=hdr_sub,
+        badge=hdr_badge,
         wanted_stars=compute_dynamic_wanted_stars(),
     )
 
     selected_stocks = st.multiselect(
-        "Select Basket of BAWSAQ Equities to Analyze:",
+        "Select Basket of NSE Equities to Analyze:" if default_pro else "Select Basket of BAWSAQ Equities to Analyze:",
         list(NSE_STOCKS.keys()),
         default=[
             "Reliance Industries",
@@ -48,12 +56,13 @@ def render_risk_optimizer() -> None:
     )
 
     if len(selected_stocks) < 2:
-        st.warning("Select at least 2 equities to calculate syndicate portfolio heat and correlation.")
+        st.warning("Select at least 2 equities to compute portfolio volatility and asset correlation.")
         return
 
     items = tuple((name, NSE_STOCKS[name]) for name in selected_stocks)
 
-    with st.spinner("Calculating syndicate returns and covariance matrix..."):
+    spin_lbl = "Computing portfolio returns and covariance matrix..." if default_pro else "Calculating syndicate returns and covariance matrix..."
+    with st.spinner(spin_lbl):
         returns_dict = fetch_batch_returns(items)
 
     if len(returns_dict) < 2:
@@ -87,19 +96,19 @@ def render_risk_optimizer() -> None:
             {
                 "label": "Annualized Volatility",
                 "value": f"{port_volatility:.2f}%",
-                "delta": f"{num_assets} equal-weight drops",
+                "delta": f"{num_assets} equal-weight assets" if default_pro else f"{num_assets} equal-weight drops",
                 "tone": vol_tone,
             },
             {
                 "label": "Expected Annual Return",
                 "value": f"{port_return:.2f}%",
-                "delta": f"vs {RISK_FREE_RATE_PCT:.1f}% safe-house yield",
+                "delta": f"vs {RISK_FREE_RATE_PCT:.1f}% risk-free rate" if default_pro else f"vs {RISK_FREE_RATE_PCT:.1f}% safe-house yield",
                 "tone": ret_tone,
             },
             {
-                "label": "Syndicate Sharpe Ratio",
+                "label": "Portfolio Sharpe Ratio" if default_pro else "Syndicate Sharpe Ratio",
                 "value": f"{sharpe_ratio:.2f}",
-                "delta": "Elite" if sharpe_ratio >= 1.0 else ("Moderate" if sharpe_ratio >= 0 else "Negative"),
+                "delta": ("Strong Risk-Adjusted" if default_pro else "Elite") if sharpe_ratio >= 1.0 else ("Moderate" if sharpe_ratio >= 0 else "Negative"),
                 "tone": sharpe_tone,
             },
         ]
@@ -108,67 +117,87 @@ def render_risk_optimizer() -> None:
     if port_volatility < 18:
         heat_stars, heat_label, heat_color, heat_msg = (
             2,
-            "SECTOR CONTAINED // LOW RADIATION" if doomsday else "LOW STREET HEAT PROFILE",
-            "#39ff14",
+            "LOW VOLATILITY PROFILE" if default_pro else ("SECTOR CONTAINED // LOW RADIATION" if doomsday else "LOW STREET HEAT PROFILE"),
+            "#10b981" if default_pro else "#39ff14",
             (
-                "Sub-threshold fallout volatility — ideal for armored bunker reserve preservation."
-                if doomsday
-                else "Smooth volatility — ideal for armored capital preservation."
+                "Controlled annualized risk profile — suitable for conservative capital preservation."
+                if default_pro
+                else ("Sub-threshold fallout volatility — ideal for armored bunker reserve preservation." if doomsday else "Smooth volatility — ideal for armored capital preservation.")
             ),
         )
     elif port_volatility < 28:
         heat_stars, heat_label, heat_color, heat_msg = (
             4,
-            "ELEVATED FALLOUT HEAT // DEFCON-2" if doomsday else "MODERATE HEAT PROFILE",
-            "#ffb703" if doomsday else "#fee440",
+            "MODERATE VOLATILITY PROFILE" if default_pro else ("ELEVATED FALLOUT HEAT // DEFCON-2" if doomsday else "MODERATE HEAT PROFILE"),
+            "#f59e0b" if default_pro else ("#ffb703" if doomsday else "#fee440"),
             (
-                "Tactical risk-reward bunker mix under shifting market shockwaves."
-                if doomsday
-                else "Balanced risk-reward street mix."
+                "Balanced risk-return equity basket with moderate drawdown exposure."
+                if default_pro
+                else ("Tactical risk-reward bunker mix under shifting market shockwaves." if doomsday else "Balanced risk-reward street mix.")
             ),
         )
     else:
         heat_stars, heat_label, heat_color, heat_msg = (
             6,
-            "CRITICAL RADIATION SURGE // DEFCON-1" if doomsday else "MAX WANTED HEAT PROFILE",
-            "#ff2a00" if doomsday else "#ff2a6d",
+            "HIGH VOLATILITY PROFILE" if default_pro else ("CRITICAL RADIATION SURGE // DEFCON-1" if doomsday else "MAX WANTED HEAT PROFILE"),
+            "#ef4444" if default_pro else ("#ff2a00" if doomsday else "#ff2a6d"),
             (
-                "Severe radiation drawdown exposure detected — reinforce hedges immediately!"
-                if doomsday
-                else "Aggressive high-volatility basket; watch for sharp drawdowns!"
+                "Elevated annualized volatility detected — consider diversifying across defensive sectors."
+                if default_pro
+                else ("Severe radiation drawdown exposure detected — reinforce hedges immediately!" if doomsday else "Aggressive high-volatility basket; watch for sharp drawdowns!")
             ),
         )
 
     set_context_risk_heat(heat_stars)
 
-    heat_accent = "#39ff14" if doomsday else "#00f5d4"
-    gauge_num_color = "#ff4500" if doomsday else "#fee440"
-    gauge_bg = "rgba(18, 12, 8, 0.92)" if doomsday else "rgba(11, 5, 36, 0.85)"
-    gauge_steps = (
-        [
-            {"range": [0, 18], "color": "rgba(57, 255, 20, 0.18)"},
-            {"range": [18, 28], "color": "rgba(255, 183, 3, 0.22)"},
-            {"range": [28, 45], "color": "rgba(255, 42, 0, 0.28)"},
+    if default_pro:
+        heat_accent, gauge_num_color, gauge_bg = "#3b82f6", "#f8fafc", "#0f172a"
+        gauge_steps = [
+            {"range": [0, 18], "color": "rgba(16, 185, 129, 0.22)"},
+            {"range": [18, 28], "color": "rgba(245, 158, 11, 0.22)"},
+            {"range": [28, 45], "color": "rgba(239, 68, 68, 0.24)"},
         ]
-        if doomsday
-        else [
-            {"range": [0, 18], "color": "rgba(0, 245, 212, 0.18)"},
-            {"range": [18, 28], "color": "rgba(254, 228, 64, 0.20)"},
-            {"range": [28, 45], "color": "rgba(255, 42, 133, 0.25)"},
-        ]
-    )
-    corr_scale = ["#ff2a00", "#1b1008", "#39ff14"] if doomsday else ["#ff2a85", "#14082d", "#00f0ff"]
+        corr_scale = ["#ef4444", "#111827", "#10b981"]
+        risk_footer = f"PORTFOLIO VOLATILITY: {port_volatility:.2f}% σ"
+        stars_badge = ""
+        gauge_title = "ANNUALIZED VOLATILITY"
+        gauge_font = "Plus Jakarta Sans, Inter, sans-serif"
+        heat_sub = "Asset Correlation Matrix"
+    else:
+        heat_accent = "#39ff14" if doomsday else "#00f5d4"
+        gauge_num_color = "#ff4500" if doomsday else "#fee440"
+        gauge_bg = "rgba(18, 12, 8, 0.92)" if doomsday else "rgba(11, 5, 36, 0.85)"
+        gauge_steps = (
+            [
+                {"range": [0, 18], "color": "rgba(57, 255, 20, 0.18)"},
+                {"range": [18, 28], "color": "rgba(255, 183, 3, 0.22)"},
+                {"range": [28, 45], "color": "rgba(255, 42, 0, 0.28)"},
+            ]
+            if doomsday
+            else [
+                {"range": [0, 18], "color": "rgba(0, 245, 212, 0.18)"},
+                {"range": [18, 28], "color": "rgba(254, 228, 64, 0.20)"},
+                {"range": [28, 45], "color": "rgba(255, 42, 133, 0.25)"},
+            ]
+        )
+        corr_scale = ["#ff2a00", "#1b1008", "#39ff14"] if doomsday else ["#ff2a85", "#14082d", "#00f0ff"]
+        risk_footer = f"{'RADIATION VOLATILITY' if doomsday else 'PORTFOLIO HEAT'}: {port_volatility:.2f}% σ"
+        stars_badge = render_wanted_stars_html(active_stars=heat_stars, total_stars=6)
+        gauge_title = "RADIATION GAUGE" if doomsday else "VOLATILITY METER"
+        gauge_font = "Orbitron, sans-serif"
+        heat_sub = "☢️ Bunker Sector Correlation Heatmap" if doomsday else "🔥 Synthwave Asset Correlation Heatmap"
 
     col_heat_info, col_gauge = st.columns([1.4, 1])
     with col_heat_info:
+        title_css = "" if default_pro else "font-family:'Orbitron',sans-serif; "
+        body_css = "" if default_pro else "font-family:'Share Tech Mono',monospace; "
         st.markdown(
             f'<div class="surface-card" style="display:flex; flex-direction:column; justify-content:space-between; gap:0.75rem; border-color:{heat_color}; min-height:220px;">'
-            f'<div><strong style="font-family:\'Orbitron\',sans-serif; color:{heat_color}; font-size:1.05rem;">{heat_label}</strong>'
-            f'<div style="font-family:\'Share Tech Mono\',monospace; color:#e2e8f0; font-size:0.88rem; margin-top:0.35rem;">{heat_msg}</div></div>'
+            f'<div><strong style="{title_css}color:{heat_color}; font-size:1.05rem;">{heat_label}</strong>'
+            f'<div style="{body_css}color:#e2e8f0; font-size:0.88rem; margin-top:0.35rem;">{heat_msg}</div></div>'
             f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">'
-            f'<span style="font-family:\'Share Tech Mono\',monospace; color:{heat_accent}; font-size:0.82rem;">'
-            f'{"RADIATION VOLATILITY" if doomsday else "PORTFOLIO HEAT"}: {port_volatility:.2f}% σ</span>'
-            f"{render_wanted_stars_html(active_stars=heat_stars, total_stars=6)}"
+            f'<span style="{body_css}color:{heat_accent}; font-size:0.82rem;">{risk_footer}</span>'
+            f"{stars_badge}"
             f"</div></div>",
             unsafe_allow_html=True,
         )
@@ -177,10 +206,10 @@ def render_risk_optimizer() -> None:
             go.Indicator(
                 mode="gauge+number",
                 value=round(port_volatility, 2),
-                number={"suffix": "%", "font": {"family": "Share Tech Mono, monospace", "color": gauge_num_color, "size": 28}},
+                number={"suffix": "%", "font": {"family": gauge_font, "color": gauge_num_color, "size": 28}},
                 title={
-                    "text": "RADIATION GAUGE" if doomsday else "VOLATILITY METER",
-                    "font": {"family": "Orbitron, sans-serif", "color": heat_accent, "size": 13},
+                    "text": gauge_title,
+                    "font": {"family": gauge_font, "color": heat_accent, "size": 13},
                 },
                 gauge={
                     "axis": {"range": [0, 45], "tickcolor": "#cbd5e1"},
@@ -200,11 +229,7 @@ def render_risk_optimizer() -> None:
     col_heat, col_table = st.columns([3, 2])
 
     with col_heat:
-        st.subheader(
-            "☢️ Bunker Sector Correlation Heatmap"
-            if doomsday
-            else "🔥 Synthwave Asset Correlation Heatmap"
-        )
+        st.subheader(heat_sub)
         corr_df = returns_df.corr()
         fig_corr = px.imshow(
             corr_df,
@@ -213,7 +238,7 @@ def render_risk_optimizer() -> None:
             zmin=-1.0,
             zmax=1.0,
             color_continuous_scale=corr_scale,
-            title="CROSS-ASSET RETURN CORRELATION (-1 TO +1)",
+            title="Cross-Asset Return Correlation (-1 to +1)" if default_pro else "CROSS-ASSET RETURN CORRELATION (-1 TO +1)",
         )
         style_plotly_figure(fig_corr, height=450)
         fig_corr.update_layout(hovermode="closest")

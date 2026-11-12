@@ -239,15 +239,57 @@ def _format_live_stock_response(
     return "\n".join(lines), mood, scans
 
 
+def _format_for_pro_standard(text: str) -> str:
+    """Cleanly adapt tutor copy to neutral corporate fintech terminology for Default Pro Standard."""
+    replacements = (
+        ("[CYBER-BROKER // ENCRYPTED TERMINAL ONLINE]", "**AI Financial Assistant**"),
+        ("[ENCRYPTED UPLINK // ₹10,000 ALLOCATION BLUEPRINT]", "**₹10,000 Portfolio Allocation Guide**"),
+        ("[ENCRYPTED BLUEPRINT // ₹10,000 SMART ALLOCATION]", "**₹10,000 Portfolio Allocation Guide**"),
+        ("[HEURISTIC MATRIX // BUY & SELL RULES]", "**Rule-Based Signal Criteria (BUY & SELL)**"),
+        ("[GREEN LIGHT // BUY SIGNAL PROTOCOL]", "**Rule-Based BUY Signal Criteria**"),
+        ("[RED ALERT // SELL SIGNAL PROTOCOL]", "**Rule-Based SELL Signal Criteria**"),
+        ("[INTEL DECRYPTED // P/E RATIO]", "**P/E Ratio Overview**"),
+        ("[INTEL DECRYPTED // EPS]", "**Earnings Per Share (EPS) Overview**"),
+        ("[INTEL DECRYPTED // MARKET CAP]", "**Market Capitalization Overview**"),
+        ("[SCANNER LOCKED // RSI-14 TELEMETRY]", "**RSI-14 Momentum Indicator**"),
+        ("[RADAR TRACE // SMA 50 vs SMA 200]", "**Moving Average Crossovers (50 vs 200 SMA)**"),
+        ("LIVE BAWSAQ PULSE", "Live NSE Snapshot"),
+        ("BAWSAQ", "NSE India"),
+        ("Vice City", "NSE"),
+        ("Syndicate Rule-Based Trigger Logic:", "Rule-Based Decision Logic:"),
+        ("Listen up, runner — smart operators never dump the whole ₹10,000 stash on one getaway car. Split it across three tiers:", "Smart long-term investors diversify a ₹10,000 budget across three balanced tiers:"),
+        ("Insider Take", "Technical Summary"),
+        ("getaway car", "sideways market"),
+        ("protect your stash", "protect capital"),
+        ("Intercepted query:", "Query:"),
+    )
+    out = text
+    for old, new in replacements:
+        out = out.replace(old, new)
+    return out
+
+
 def generate_tutor_turn(
     query: str,
     edition: str = "GTA VI",
 ) -> tuple[str, str, list[dict[str, Any]]]:
     """
-    Generate a dual-world Cyber-Broker / Bunker AI response along with mood and live scans.
+    Generate a theme-aware Cyber-Broker, Bunker AI, or Pro Standard response with mood & live scans.
     Returns: (reply_text, mood ['bullish'|'bearish'|'neutral'], scanned_metrics_list)
     """
-    doomsday = edition.strip().upper() == "DOOMSDAY"
+    raw_reply, raw_mood, raw_scans = _generate_tutor_turn_inner(query, edition=edition)
+    if edition.strip().upper() in {"DEFAULT", "PRO", "STANDARD"}:
+        return _format_for_pro_standard(raw_reply), raw_mood, raw_scans
+    return raw_reply, raw_mood, raw_scans
+
+
+def _generate_tutor_turn_inner(
+    query: str,
+    edition: str = "GTA VI",
+) -> tuple[str, str, list[dict[str, Any]]]:
+    ed_norm = edition.strip().upper()
+    doomsday = ed_norm == "DOOMSDAY"
+    default_pro = ed_norm in {"DEFAULT", "PRO", "STANDARD"}
     q = query.lower().strip()
     hinglish = _is_hinglish(query)
 
@@ -260,6 +302,8 @@ def generate_tutor_turn(
                 .replace("Vice City", "Shelter Sector")
                 .replace("Insider Take", "Bunker Command")
             )
+        elif default_pro:
+            text = _format_for_pro_standard(text)
         return text, mood, scans
 
     if any(
@@ -317,7 +361,7 @@ def generate_tutor_turn(
                 "* 🛡️ **Index Safe-House ETFs (10–20% ~ ₹1,000 – ₹2,000):** **NIFTYBEES** — instant top-50 NSE exposure."
                 f"{live_strip}\n\n📌 *Disciplined Rule:* Use systematic SIP drops and never deploy rent money needed within 12 months!"
             )
-        return text, "bullish", live_scans
+        return (_format_for_pro_standard(text) if default_pro else text), "bullish", live_scans
 
     if "p/e" in q or "pe ratio" in q:
         text = """`[INTEL DECRYPTED // P/E RATIO]`

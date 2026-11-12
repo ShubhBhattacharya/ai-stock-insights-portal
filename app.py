@@ -13,7 +13,13 @@ if _ROOT_DIR not in sys.path:
     sys.path.insert(0, _ROOT_DIR)
 
 from src.constants import NAV_ITEMS
-from src.state import compute_dynamic_wanted_stars, init_session_state, is_doomsday, logout
+from src.state import (
+    compute_dynamic_wanted_stars,
+    init_session_state,
+    is_default_theme,
+    is_doomsday,
+    logout,
+)
 from src.styles import (
     inject_global_styles,
     render_doomsday_reboot_overlay,
@@ -52,16 +58,52 @@ VIEW_DISPATCH = {
 
 
 def render_sidebar() -> str:
-    """Render clean edition-aware HUD sidebar profile, capital/cash, logout, and navigation."""
+    """Render clean theme-aware sidebar profile, cash balance, logout, 3-mode switcher, and nav."""
+    default_pro = is_default_theme()
     doomsday = is_doomsday()
-    username = html.escape(str(st.session_state["username"]).upper())
+    username = html.escape(str(st.session_state["username"]))
     cash_balance = float(st.session_state["cash_balance"])
     num_holdings = len(st.session_state["portfolio"])
     num_alerts = len(st.session_state["alerts"])
+
+    if default_pro:
+        st.sidebar.markdown(
+            f'<div class="sidebar-profile-card">'
+            f'<div class="sidebar-profile-name">👤 {username}</div>'
+            f'<div class="sidebar-cash-pill">Cash: ₹{cash_balance:,.2f}</div>'
+            f'<div style="color:#94a3b8; font-size:0.78rem; margin-top:0.28rem;">'
+            f"{num_holdings} Holdings · {num_alerts} Active Alerts"
+            f"</div></div>",
+            unsafe_allow_html=True,
+        )
+        if st.sidebar.button("🚪 Sign Out", width="stretch"):
+            logout()
+            st.rerun()
+
+        st.sidebar.markdown("---")
+        render_edition_toggle(in_sidebar=True)
+        st.sidebar.markdown("---")
+
+        selected_mode = st.sidebar.radio(
+            "Navigation Modules",
+            NAV_ITEMS,
+            index=0,
+        )
+
+        st.sidebar.markdown("---")
+        st.sidebar.info(
+            "**AI Stock Insights Portal (Pro Standard)**\n"
+            "- Academic Project: BCC 351\n"
+            "- Stack: Streamlit, yfinance, Plotly, pandas-ta\n"
+            "- Data Feed: NSE India Equities"
+        )
+        return selected_mode
+
+    upper_name = username.upper()
     wanted_level = compute_dynamic_wanted_stars()
     wanted_html = render_wanted_stars_html(active_stars=wanted_level, total_stars=6)
 
-    user_line = f"👤 AUTHORIZED USER: {username}" if doomsday else f"👤 WELCOME, {username}"
+    user_line = f"👤 AUTHORIZED USER: {upper_name}" if doomsday else f"👤 WELCOME, {upper_name}"
     cash_line = f"💰 WAR CAPITAL: ₹{cash_balance:,.2f}" if doomsday else f"💰 CASH: ₹{cash_balance:,.2f}"
     sub_counts = (
         f"🛡️ {num_holdings} Covert Assets · ☢️ {num_alerts} Alarms"
@@ -85,6 +127,8 @@ def render_sidebar() -> str:
         logout()
         st.rerun()
 
+    st.sidebar.markdown("---")
+    render_edition_toggle(in_sidebar=True)
     st.sidebar.markdown("---")
 
     selected_mode = st.sidebar.radio(
@@ -112,7 +156,7 @@ def render_sidebar() -> str:
 
 
 def main() -> None:
-    """Bootstrap active world edition styles, session state, transitions, and dashboard."""
+    """Bootstrap active portal theme styles, session state, transitions, and dashboard."""
     init_session_state()
     inject_global_styles()
 
@@ -125,21 +169,21 @@ def main() -> None:
 
     if st.session_state.get("transitioning"):
         render_login_transition_overlay(str(st.session_state["username"]))
-        time.sleep(2.0)
+        time.sleep(1.5 if is_default_theme() else 2.0)
         st.session_state["transitioning"] = False
         st.rerun()
         return
 
-    render_edition_toggle()
-
     if not st.session_state["authenticated"]:
+        render_edition_toggle(in_sidebar=False)
         render_login_page()
         return
 
     selected_mode = render_sidebar()
     view_fn = VIEW_DISPATCH.get(selected_mode, render_market_overview)
     view_fn()
-    render_ifruit_phone_widget()
+    if not is_default_theme():
+        render_ifruit_phone_widget()
 
 
 if __name__ == "__main__":

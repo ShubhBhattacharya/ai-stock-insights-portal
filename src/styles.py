@@ -6,7 +6,7 @@ import html
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.state import is_doomsday, switch_world_edition
+from src.state import get_portal_theme, is_default_theme, is_doomsday, switch_world_edition
 
 _PALM_LEFT_SVG = (
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 220'%3E"
@@ -1514,53 +1514,653 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(span.ifruit-anchor) {{
 """
 
 
+DEFAULT_PRO_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+:root {
+    --pro-canvas: #0b1120;
+    --pro-surface: #111827;
+    --pro-surface-elevated: #162032;
+    --pro-emerald: #10b981;
+    --pro-blue: #3b82f6;
+    --pro-border: rgba(255, 255, 255, 0.08);
+    --pro-border-strong: rgba(255, 255, 255, 0.14);
+    --pro-text: #f8fafc;
+    --pro-muted: #94a3b8;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+}
+
+@keyframes pro-progress-fill {
+    0% { width: 10%; }
+    55% { width: 72%; }
+    100% { width: 100%; }
+}
+
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--pro-text);
+}
+
+html, body, [data-testid="stAppViewContainer"], .stApp {
+    overflow-x: hidden !important;
+}
+
+.stApp {
+    background-color: var(--pro-canvas) !important;
+    background-image:
+        radial-gradient(circle at 15% 8%, rgba(59, 130, 246, 0.08), transparent 40%),
+        radial-gradient(circle at 88% 12%, rgba(16, 185, 129, 0.07), transparent 36%) !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+.main .block-container,
+[data-testid="stMainBlockContainer"] {
+    padding-top: clamp(1rem, 2vw, 1.75rem);
+    padding-bottom: 3.25rem;
+    padding-left: clamp(0.9rem, 2.5vw, 2.25rem);
+    padding-right: clamp(0.9rem, 2.5vw, 2.25rem);
+    max-width: 1440px;
+}
+
+hr {
+    border: none !important;
+    height: 1px !important;
+    background: var(--pro-border) !important;
+    margin: 1.1rem 0 !important;
+}
+
+/* Top Edition Switcher Console in Default Mode */
+div[data-testid="stVerticalBlock"]:has(> div.element-container span.edition-toggle-marker),
+div[data-testid="stVerticalBlockBorderWrapper"]:has(span.edition-toggle-marker) {
+    max-width: 820px !important;
+    margin: 0 auto 0.85rem auto !important;
+    background: var(--pro-surface) !important;
+    border: 1px solid var(--pro-border) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.55rem 0.85rem 0.7rem 0.85rem !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28) !important;
+}
+
+.edition-toggle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--pro-muted);
+    margin-bottom: 0.45rem;
+}
+
+/* Corporate Fintech Sidebar */
+section[data-testid="stSidebar"] {
+    background: #0f172a !important;
+    border-right: 1px solid var(--pro-border) !important;
+    box-shadow: none !important;
+}
+
+section[data-testid="stSidebar"] .stRadio > div {
+    gap: 0.28rem;
+}
+
+section[data-testid="stSidebar"] .stRadio label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.52rem 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+section[data-testid="stSidebar"] .stRadio label:hover {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.28);
+}
+
+.sidebar-profile-card {
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.sidebar-profile-name {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--pro-text);
+    margin-bottom: 0.22rem;
+}
+
+.sidebar-cash-pill {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--pro-emerald);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Pro Corporate Page Header */
+.pro-page-header {
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.1rem, 2.2vw, 1.55rem) clamp(1.2rem, 2.6vw, 1.85rem);
+    margin-bottom: 1.15rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+}
+
+.pro-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--pro-emerald);
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.28);
+    padding: 0.22rem 0.68rem;
+    border-radius: 999px;
+    margin-bottom: 0.55rem;
+}
+
+.pro-page-header h1 {
+    margin: 0;
+    font-size: clamp(1.4rem, 2.5vw, 1.95rem);
+    font-weight: 800;
+    color: var(--pro-text);
+    letter-spacing: -0.02em;
+    line-height: 1.22;
+}
+
+.pro-page-header p {
+    margin: 0.35rem 0 0 0;
+    font-size: 0.92rem;
+    color: var(--pro-muted);
+    line-height: 1.45;
+}
+
+/* Corporate Surface Cards (Overrides Steel Rivet Card Cleanly With Zero Hazard Stripes) */
+.steel-rivet-card,
+.surface-card {
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.rivet-dot {
+    display: none;
+}
+
+.graffiti-vi {
+    font-weight: 800;
+    font-size: 1.85rem;
+    color: var(--pro-blue);
+    letter-spacing: -0.04em;
+}
+
+.console-hud-ruler {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--pro-muted);
+    padding: 0.45rem 0;
+    margin: 0.35rem 0 0.65rem 0;
+    border-top: 1px solid var(--pro-border);
+    border-bottom: 1px solid var(--pro-border);
+}
+
+/* Clean KPI Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+    gap: 0.85rem;
+    margin: 0.75rem 0 1.25rem 0;
+}
+
+.kpi-card {
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-md);
+    padding: 0.95rem 1.15rem;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.kpi-card:hover {
+    border-color: rgba(59, 130, 246, 0.45);
+    transform: translateY(-1px);
+}
+
+.kpi-label {
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--pro-muted);
+    margin-bottom: 0.32rem;
+}
+
+.kpi-value {
+    font-size: clamp(1.28rem, 2vw, 1.6rem);
+    font-weight: 700;
+    color: var(--pro-text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.22;
+}
+
+.kpi-delta {
+    display: inline-block;
+    margin-top: 0.4rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 0.16rem 0.52rem;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+}
+
+.tone-up { color: #34d399; background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.28); }
+.tone-down { color: #f87171; background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.28); }
+.tone-neutral { color: #93c5fd; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.28); }
+.tone-warn { color: #fbbf24; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.28); }
+
+/* Signal Badges */
+.signal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    padding: 0.28rem 0.78rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.badge-buy { color: #34d399; background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.35); }
+.badge-sell { color: #f87171; background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.35); }
+.badge-hold { color: #fbbf24; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.35); }
+
+/* Clean Triggered Price Alert Banner */
+.wanted-alert-flash {
+    background: var(--pro-surface);
+    border: 1px solid rgba(16, 185, 129, 0.42);
+    border-left: 4px solid var(--pro-emerald);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1.15rem;
+    margin-bottom: 0.65rem;
+}
+
+/* News Card */
+.news-item-card {
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-sm);
+    padding: 0.72rem 0.9rem;
+    margin-bottom: 0.55rem;
+    transition: border-color 0.15s ease;
+}
+
+.news-item-card:hover {
+    border-color: rgba(59, 130, 246, 0.45);
+}
+
+.news-item-card a {
+    color: var(--pro-text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.38;
+    display: block;
+}
+
+.news-item-card a:hover {
+    color: var(--pro-blue);
+}
+
+.news-publisher {
+    color: var(--pro-muted);
+    font-size: 0.74rem;
+    margin-top: 0.25rem;
+}
+
+/* Comparison Benchmark Card */
+.street-race-board {
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.25rem;
+    margin: 0.8rem 0 1.15rem 0;
+}
+
+.race-winner-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #064e3b;
+    background: var(--pro-emerald);
+    padding: 0.28rem 0.82rem;
+    border-radius: 999px;
+}
+
+.race-metric-block {
+    margin-bottom: 0.82rem;
+}
+
+.race-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--pro-border);
+    overflow: hidden;
+    margin: 0.22rem 0;
+}
+
+.race-fill-cyan {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--pro-emerald);
+}
+
+.race-fill-pink {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--pro-blue);
+}
+
+/* Fintech 1.5s Transition Card */
+.pro-transition-shell {
+    max-width: 680px;
+    margin: 3rem auto;
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.75rem;
+    text-align: center;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.42);
+}
+
+.pro-progress-track {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: #1e293b;
+    overflow: hidden;
+    margin: 1.15rem 0;
+}
+
+.pro-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--pro-blue), var(--pro-emerald));
+    animation: pro-progress-fill 1.4s ease-out forwards;
+}
+
+/* Clean Buttons, Forms, Inputs, Expanders, Chat */
+.stButton > button[kind="primary"],
+button[data-testid="stBaseButton-primary"],
+button[data-testid="baseButton-primary"] {
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    background: linear-gradient(90deg, #2563eb 0%, #10b981 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: var(--radius-sm) !important;
+    min-height: 42px !important;
+    transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+.stButton > button[kind="primary"]:hover,
+button[data-testid="stBaseButton-primary"]:hover,
+button[data-testid="baseButton-primary"]:hover {
+    opacity: 0.94;
+    transform: translateY(-1px);
+}
+
+.stButton > button, .stDownloadButton > button {
+    font-size: 0.84rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    min-height: 40px;
+    border: 1px solid var(--pro-border-strong);
+    background: var(--pro-surface-elevated);
+    color: var(--pro-text);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.stButton > button:hover, .stDownloadButton > button:hover {
+    border-color: var(--pro-blue);
+}
+
+div[data-testid="stForm"] {
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-md);
+    padding: 1.05rem 1.15rem;
+}
+
+div[data-baseweb="input"] > div,
+div[data-baseweb="select"] > div {
+    background-color: #0f172a !important;
+    border: 1px solid var(--pro-border-strong) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--pro-text) !important;
+}
+
+div[data-baseweb="input"] > div:focus-within,
+div[data-baseweb="select"] > div:focus-within {
+    border-color: var(--pro-blue) !important;
+}
+
+div[data-testid="stExpander"] {
+    background: var(--pro-surface) !important;
+    border: 1px solid var(--pro-border) !important;
+    border-radius: var(--radius-md) !important;
+}
+
+div[data-testid="stAlert"] {
+    background: var(--pro-surface) !important;
+    border: 1px solid var(--pro-border) !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+div[data-testid="stChatMessage"] {
+    background: var(--pro-surface) !important;
+    border: 1px solid var(--pro-border) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.75rem 1rem !important;
+    margin-bottom: 0.55rem !important;
+}
+
+div[data-testid="stChatInput"] > div {
+    background: var(--pro-surface) !important;
+    border: 1px solid var(--pro-border-strong) !important;
+    border-radius: var(--radius-md) !important;
+}
+
+button[data-baseweb="tab"] {
+    font-size: 0.84rem !important;
+    font-weight: 600 !important;
+    border-radius: 8px 8px 0 0;
+    background: var(--pro-surface) !important;
+    border: 1px solid var(--pro-border) !important;
+    margin-right: 0.25rem;
+}
+
+div[data-testid="stMetric"] {
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+}
+
+div[data-testid="stDataFrame"], div[data-testid="stTable"] {
+    border: 1px solid var(--pro-border);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+}
+
+@media (max-width: 1024px) {
+    div[data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+        gap: 0.75rem !important;
+    }
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"],
+    div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+        min-width: 240px !important;
+        flex: 1 1 240px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .main .block-container,
+    [data-testid="stMainBlockContainer"] {
+        padding-top: 0.75rem;
+        padding-bottom: 2rem;
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
+    }
+    div[data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+    }
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"],
+    div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+        width: 100% !important;
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+    .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
+    }
+}
+</style>
+"""
+
+
 def inject_global_styles() -> None:
-    """Inject active world edition CSS (GTA VI Vice City or Doomsday Apocalypse)."""
-    st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
-    if is_doomsday():
+    """Inject ONLY the active portal theme CSS so zero styles bleed between modes."""
+    theme = get_portal_theme()
+    if theme == "DEFAULT":
+        st.markdown(DEFAULT_PRO_CSS, unsafe_allow_html=True)
+    elif theme == "DOOMSDAY":
+        st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
         st.markdown(DOOMSDAY_OVERRIDE_CSS, unsafe_allow_html=True)
+    else:
+        st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 
-def render_edition_toggle() -> None:
-    """Render the persistent armored SELECT YOUR WORLD // EDITION TOGGLE console at the top."""
-    doomsday = is_doomsday()
-    active_badge = "☣️ ACTIVE: DOOMSDAY (DEFCON-1)" if doomsday else "🌴 ACTIVE: GTA VI (VICE CITY)"
-    badge_color = "#39ff14" if doomsday else "#00f5d4"
+def render_edition_toggle(in_sidebar: bool = False) -> None:
+    """Render the 3-option Portal Theme / Edition Switcher (Default Pro | GTA VI | Doomsday)."""
+    theme = get_portal_theme()
+    if theme == "DEFAULT":
+        active_badge = "💼 ACTIVE: DEFAULT (PRO STANDARD)"
+        badge_color = "#10b981"
+    elif theme == "DOOMSDAY":
+        active_badge = "☣️ ACTIVE: DOOMSDAY (DEFCON-1)"
+        badge_color = "#39ff14"
+    else:
+        active_badge = "🌴 ACTIVE: GTA VI (VICE CITY)"
+        badge_color = "#00f5d4"
 
-    with st.container():
-        st.markdown('<span class="edition-toggle-marker"></span>', unsafe_allow_html=True)
-        st.markdown(
-            f'<div class="edition-toggle-header">'
-            f'<span>⚡ SELECT YOUR WORLD // EDITION TOGGLE</span>'
-            f'<span style="color:{badge_color}; font-family:\'Share Tech Mono\',monospace;">{active_badge}</span>'
+    target = st.sidebar if in_sidebar else st
+
+    if in_sidebar:
+        st.sidebar.markdown(
+            f'<div style="font-size:0.72rem; font-weight:700; letter-spacing:0.06em; color:#94a3b8; margin-bottom:0.35rem;">'
+            f'PORTAL THEME // EDITION<br/>'
+            f'<span style="color:{badge_color};">{active_badge}</span>'
             f"</div>",
             unsafe_allow_html=True,
         )
-        col_gta, col_doom = st.columns(2, gap="small")
-        with col_gta:
+        if st.sidebar.button(
+            "💼 Default (Pro Standard)",
+            key="edition_btn_default",
+            type="primary" if theme == "DEFAULT" else "secondary",
+            width="stretch",
+        ):
+            if theme != "DEFAULT":
+                switch_world_edition("DEFAULT")
+                st.rerun()
+        if st.sidebar.button(
+            "🌴 GTA VI (Vice City)",
+            key="edition_btn_gta",
+            type="primary" if theme == "GTA VI" else "secondary",
+            width="stretch",
+        ):
+            if theme != "GTA VI":
+                switch_world_edition("GTA VI")
+                st.rerun()
+        if st.sidebar.button(
+            "🌋 Doomsday (Apocalypse)",
+            key="edition_btn_doomsday",
+            type="primary" if theme == "DOOMSDAY" else "secondary",
+            width="stretch",
+        ):
+            if theme != "DOOMSDAY":
+                switch_world_edition("DOOMSDAY")
+                st.rerun()
+        return
+
+    with target.container():
+        st.markdown('<span class="edition-toggle-marker"></span>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="edition-toggle-header">'
+            f'<span>⚡ PORTAL THEME // EDITION SWITCHER</span>'
+            f'<span style="color:{badge_color};">{active_badge}</span>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+        col_def, col_gta, col_doom = st.columns(3, gap="small")
+        with col_def:
             if st.button(
-                "🌴 GTA VI (VICE)",
-                key="edition_btn_gta",
-                type="secondary" if doomsday else "primary",
+                "💼 Default (Pro Standard)",
+                key="edition_btn_default",
+                type="primary" if theme == "DEFAULT" else "secondary",
                 width="stretch",
             ):
-                if doomsday:
+                if theme != "DEFAULT":
+                    switch_world_edition("DEFAULT")
+                    st.rerun()
+        with col_gta:
+            if st.button(
+                "🌴 GTA VI (Vice City)",
+                key="edition_btn_gta",
+                type="primary" if theme == "GTA VI" else "secondary",
+                width="stretch",
+            ):
+                if theme != "GTA VI":
                     switch_world_edition("GTA VI")
                     st.rerun()
         with col_doom:
             if st.button(
-                "🌋 DOOMSDAY (APOCALYPSE)",
+                "🌋 Doomsday (Apocalypse)",
                 key="edition_btn_doomsday",
-                type="primary" if doomsday else "secondary",
+                type="primary" if theme == "DOOMSDAY" else "secondary",
                 width="stretch",
             ):
-                if not doomsday:
+                if theme != "DOOMSDAY":
                     switch_world_edition("DOOMSDAY")
                     st.rerun()
 
 
 def render_wanted_stars_html(active_stars: int = 6, total_stars: int = 6) -> str:
-    """Return HTML markup for GTA Wanted stars or Doomsday Apocalypse Alert System triangles."""
+    """Return HTML markup for Wanted stars (GTA VI), Alert System (Doomsday), or empty string in Default."""
+    if is_default_theme():
+        return ""
     clamped = max(0, min(active_stars, total_stars))
     if is_doomsday():
         on_icons = "".join('<span class="wanted-star-on" style="color:#ffb703;">⚠️</span>' for _ in range(clamped))
@@ -1582,7 +2182,9 @@ def render_wanted_stars_html(active_stars: int = 6, total_stars: int = 6) -> str
 
 
 def render_vice_hud_banner(wanted_stars: int = 6, telemetry: str = "BAWSAQ // LCN LIVE LINK") -> None:
-    """Render top armored wing emblem, 3D portal brand, and Wanted/Apocalypse Tier HUD."""
+    """Render top armored wing emblem (GTA/Doomsday only; hidden in Default Pro Standard)."""
+    if is_default_theme():
+        return
     doomsday = is_doomsday()
     stars_html = render_wanted_stars_html(active_stars=wanted_stars, total_stars=6)
     safe_telemetry = html.escape(
@@ -1632,7 +2234,21 @@ def render_page_header(
     use_calligraphy: bool = False,
     wanted_stars: int = 6,
 ) -> None:
-    """Render top HUD wing bar and edition-adaptive synthwave/apocalypse hero banner."""
+    """Render clean corporate header (Default) or synthwave/apocalypse hero banner."""
+    if is_default_theme():
+        safe_badge = html.escape(badge)
+        safe_title = html.escape(title)
+        safe_subtitle = html.escape(subtitle)
+        st.markdown(
+            f'<div class="pro-page-header">'
+            f'<div class="pro-header-badge">● {safe_badge}</div>'
+            f"<h1>{safe_title}</h1>"
+            f"<p>{safe_subtitle}</p>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+        return
+
     doomsday = is_doomsday()
     render_vice_hud_banner(wanted_stars=wanted_stars)
     safe_badge = html.escape(badge)
@@ -1696,9 +2312,34 @@ def render_doomsday_reboot_overlay() -> None:
 
 
 def render_login_transition_overlay(username: str) -> None:
-    """Render edition-aware 2-second cinematic login loading transition."""
-    doomsday = is_doomsday()
+    """Render theme-aware login loading transition (1.5s fintech bar in Default, 2s in GTA/Doomsday)."""
     safe_user = html.escape(username)
+    if is_default_theme():
+        st.markdown(
+            f"""
+            <div class="pro-transition-shell">
+                <div style="font-size:0.75rem; font-weight:700; letter-spacing:0.08em; color:#10b981; text-transform:uppercase;">
+                    AI STOCK INSIGHTS PORTAL • PRO STANDARD
+                </div>
+                <h2 style="margin:0.45rem 0 0.25rem 0; font-size:1.45rem; font-weight:800; color:#f8fafc;">
+                    Authenticating Live NSE Market Feed...
+                </h2>
+                <p style="margin:0; color:#94a3b8; font-size:0.9rem;">
+                    Initializing equity analytics, ML price regression, and paper portfolio for <strong>{safe_user}</strong>
+                </p>
+                <div class="pro-progress-track">
+                    <div class="pro-progress-fill"></div>
+                </div>
+                <div style="font-size:0.78rem; color:#64748b;">
+                    Dronacharya Group of Institutions · B.Tech Mini Project BCC 351
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    doomsday = is_doomsday()
     if doomsday:
         render_vice_hud_banner(wanted_stars=6, telemetry="BUNKER.NET ENTRY PROTOCOL")
         st.markdown(
@@ -1771,7 +2412,9 @@ def render_login_transition_overlay(username: str) -> None:
 
 
 def render_weazel_flash_ticker(headlines: list[str]) -> None:
-    """Render lower-third breaking ticker: WEAZEL NEWS (GTA VI) or DISASTER BROADCAST NETWORK (Doomsday)."""
+    """Render lower-third breaking ticker (hidden in Default Pro Standard)."""
+    if is_default_theme():
+        return
     doomsday = is_doomsday()
     joined = "   ✦   ".join(html.escape(h) for h in headlines if h)
     if not joined:
@@ -1793,7 +2436,7 @@ def render_weazel_flash_ticker(headlines: list[str]) -> None:
 
 
 def render_signal_badge(signal: str, confidence: int | None = None) -> str:
-    """Return HTML markup for a neon BUY / SELL / HOLD pill badge."""
+    """Return HTML markup for a BUY / SELL / HOLD pill badge."""
     sig_upper = signal.upper()
     if sig_upper == "BUY":
         cls, dot = "badge-buy", "🟢"
@@ -1807,7 +2450,7 @@ def render_signal_badge(signal: str, confidence: int | None = None) -> str:
 
 
 def render_kpi_grid(cards: list[dict[str, str]]) -> None:
-    """Render a responsive neon HUD CSS-grid row of KPI cards."""
+    """Render a responsive KPI card grid."""
     card_html_parts: list[str] = []
     for card in cards:
         label = html.escape(str(card.get("label", "")))
@@ -1827,7 +2470,45 @@ def render_kpi_grid(cards: list[dict[str, str]]) -> None:
 
 
 def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = None) -> go.Figure:
-    """Apply active world edition styling (Vice City synthwave or Doomsday bunker) to Plotly figures."""
+    """Apply active portal theme styling to Plotly figures cleanly across all 3 editions."""
+    if is_default_theme():
+        layout_kwargs: dict = {
+            "template": "plotly_dark",
+            "paper_bgcolor": "#111827",
+            "plot_bgcolor": "#0f172a",
+            "font": {"family": "Plus Jakarta Sans, Inter, sans-serif", "color": "#e2e8f0", "size": 12},
+            "height": height,
+            "margin": {"l": 16, "r": 16, "t": 54, "b": 28},
+            "hovermode": "x unified",
+            "legend": {
+                "orientation": "h",
+                "yanchor": "bottom",
+                "y": 1.02,
+                "xanchor": "right",
+                "x": 1,
+                "bgcolor": "rgba(17, 24, 39, 0.85)",
+                "bordercolor": "rgba(255, 255, 255, 0.08)",
+                "borderwidth": 1,
+            },
+        }
+        if title:
+            layout_kwargs["title"] = {
+                "text": title,
+                "font": {"family": "Plus Jakarta Sans, Inter, sans-serif", "size": 15, "color": "#f8fafc"},
+            }
+        fig.update_layout(**layout_kwargs)
+        fig.update_xaxes(
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            linecolor="rgba(255, 255, 255, 0.14)",
+            zeroline=False,
+        )
+        fig.update_yaxes(
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            linecolor="rgba(255, 255, 255, 0.14)",
+            zeroline=False,
+        )
+        return fig
+
     doomsday = is_doomsday()
     paper_bg = "rgba(16, 11, 9, 0.94)" if doomsday else "rgba(11, 5, 36, 0.92)"
     plot_bg = "rgba(24, 15, 11, 0.92)" if doomsday else "rgba(16, 7, 46, 0.90)"
@@ -1835,7 +2516,7 @@ def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = N
     grid_x = "rgba(255, 69, 0, 0.18)" if doomsday else "rgba(255, 42, 133, 0.16)"
     grid_y = "rgba(57, 255, 20, 0.14)" if doomsday else "rgba(0, 245, 212, 0.12)"
 
-    layout_kwargs: dict = {
+    layout_kwargs = {
         "template": "plotly_dark",
         "paper_bgcolor": paper_bg,
         "plot_bgcolor": plot_bg,

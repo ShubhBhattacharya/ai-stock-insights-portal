@@ -6,14 +6,14 @@ import html
 import streamlit as st
 
 from src.services.tutor import CURRICULUM_MODULES, QUICK_PROMPTS, generate_tutor_turn
-from src.state import compute_dynamic_wanted_stars, is_doomsday
+from src.state import compute_dynamic_wanted_stars, get_portal_theme, is_default_theme, is_doomsday
 from src.styles import render_page_header
 from src.views.character_stage import render_character_stage
 
 
 def _handle_chat_turn(prompt: str) -> None:
     """Append user prompt, analyze live NSE stocks if mentioned, and drive character state."""
-    edition = "DOOMSDAY" if is_doomsday() else "GTA VI"
+    edition = get_portal_theme()
     st.session_state.messages.append({"role": "user", "content": prompt})
     reply, mood, scans = generate_tutor_turn(prompt, edition=edition)
     st.session_state.messages.append({"role": "assistant", "content": reply})
@@ -23,31 +23,39 @@ def _handle_chat_turn(prompt: str) -> None:
     st.session_state["tutor_just_spoke"] = True
 
 
-def _render_chat_panel(doomsday: bool) -> None:
-    """Render the encrypted chat terminal panel, quick commands, and live market scanner."""
-    terminal_title = (
-        "☣️ BUNKER AI CHAT TERMINAL // ENCRYPTED UPLINK"
-        if doomsday
-        else "🕹️ ARCADE CHAT TERMINAL // LIVE NSE UPLINK"
-    )
-    terminal_title_color = "#39ff14" if doomsday else "#00f5d4"
-    terminal_status = "● DEFCON-1 LINK: ACTIVE" if doomsday else "● STATUS: ACTIVE / ENCRYPTED"
+def _render_chat_panel(doomsday: bool, default_pro: bool = False) -> None:
+    """Render the chat terminal panel, quick commands, and live market scanner."""
+    if default_pro:
+        terminal_title = "AI Equity Assistant // Live NSE Analytics"
+        terminal_title_color = "#10b981"
+        terminal_status = "● LIVE NSE FEED"
+        placeholder_txt = "Ask about any NSE stock, RSI, 50-SMA, BUY/SELL rules, or portfolio allocation..."
+    elif doomsday:
+        terminal_title = "☣️ BUNKER AI CHAT TERMINAL // ENCRYPTED UPLINK"
+        terminal_title_color = "#39ff14"
+        terminal_status = "● DEFCON-1 LINK: ACTIVE"
+        placeholder_txt = "Poochiye apna question... (e.g., Reliance ka price & RSI batao, or ₹10,000 budget)"
+    else:
+        terminal_title = "🕹️ ARCADE CHAT TERMINAL // LIVE NSE UPLINK"
+        terminal_title_color = "#00f5d4"
+        terminal_status = "● STATUS: ACTIVE / ENCRYPTED"
+        placeholder_txt = "Poochiye apna question... (e.g., Reliance ka price & RSI batao, or ₹10,000 budget)"
+
+    header_font = "" if default_pro else "font-family:'Orbitron',sans-serif; "
     st.markdown(
-        '<div class="steel-rivet-card" style="padding:0.8rem 1.15rem; margin-bottom:0.75rem;">'
-        '<span class="rivet-dot rivet-tl"></span><span class="rivet-dot rivet-tr"></span>'
-        '<span class="rivet-dot rivet-bl"></span><span class="rivet-dot rivet-br"></span>'
+        '<div class="surface-card" style="padding:0.8rem 1.15rem; margin-bottom:0.75rem;">'
         '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">'
-        f'<span style="font-family:\'Orbitron\',sans-serif; font-size:0.95rem; font-weight:800; color:{terminal_title_color};">'
+        f'<span style="{header_font}font-size:0.95rem; font-weight:700; color:{terminal_title_color};">'
         f"{terminal_title}"
         "</span>"
-        '<span style="font-family:\'Share Tech Mono\',monospace; font-size:0.72rem; color:#39ff14;">'
+        '<span style="font-size:0.74rem; font-weight:600; color:#10b981;">'
         f"{terminal_status}"
         "</span>"
         "</div></div>",
         unsafe_allow_html=True,
     )
 
-    st.caption("Quick terminal commands (live stock scan & rules):")
+    st.caption("Suggested prompts:" if default_pro else "Quick terminal commands (live stock scan & rules):")
     q_row1 = st.columns(2)
     q_row2 = st.columns(2)
     prompt_cols = [q_row1[0], q_row1[1], q_row2[0], q_row2[1]]
@@ -68,7 +76,7 @@ def _render_chat_panel(doomsday: bool) -> None:
         scan_badges = []
         for m in scans:
             sig = m["signal"]
-            tone_col = "#39ff14" if sig == "BUY" else ("#ff4d8d" if sig == "SELL" else "#fee440")
+            tone_col = "#10b981" if sig == "BUY" else ("#ef4444" if sig == "SELL" else "#f59e0b")
             dot = "🟢" if sig == "BUY" else ("🔴" if sig == "SELL" else "🟡")
             scan_badges.append(
                 f'<span style="color:{tone_col}; font-weight:700;">'
@@ -82,34 +90,40 @@ def _render_chat_panel(doomsday: bool) -> None:
             unsafe_allow_html=True,
         )
 
-    if prompt := st.chat_input(
-        "Poochiye apna question... (e.g., Reliance ka price & RSI batao, or ₹10,000 budget)"
-    ):
+    if prompt := st.chat_input(placeholder_txt):
         _handle_chat_turn(prompt)
         st.rerun()
 
 
 def render_ai_tutor() -> None:
-    """Render 3D Holographic Character Stage + Chat Terminal + Curriculum."""
+    """Render AI Equity Assistant (Pro Standard) or 3D Holographic Character Stage + Chat."""
+    default_pro = is_default_theme()
     doomsday = is_doomsday()
-    world_ed = str(st.session_state.get("world_edition", "DOOMSDAY" if doomsday else "GTA VI")).strip().upper()
-    edition = world_ed if world_ed in {"DOOMSDAY", "GTA VI", "PRO", "STANDARD"} else ("DOOMSDAY" if doomsday else "GTA VI")
+    edition = get_portal_theme()
+
+    if default_pro:
+        hdr_title = "AI Stock Tutor & Chatbot"
+        hdr_sub = "Interactive NSE Equity Financial Assistant & Fundamental/Technical Learning Modules"
+        hdr_badge = "AI FINANCIAL TUTOR • PRO STANDARD"
+        tab_labels = ["AI Chat Assistant", "Learning Curriculum"]
+        course_title = "Financial & Technical Analysis Curriculum"
+    elif doomsday:
+        hdr_title = "DOOMSDAY AI // LATVERIAN COMMAND"
+        hdr_sub = "Interactive 3D Holographic Doctor Doom Tactician powered by live NSE telemetry & Hinglish chat"
+        hdr_badge = "AVENGERS: DOOMSDAY • 3D HOLOGRAPHIC AI"
+        tab_labels = ["🛡️ BUNKER AI CHAT TERMINAL", "📚 SURVIVAL INTEL ARCHIVE"]
+        course_title = "📖 Classified Survival Intelligence Archive"
+    else:
+        hdr_title = "AI TUTOR // LEONIDA BROKER"
+        hdr_sub = "Interactive 3D Holographic Jason Broker Stage powered by live NSE telemetry & Hinglish chat"
+        hdr_badge = "GTA VI • 3D HOLOGRAPHIC CHARACTER STAGE"
+        tab_labels = ["🕹️ ARCADE CHAT TERMINAL", "📚 DECRYPTED CURRICULUM"]
+        course_title = "📖 Classified Street Curriculum"
+
     render_page_header(
-        title=(
-            "DOOMSDAY AI // LATVERIAN COMMAND"
-            if doomsday
-            else "AI TUTOR // LEONIDA BROKER"
-        ),
-        subtitle=(
-            "Interactive 3D Holographic Doctor Doom Tactician powered by live NSE telemetry & Hinglish chat"
-            if doomsday
-            else "Interactive 3D Holographic Jason Broker Stage powered by live NSE telemetry & Hinglish chat"
-        ),
-        badge=(
-            "AVENGERS: DOOMSDAY • 3D HOLOGRAPHIC AI"
-            if doomsday
-            else "GTA VI • 3D HOLOGRAPHIC CHARACTER STAGE"
-        ),
+        title=hdr_title,
+        subtitle=hdr_sub,
+        badge=hdr_badge,
         wanted_stars=compute_dynamic_wanted_stars(),
     )
 
@@ -117,15 +131,11 @@ def render_ai_tutor() -> None:
     st.session_state.setdefault("tutor_scans", [])
     st.session_state.setdefault("tutor_turn_id", 0)
 
-    tab_assistant, tab_course = st.tabs(
-        ["🛡️ BUNKER AI CHAT TERMINAL", "📚 SURVIVAL INTEL ARCHIVE"]
-        if doomsday
-        else ["🕹️ ARCADE CHAT TERMINAL", "📚 DECRYPTED CURRICULUM"]
-    )
+    tab_assistant, tab_course = st.tabs(tab_labels)
 
     with tab_assistant:
-        if edition in {"PRO", "STANDARD"}:
-            _render_chat_panel(doomsday=False)
+        if default_pro:
+            _render_chat_panel(doomsday=False, default_pro=True)
         else:
             col_avatar, col_chat = st.columns([1.2, 2], gap="medium")
 
@@ -140,16 +150,12 @@ def render_ai_tutor() -> None:
                 )
 
             with col_chat:
-                _render_chat_panel(doomsday=doomsday)
+                _render_chat_panel(doomsday=doomsday, default_pro=False)
 
     with tab_course:
-        st.subheader(
-            "📖 Classified Survival Intelligence Archive"
-            if doomsday
-            else "📖 Classified Street Curriculum"
-        )
+        st.subheader(course_title)
         topic = st.selectbox(
-            "Select Intel File to Decrypt:",
+            "Select Study Module:" if default_pro else "Select Intel File to Decrypt:",
             list(CURRICULUM_MODULES.keys()),
         )
         st.markdown("---")

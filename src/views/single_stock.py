@@ -12,7 +12,12 @@ from src.constants import NSE_STOCKS
 from src.services.forecasting import predict_stock_prices
 from src.services.market_data import fetch_news_sentiment, get_stock_analysis
 from src.services.reporting import generate_text_report
-from src.state import compute_dynamic_wanted_stars, is_doomsday, set_context_risk_heat
+from src.state import (
+    compute_dynamic_wanted_stars,
+    is_default_theme,
+    is_doomsday,
+    set_context_risk_heat,
+)
 from src.styles import (
     render_kpi_grid,
     render_page_header,
@@ -35,26 +40,45 @@ def _build_technical_chart(
     forecast_days: int,
     show_bbands: bool,
 ) -> go.Figure:
-    """Create an edition-adaptive 3-panel Candlestick, Volume, and RSI Plotly figure."""
+    """Create a theme-adaptive 3-panel Candlestick, Volume, and RSI Plotly figure."""
+    default_pro = is_default_theme()
     doomsday = is_doomsday()
-    up_col = "#39ff14" if doomsday else "#00f5d4"
-    dn_col = "#ff2a00" if doomsday else "#ff2a85"
-    sma50_col = "#ffb703" if doomsday else "#fee440"
-    sma200_col = "#39ff14" if doomsday else "#00f5d4"
-    ml_col = "#ff2a00" if doomsday else "#ff2a85"
+    if default_pro:
+        up_col, dn_col = "#10b981", "#ef4444"
+        sma50_col, sma200_col, ml_col = "#3b82f6", "#f59e0b", "#10b981"
+        sub1 = f"{symbol} — Candlestick, 50/200-SMA & {forecast_days}-Day ML Forecast"
+        sub2, sub3 = "Trading Volume", "RSI (14)"
+        ml_name = f"{forecast_days}D ML Forecast"
+        font_family = "Plus Jakarta Sans, Inter, sans-serif"
+        ann_bg = "rgba(17, 24, 39, 0.92)"
+    elif doomsday:
+        up_col, dn_col = "#39ff14", "#ff2a00"
+        sma50_col, sma200_col, ml_col = "#ffb703", "#39ff14", "#ff2a00"
+        sub1 = f"▸ {symbol} // FALLOUT CANDLES + AMBER 50-SMA + {forecast_days}D RED ML SCENARIO"
+        sub2, sub3 = "▸ TRADING VOLUME PULSE", "▸ RSI-14 MOMENTUM RADAR"
+        ml_name = f"{forecast_days}D Fallout Scenario"
+        font_family = "Orbitron, sans-serif"
+        ann_bg = "rgba(16, 10, 8, 0.9)"
+    else:
+        up_col, dn_col = "#00f5d4", "#ff2a85"
+        sma50_col, sma200_col, ml_col = "#fee440", "#00f5d4", "#ff2a85"
+        sub1 = f"▸ {symbol} // CYAN-PINK CANDLES + NEON 50-SMA + {forecast_days}D ML FORECAST"
+        sub2, sub3 = "▸ TRADING VOLUME PULSE", "▸ RSI-14 MOMENTUM RADAR"
+        ml_name = f"{forecast_days}D Magenta ML Curve"
+        font_family = "Orbitron, sans-serif"
+        ann_bg = "rgba(11, 5, 36, 0.88)"
 
     fig = make_subplots(
         rows=3,
         cols=1,
         shared_xaxes=True,
         vertical_spacing=0.05,
-        subplot_titles=(
-            f"▸ {symbol} // {'FALLOUT CANDLES + AMBER 50-SMA + ' + str(forecast_days) + 'D RED ML SCENARIO' if doomsday else 'CYAN-PINK CANDLES + NEON 50-SMA + ' + str(forecast_days) + 'D ML FORECAST'}",
-            "▸ TRADING VOLUME PULSE",
-            "▸ RSI-14 MOMENTUM RADAR",
-        ),
+        subplot_titles=(sub1, sub2, sub3),
         row_heights=[0.6, 0.2, 0.2],
     )
+
+    inc_fill = "rgba(16, 185, 129, 0.72)" if default_pro else ("rgba(57, 255, 20, 0.72)" if doomsday else "rgba(0, 245, 212, 0.72)")
+    dec_fill = "rgba(239, 68, 68, 0.72)" if default_pro else ("rgba(255, 42, 0, 0.76)" if doomsday else "rgba(255, 42, 133, 0.76)")
 
     fig.add_trace(
         go.Candlestick(
@@ -65,9 +89,9 @@ def _build_technical_chart(
             close=df["Close"],
             name="OHLC",
             increasing_line_color=up_col,
-            increasing_fillcolor="rgba(57, 255, 20, 0.72)" if doomsday else "rgba(0, 245, 212, 0.72)",
+            increasing_fillcolor=inc_fill,
             decreasing_line_color=dn_col,
-            decreasing_fillcolor="rgba(255, 42, 0, 0.76)" if doomsday else "rgba(255, 42, 133, 0.76)",
+            decreasing_fillcolor=dec_fill,
         ),
         row=1,
         col=1,
@@ -129,7 +153,7 @@ def _build_technical_chart(
                 x=pred_df.index,
                 y=pred_df["Predicted_Close"],
                 mode="lines+markers",
-                name=f"{forecast_days}D {'Fallout Scenario' if doomsday else 'Magenta ML Curve'}",
+                name=ml_name,
                 line=dict(color=ml_col, width=2.6, dash="dot"),
                 marker=dict(size=5, color=sma50_col, symbol="diamond"),
             ),
@@ -141,12 +165,12 @@ def _build_technical_chart(
         fig.add_annotation(
             x=last_pred_date,
             y=last_pred_val,
-            text=f"🎯 {forecast_days}D TARGET: ₹{last_pred_val:,.2f}",
+            text=f"{forecast_days}D Target: ₹{last_pred_val:,.2f}" if default_pro else f"🎯 {forecast_days}D TARGET: ₹{last_pred_val:,.2f}",
             showarrow=True,
             arrowhead=2,
             arrowcolor=ml_col,
-            font=dict(family="Share Tech Mono, monospace", size=11, color=sma50_col),
-            bgcolor="rgba(16, 10, 8, 0.9)" if doomsday else "rgba(11, 5, 36, 0.88)",
+            font=dict(family=font_family, size=11, color=sma50_col),
+            bgcolor=ann_bg,
             bordercolor=ml_col,
             borderwidth=1,
             row=1,
@@ -158,12 +182,12 @@ def _build_technical_chart(
     fig.add_annotation(
         x=last_hist_date,
         y=last_hist_close,
-        text=f"CROSSHAIR SPOT: ₹{last_hist_close:,.2f}",
+        text=f"Spot: ₹{last_hist_close:,.2f}" if default_pro else f"CROSSHAIR SPOT: ₹{last_hist_close:,.2f}",
         showarrow=True,
         arrowhead=2,
         arrowcolor=up_col,
-        font=dict(family="Share Tech Mono, monospace", size=11, color=up_col),
-        bgcolor="rgba(16, 10, 8, 0.9)" if doomsday else "rgba(11, 5, 36, 0.88)",
+        font=dict(family=font_family, size=11, color=up_col),
+        bgcolor=ann_bg,
         bordercolor=up_col,
         borderwidth=1,
         ax=-55,
@@ -204,13 +228,13 @@ def _build_technical_chart(
     fig.add_hline(y=30, line_dash="dot", line_color=up_col, row=3, col=1)
 
     style_plotly_figure(fig, height=780)
-    fig.update_annotations(font=dict(family="Orbitron, sans-serif", size=12, color=up_col))
+    fig.update_annotations(font=dict(family=font_family, size=12, color=up_col))
     fig.update_layout(xaxis_rangeslider_visible=False)
     return fig
 
 
 def render_single_stock_analysis() -> None:
-    """Render single-stock technical breakdown, Classified Intel Dossier, and ML forecast."""
+    """Render single-stock technical breakdown, signal report, and ML forecast."""
     stock_names = list(NSE_STOCKS.keys())
     if "single_stock_symbol" not in st.session_state:
         st.session_state["single_stock_symbol"] = NSE_STOCKS[stock_names[0]]
@@ -223,22 +247,32 @@ def render_single_stock_analysis() -> None:
         stock_heat = 6 if (rsi_v > 72 or rsi_v < 28 or chg_v >= 3.0) else (4 if (peek_metrics["signal"] == "SELL" or chg_v >= 1.5) else 2)
         set_context_risk_heat(stock_heat)
 
+    default_pro = is_default_theme()
     doomsday = is_doomsday()
+    if default_pro:
+        hdr_title = "Single Stock AI & ML Prediction"
+        hdr_sub = "NSE candlestick indicators, RSI-14, 50/200-SMA, Bollinger Bands & Linear Regression forecast"
+        hdr_badge = "EQUITY RESEARCH • ML FORECASTING"
+    elif doomsday:
+        hdr_title = "🚨 FALLOUT SCENARIO FORECAST"
+        hdr_sub = "Armored bunker candlestick radar, glowing red Fallout ML trend vector & survival dossiers"
+        hdr_badge = "FALLOUT SCENARIO INTEL • ML FORECASTING"
+    else:
+        hdr_title = "BAWSAQ Target Intel & ML Forecast"
+        hdr_sub = "Deep indigo synthwave candlestick radar, ML trend vector, and Classified Intel Dossiers"
+        hdr_badge = "CLASSIFIED INTEL DOSSIERS • ML FORECASTING"
+
     render_page_header(
-        title="🚨 FALLOUT SCENARIO FORECAST" if doomsday else "BAWSAQ Target Intel & ML Forecast",
-        subtitle=(
-            "Armored bunker candlestick radar, glowing red Fallout ML trend vector & survival dossiers"
-            if doomsday
-            else "Deep indigo synthwave candlestick radar, ML trend vector, and Classified Intel Dossiers"
-        ),
-        badge="FALLOUT SCENARIO INTEL • ML FORECASTING" if doomsday else "CLASSIFIED INTEL DOSSIERS • ML FORECASTING",
+        title=hdr_title,
+        subtitle=hdr_sub,
+        badge=hdr_badge,
         wanted_stars=compute_dynamic_wanted_stars(),
     )
 
     col_s1, col_s2, col_s3 = st.columns([2, 1.2, 1])
     with col_s1:
         st.selectbox(
-            "LOCK NSE TARGET FROM LIST:",
+            "Select NSE Equity:" if default_pro else "LOCK NSE TARGET FROM LIST:",
             stock_names,
             index=0,
             key="single_stock_select",
@@ -247,7 +281,7 @@ def render_single_stock_analysis() -> None:
     with col_s2:
         custom_sym = (
             st.text_input(
-                "OR ENTER CUSTOM TICKER:",
+                "Or Enter Custom Ticker:" if default_pro else "OR ENTER CUSTOM TICKER:",
                 key="single_stock_symbol",
                 placeholder="e.g. RELIANCE.NS",
             )
@@ -255,13 +289,18 @@ def render_single_stock_analysis() -> None:
             .strip()
         )
     with col_s3:
-        forecast_days = st.selectbox("ML HORIZON:", [7, 15, 30], index=2)
+        forecast_days = st.selectbox("Forecast Horizon (Days):" if default_pro else "ML HORIZON:", [7, 15, 30], index=2)
 
     if not custom_sym:
         st.info("Enter a valid NSE/BSE ticker symbol (e.g., `RELIANCE.NS`, `TCS.NS`, `INFY.NS`).")
         return
 
-    with st.spinner(f"Decrypting Classified Intel Dossier & ML vector for {custom_sym}..."):
+    spin_msg = (
+        f"Loading technical analysis and ML forecast for {custom_sym}..."
+        if default_pro
+        else f"Decrypting Classified Intel Dossier & ML vector for {custom_sym}..."
+    )
+    with st.spinner(spin_msg):
         metrics, error = get_stock_analysis(custom_sym)
 
     if error:
@@ -275,10 +314,19 @@ def render_single_stock_analysis() -> None:
     df = metrics["df"]
     signal_badge_html = render_signal_badge(metrics["signal"], metrics["confidence"])
 
+    sym_heading = (
+        html.escape(metrics["symbol"])
+        if default_pro
+        else f'🎯 TARGET LOCKED // {html.escape(metrics["symbol"])}'
+    )
+    sym_style = (
+        "margin:0; font-size:1.15rem; font-weight:700; color:#f8fafc;"
+        if default_pro
+        else "margin:0; font-family:'Orbitron',sans-serif; color:#00f5d4;"
+    )
     st.markdown(
         f'<div class="surface-card" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.75rem;">'
-        f'<h3 style="margin:0; font-family:\'Orbitron\',sans-serif; color:#00f5d4;">'
-        f'🎯 TARGET LOCKED // {html.escape(metrics["symbol"])}</h3>'
+        f'<h3 style="{sym_style}">{sym_heading}</h3>'
         f"<div>{signal_badge_html}</div>"
         f"</div>",
         unsafe_allow_html=True,
@@ -325,23 +373,25 @@ def render_single_stock_analysis() -> None:
     col_dec1, col_dec2 = st.columns([3, 2])
     with col_dec1:
         st.subheader(
-            f"📁 CLASSIFIED INTEL DOSSIER: {metrics['signal']} ({metrics['confidence']}% Confidence)"
+            f"Signal Summary: {metrics['signal']} ({metrics['confidence']}% Confidence)"
+            if default_pro
+            else f"📁 CLASSIFIED INTEL DOSSIER: {metrics['signal']} ({metrics['confidence']}% Confidence)"
         )
         if metrics["signal"] == "BUY":
-            st.success(f"**Mission Directive:** {metrics['final_reason']}")
+            st.success(f"**{'Signal Rationale:' if default_pro else 'Mission Directive:'}** {metrics['final_reason']}")
         elif metrics["signal"] == "SELL":
-            st.error(f"**Heat Warning:** {metrics['final_reason']}")
+            st.error(f"**{'Risk Warning:' if default_pro else 'Heat Warning:'}** {metrics['final_reason']}")
         else:
-            st.warning(f"**Hold Position:** {metrics['final_reason']}")
+            st.warning(f"**{'Neutral Stance:' if default_pro else 'Hold Position:'}** {metrics['final_reason']}")
 
-        st.markdown("**Explainable Signal Tripwires:**")
+        st.markdown("**Rule-Based Trigger Conditions:**" if default_pro else "**Explainable Signal Tripwires:**")
         for reason in metrics["reasons"]:
             st.markdown(f"- {reason}")
 
     with col_dec2:
-        st.subheader("📡 Street Wire & News Sentiment")
+        st.subheader("Market News & Sentiment" if default_pro else "📡 Street Wire & News Sentiment")
         sentiment, msg, news_items = fetch_news_sentiment(metrics["symbol"])
-        st.markdown(f"**Wire Sentiment:** {sentiment}")
+        st.markdown(f"**{'Sentiment:' if default_pro else 'Wire Sentiment:'}** {sentiment}")
         st.caption(msg)
         if news_items:
             for item in news_items[:3]:
@@ -360,16 +410,16 @@ def render_single_stock_analysis() -> None:
     dcol1, dcol2 = st.columns(2)
     with dcol1:
         st.download_button(
-            label="📥 Download Classified Intel Dossier (.txt)",
+            label="📥 Download Research Report (.txt)" if default_pro else "📥 Download Classified Intel Dossier (.txt)",
             data=generate_text_report(metrics),
-            file_name=f"{metrics['symbol']}_Classified_Intel_Dossier.txt",
+            file_name=f"{metrics['symbol']}_Analysis_Report.txt" if default_pro else f"{metrics['symbol']}_Classified_Intel_Dossier.txt",
             mime="text/plain",
             width="stretch",
         )
     with dcol2:
         csv_data = df.to_csv().encode("utf-8")
         st.download_button(
-            label="📊 Export Intercepted Telemetry & Bars (.csv)",
+            label="📊 Export Historical OHLCV & Indicators (.csv)" if default_pro else "📊 Export Intercepted Telemetry & Bars (.csv)",
             data=csv_data,
             file_name=f"{metrics['symbol']}_1Y_Telemetry.csv",
             mime="text/csv",
@@ -380,7 +430,11 @@ def render_single_stock_analysis() -> None:
 
     chart_header_col1, chart_header_col2 = st.columns([3, 1])
     with chart_header_col1:
-        st.subheader(f"📈 Synthwave Technical Chart & {forecast_days}-Day Magenta ML Curve")
+        st.subheader(
+            f"Technical Chart & {forecast_days}-Day ML Forecast"
+            if default_pro
+            else f"📈 Synthwave Technical Chart & {forecast_days}-Day Magenta ML Curve"
+        )
     with chart_header_col2:
         show_bbands = st.checkbox("Show Bollinger Bands (20, 2)", value=False)
 
@@ -389,11 +443,11 @@ def render_single_stock_analysis() -> None:
         target_price = float(pred_df["Predicted_Close"].iloc[-1])
         proj_pct = ((target_price - metrics["close"]) / metrics["close"]) * 100 if metrics["close"] else 0.0
         st.caption(
-            f"ML Vector Engine: Linear Trend Regression ($R^2$ Fit = {r2_score:.2f}) · "
+            f"Linear Trend Regression ($R^2$ Fit = {r2_score:.2f}) · "
             f"{forecast_days}-Trading-Day Projected Target: **₹{target_price:,.2f}** ({proj_pct:+.2f}%)"
         )
     else:
-        st.caption(f"ML Vector Engine: Linear Trend Regression ($R^2$ Fit = {r2_score:.2f})")
+        st.caption(f"Linear Trend Regression ($R^2$ Fit = {r2_score:.2f})")
 
     fig = _build_technical_chart(
         df=df,
