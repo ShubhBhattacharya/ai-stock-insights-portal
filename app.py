@@ -45,6 +45,37 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+_GTM_ID = "GTM-K8XN5Z86"
+_GTM_SCRIPT = (
+    '<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-K8XN5Z86"></script>'
+    "<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date());</script>"
+)
+_GTM_CHECKED = False
+
+
+def inject_google_tag() -> None:
+    """Locate Streamlit's static/index.html and inject the Google Tag Manager snippet once after <head>."""
+    global _GTM_CHECKED
+    if _GTM_CHECKED:
+        return
+    _GTM_CHECKED = True
+    try:
+        index_path = Path(st.__file__).resolve().parent / "static" / "index.html"
+        if not index_path.is_file():
+            return
+        html_content = index_path.read_text(encoding="utf-8")
+        if _GTM_ID in html_content:
+            return
+        if "<head>" in html_content:
+            updated = html_content.replace("<head>", f"<head>\n    {_GTM_SCRIPT}", 1)
+            index_path.write_text(updated, encoding="utf-8")
+    except OSError:
+        # Gracefully skip if package directory is read-only on hosted platforms.
+        pass
+
+
+inject_google_tag()
+
 VIEW_DISPATCH = {
     "📊 Market Overview": render_market_overview,
     "🤖 Single Stock AI & ML Prediction": render_single_stock_analysis,
