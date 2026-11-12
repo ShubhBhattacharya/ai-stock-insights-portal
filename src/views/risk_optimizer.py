@@ -44,8 +44,17 @@ def render_risk_optimizer() -> None:
         wanted_stars=compute_dynamic_wanted_stars(),
     )
 
+    basket_label = (
+        "Select Basket of NSE Equities to Analyze:"
+        if default_pro
+        else (
+            "Select Basket of Bunker Sector Assets to Analyze:"
+            if doomsday
+            else "Select Basket of BAWSAQ Equities to Analyze:"
+        )
+    )
     selected_stocks = st.multiselect(
-        "Select Basket of NSE Equities to Analyze:" if default_pro else "Select Basket of BAWSAQ Equities to Analyze:",
+        basket_label,
         list(NSE_STOCKS.keys()),
         default=[
             "Reliance Industries",
@@ -56,12 +65,20 @@ def render_risk_optimizer() -> None:
     )
 
     if len(selected_stocks) < 2:
-        st.warning("Select at least 2 equities to compute portfolio volatility and asset correlation.")
+        st.warning("Select at least 2 equities to compute portfolio volatility and correlation matrix.")
         return
 
     items = tuple((name, NSE_STOCKS[name]) for name in selected_stocks)
 
-    spin_lbl = "Computing portfolio returns and covariance matrix..." if default_pro else "Calculating syndicate returns and covariance matrix..."
+    spin_lbl = (
+        "Computing portfolio returns and covariance matrix..."
+        if default_pro
+        else (
+            "Calculating bunker basket returns and covariance matrix..."
+            if doomsday
+            else "Calculating syndicate returns and covariance matrix..."
+        )
+    )
     with st.spinner(spin_lbl):
         returns_dict = fetch_batch_returns(items)
 

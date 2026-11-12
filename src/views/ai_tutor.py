@@ -5,7 +5,12 @@ from __future__ import annotations
 import html
 import streamlit as st
 
-from src.services.tutor import CURRICULUM_MODULES, QUICK_PROMPTS, generate_tutor_turn
+from src.services.tutor import (
+    QUICK_PROMPTS,
+    adapt_tutor_text_for_edition,
+    generate_tutor_turn,
+    get_curriculum_modules,
+)
 from src.state import compute_dynamic_wanted_stars, get_portal_theme, is_default_theme, is_doomsday
 from src.styles import render_page_header
 from src.views.character_stage import render_character_stage
@@ -65,11 +70,17 @@ def _render_chat_panel(doomsday: bool, default_pro: bool = False) -> None:
                 _handle_chat_turn(q_text)
                 st.rerun()
 
+    active_edition = get_portal_theme()
     chat_box = st.container(height=330)
     with chat_box:
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
+                content = (
+                    adapt_tutor_text_for_edition(msg["content"], edition=active_edition)
+                    if msg.get("role") == "assistant"
+                    else msg["content"]
+                )
+                st.markdown(content)
 
     scans = st.session_state.get("tutor_scans", [])
     if scans:
@@ -154,9 +165,10 @@ def render_ai_tutor() -> None:
 
     with tab_course:
         st.subheader(course_title)
+        modules = get_curriculum_modules(edition=edition)
         topic = st.selectbox(
             "Select Study Module:" if default_pro else "Select Intel File to Decrypt:",
-            list(CURRICULUM_MODULES.keys()),
+            list(modules.keys()),
         )
         st.markdown("---")
-        st.markdown(CURRICULUM_MODULES[topic])
+        st.markdown(modules[topic])

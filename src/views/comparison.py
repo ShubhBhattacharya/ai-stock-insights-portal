@@ -145,7 +145,7 @@ def render_stock_comparison() -> None:
         hdr_title = "DEFCON DUEL // Tactical War Simulation"
         hdr_sub = "Side-by-side survival benchmark comparing RSI stability, SMA vector & AI confidence"
         hdr_badge = "TACTICAL WAR SIMULATION • BUNKER DUEL"
-        lbl1, lbl2 = "CORNER 1 (BAWSAQ):", "CORNER 2 (LCN):"
+        lbl1, lbl2 = "SECTOR UNIT 1 (ALPHA):", "SECTOR UNIT 2 (OMEGA):"
     else:
         hdr_title = "BAWSAQ vs LCN // Head-to-Head Street Race"
         hdr_sub = "Animated Cyan vs. Hot Pink segmented racing bars comparing RSI, SMA, and AI confidence"
@@ -169,10 +169,23 @@ def render_stock_comparison() -> None:
         s2_sym = NSE_STOCKS[s2_name]
 
     if s1_name == s2_name:
-        st.warning("Select two different equities to compare performance and technical indicators.")
+        if default_pro:
+            st.warning("Select two different equities to compare performance and technical indicators.")
+        elif doomsday:
+            st.warning("Select two different sector assets to run a tactical war simulation.")
+        else:
+            st.warning("Select two different targets to initiate a BAWSAQ vs LCN turf comparison.")
         return
 
-    spin_txt = "Loading comparative technical and return metrics..." if default_pro else "Running BAWSAQ vs LCN head-to-head telemetry scan..."
+    spin_txt = (
+        "Loading comparative technical and return metrics..."
+        if default_pro
+        else (
+            "Running Bunker Tactical head-to-head telemetry scan..."
+            if doomsday
+            else "Running BAWSAQ vs LCN head-to-head telemetry scan..."
+        )
+    )
     with st.spinner(spin_txt):
         m1, e1 = get_stock_analysis(s1_sym)
         m2, e2 = get_stock_analysis(s2_sym)
@@ -206,12 +219,23 @@ def render_stock_comparison() -> None:
 
     card_c1, card_c2 = st.columns(2)
     with card_c1:
-        _render_stock_summary_card(s1_name, m1, "EQUITY 01" if default_pro else "▸▸ CHALLENGER 01 // BAWSAQ FEED")
+        tag1 = (
+            "EQUITY 01"
+            if default_pro
+            else ("▸▸ UNIT 01 // BUNKER ALPHA" if doomsday else "▸▸ CHALLENGER 01 // BAWSAQ FEED")
+        )
+        _render_stock_summary_card(s1_name, m1, tag1)
     with card_c2:
-        _render_stock_summary_card(s2_name, m2, "EQUITY 02" if default_pro else "▸▸ CHALLENGER 02 // LCN FEED")
+        tag2 = (
+            "EQUITY 02"
+            if default_pro
+            else ("▸▸ UNIT 02 // SECTOR OMEGA" if doomsday else "▸▸ CHALLENGER 02 // LCN FEED")
+        )
+        _render_stock_summary_card(s2_name, m2, tag2)
 
+    metric_col = "Financial Metric" if default_pro else "Telemetry Metric"
     comp_table = {
-        "Telemetry Metric": [
+        metric_col: [
             "Current Price",
             "Day Change (%)",
             "52-Week High",
@@ -246,10 +270,20 @@ def render_stock_comparison() -> None:
         ],
     }
 
-    st.subheader("Comparative Financial & Technical Matrix" if default_pro else "📋 BAWSAQ vs LCN Comparative Matrix")
+    matrix_hdr = (
+        "Comparative Financial & Technical Matrix"
+        if default_pro
+        else ("📋 Bunker Tactical Comparative Matrix" if doomsday else "📋 BAWSAQ vs LCN Comparative Matrix")
+    )
+    st.subheader(matrix_hdr)
     st.dataframe(pd.DataFrame(comp_table), width="stretch", hide_index=True)
 
-    st.subheader("1-Year Normalized Cumulative Return (%)" if default_pro else "📈 1-Year Normalized Percentage Return Turf War")
+    ret_hdr = (
+        "1-Year Normalized Cumulative Return (%)"
+        if default_pro
+        else ("📈 1-Year Bunker Sector Survival Return (%)" if doomsday else "📈 1-Year Normalized Percentage Return Turf War")
+    )
+    st.subheader(ret_hdr)
     close1 = m1["df"]["Close"]
     close2 = m2["df"]["Close"]
     common_idx = close1.index.intersection(close2.index)

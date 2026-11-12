@@ -243,6 +243,7 @@ def _format_for_pro_standard(text: str) -> str:
     """Cleanly adapt tutor copy to neutral corporate fintech terminology for Default Pro Standard."""
     replacements = (
         ("[CYBER-BROKER // ENCRYPTED TERMINAL ONLINE]", "**AI Financial Assistant**"),
+        ("[BUNKER AI // ENCRYPTED TERMINAL ONLINE]", "**AI Financial Assistant**"),
         ("[ENCRYPTED UPLINK // ₹10,000 ALLOCATION BLUEPRINT]", "**₹10,000 Portfolio Allocation Guide**"),
         ("[ENCRYPTED BLUEPRINT // ₹10,000 SMART ALLOCATION]", "**₹10,000 Portfolio Allocation Guide**"),
         ("[HEURISTIC MATRIX // BUY & SELL RULES]", "**Rule-Based Signal Criteria (BUY & SELL)**"),
@@ -254,19 +255,155 @@ def _format_for_pro_standard(text: str) -> str:
         ("[SCANNER LOCKED // RSI-14 TELEMETRY]", "**RSI-14 Momentum Indicator**"),
         ("[RADAR TRACE // SMA 50 vs SMA 200]", "**Moving Average Crossovers (50 vs 200 SMA)**"),
         ("LIVE BAWSAQ PULSE", "Live NSE Snapshot"),
+        ("BUNKER.NET PULSE", "Live NSE Snapshot"),
         ("BAWSAQ", "NSE India"),
+        ("BUNKER.NET", "NSE India"),
         ("Vice City", "NSE"),
         ("Syndicate Rule-Based Trigger Logic:", "Rule-Based Decision Logic:"),
+        ("Synopsis Rule-Based SELL Signal Condition:", "Rule-Based SELL Signal Criteria:"),
+        ("Synopsis Rule-Based BUY Signal Condition:", "Rule-Based BUY Signal Criteria:"),
         ("Listen up, runner — smart operators never dump the whole ₹10,000 stash on one getaway car. Split it across three tiers:", "Smart long-term investors diversify a ₹10,000 budget across three balanced tiers:"),
         ("Insider Take", "Technical Summary"),
+        ("Street Read:", "Analytical Interpretation:"),
+        ("Radar Zones:", "Valuation Ranges:"),
+        ("Turf Tiers (SEBI / NSE):", "SEBI / NSE Classification Tiers:"),
+        ("Armored giants, lower volatility", "Large established companies with lower volatility"),
+        ("Fast growth, medium heat", "Higher growth potential with moderate volatility"),
+        ("Wild swings — 6-star risk!", "Higher volatility and higher risk"),
+        ("Possible stealth bargain — or a busted value trap.", "Potentially undervalued relative to sector peers, or a value trap."),
+        ("daily street noise", "short-term price noise"),
+        ("Sellers ran out of ammo — prime reversal radar.", "Oversold momentum — potential mean-reversion zone."),
+        ("Engine redlining — high pullback/profit-booking risk.", "Overbought momentum — elevated pullback/profit-booking risk."),
+        ("Target is oversold / coiled for bounce", "Stock is in an attractive / oversold RSI zone"),
+        ("Structural support is holding strong", "Price remains above structural support"),
+        ("Momentum is redlining in overbought territory", "Momentum is stretched in the overbought zone"),
+        ("Support floor shattered", "Structural support has broken down"),
+        ("Either tripwire triggers a **SELL** order at **82% Confidence** to protect your stash!", "Either condition triggers a **SELL** signal at **82% Confidence** to help manage downside risk."),
+        ("When both tripwires align, the terminal flashes **BUY** at **88% Confidence**!", "When both conditions align, the system generates a **BUY** signal at **88% Confidence**."),
         ("getaway car", "sideways market"),
         ("protect your stash", "protect capital"),
         ("Intercepted query:", "Query:"),
+        ("Boss, aapne poocha:", "Aapne poocha:"),
     )
     out = text
     for old, new in replacements:
         out = out.replace(old, new)
     return out
+
+
+def _format_for_doomsday(text: str) -> str:
+    """Adapt educational responses cleanly to Bunker AI / DEFCON-1 terminology without GTA VI slang."""
+    replacements = (
+        ("[INTEL DECRYPTED // P/E RATIO]", "[BUNKER DECRYPT // P/E RATIO]"),
+        ("[INTEL DECRYPTED // EPS]", "[BUNKER DECRYPT // EPS]"),
+        ("[INTEL DECRYPTED // MARKET CAP]", "[BUNKER DECRYPT // MARKET CAP]"),
+        ("[SCANNER LOCKED // RSI-14 TELEMETRY]", "[DEFCON SCANNER // RSI-14 TELEMETRY]"),
+        ("[RADAR TRACE // SMA 50 vs SMA 200]", "[BUNKER TRACE // SMA 50 vs SMA 200]"),
+        ("[HEURISTIC MATRIX // BUY & SELL RULES]", "[DEFCON MATRIX // BUY & SELL RULES]"),
+        ("[CYBER-BROKER // ENCRYPTED TERMINAL ONLINE]", "[BUNKER AI // ENCRYPTED TERMINAL ONLINE]"),
+        ("[ENCRYPTED UPLINK // ₹10,000 ALLOCATION BLUEPRINT]", "[DEFCON-1 PROTOCOL // ₹10,000 SURVIVAL PORTFOLIO]"),
+        ("[ENCRYPTED BLUEPRINT // ₹10,000 SMART ALLOCATION]", "[DEFCON-1 PROTOCOL // ₹10,000 SURVIVAL ALLOCATION]"),
+        ("LIVE BAWSAQ PULSE", "BUNKER.NET PULSE"),
+        ("BAWSAQ traders", "Bunker.Net operators"),
+        ("BAWSAQ", "BUNKER.NET"),
+        ("Vice City", "Shelter Sector"),
+        ("Insider Take", "Bunker Command"),
+        ("Syndicate Rule-Based Trigger Logic:", "Bunker Rule-Based Trigger Logic:"),
+        ("Street Read:", "Bunker Read:"),
+        ("Turf Tiers (SEBI / NSE):", "Sector Tiers (SEBI / NSE):"),
+        ("Wild swings — 6-star risk!", "Extreme fallout swings — Tier-6 risk!"),
+        ("daily street noise", "daily radiation noise"),
+        ("wait on the getaway car", "hold defensive bunker posture"),
+        ("protect your stash", "protect war capital"),
+        ("Tripwire", "Perimeter Sensor"),
+        ("Either tripwire triggers", "Either perimeter sensor triggers"),
+        ("When both tripwires align, the terminal", "When both perimeter sensors align, Bunker AI"),
+    )
+    out = text
+    for old, new in replacements:
+        out = out.replace(old, new)
+    return out
+
+
+def adapt_tutor_text_for_edition(text: str, edition: str = "GTA VI") -> str:
+    """Adapt any assistant message for the currently active portal theme at render time."""
+    ed_norm = edition.strip().upper()
+    if ed_norm in {"DEFAULT", "PRO", "STANDARD"}:
+        return _format_for_pro_standard(text)
+    if ed_norm == "DOOMSDAY":
+        return _format_for_doomsday(text)
+    return text
+
+
+def get_curriculum_modules(edition: str = "GTA VI") -> dict[str, str]:
+    """Return theme-adapted curriculum study modules for Default Pro, Doomsday, or GTA VI."""
+    ed_norm = edition.strip().upper()
+    if ed_norm in {"DEFAULT", "PRO", "STANDARD"}:
+        pro_titles = {
+            "1. BAWSAQ & NSE Fundamentals (Equities, Exchanges & Bulls/Bears)": "1. Stock Market & NSE Fundamentals (Equities, Exchanges & Regimes)",
+            "2. Cyber Scanners (RSI, 50 SMA, 200 SMA & Golden Cross)": "2. Technical Indicators (RSI, 50 SMA, 200 SMA & Golden Cross)",
+            "3. Syndicate Heuristics (Rules behind BUY, SELL & HOLD)": "3. Rule-Based Signal Logic (BUY, SELL & HOLD Criteria)",
+            "4. Corporate Valuation Intel (P/E Ratio, Market Cap, EPS)": "4. Fundamental Valuation Metrics (P/E Ratio, Market Cap, EPS)",
+            "5. Heist Survival Rules (Risk Management & Allocation)": "5. Portfolio Risk Management & Capital Allocation",
+        }
+        pro_body_replacements = (
+            ("[FILE 01] Market Street Fundamentals", "Stock Market & Exchange Fundamentals"),
+            ("[FILE 02] Technical Scanner Telemetry", "Technical Analysis & Momentum Indicators"),
+            ("[FILE 03] Rule-Based Decision Matrix (BCC 351 Specs)", "Rule-Based Decision Matrix (BCC 351)"),
+            ("[FILE 04] Valuation & Fundamentals Recon", "Fundamental Valuation Ratios"),
+            ("[FILE 05] Risk & Stash Protection", "Risk Management & Capital Preservation"),
+            ("company's turf,", "company's equity,"),
+            ("Grabbing a share", "Buying a share"),
+            ("(Real-World BAWSAQ & LCN)", "(Primary Indian Stock Exchanges)"),
+            ("Sellers are gassed out — prime dip-buying radar.", "Indicates oversold momentum — potential value entry zone."),
+            ("Engine is redlining — high risk of a sharp pullback.", "Indicates overbought conditions — heightened pullback risk."),
+            ("Mid-range street trend line.", "Medium-term trend benchmark."),
+            ("Heavyweight institutional support/resistance floor.", "Long-term institutional support/resistance trendline."),
+            ("maximum bullish heat!", "a strong long-term bullish crossover signal."),
+            ("No black boxes here, runner — pure transparent logic:", "Transparent, deterministic decision logic:"),
+            ("Sideways chop — keep your powder dry.", "Consolidation phase — await clearer trend confirmation."),
+            ("the street pays", "investors pay"),
+            ("Diversify Your Drops:", "Diversify Holdings:"),
+            ("Never dump your whole stash", "Never concentrate total capital"),
+            ("You can't run tomorrow's heist if you blow the vault today.", "Preserving downside capital ensures long-term compounding."),
+        )
+        out: dict[str, str] = {}
+        for title, body in CURRICULUM_MODULES.items():
+            clean_title = pro_titles.get(title, _format_for_pro_standard(title))
+            clean_body = _format_for_pro_standard(body)
+            for old, new in pro_body_replacements:
+                clean_body = clean_body.replace(old, new)
+            out[clean_title] = clean_body
+        return out
+
+    if ed_norm == "DOOMSDAY":
+        doom_titles = {
+            "1. BAWSAQ & NSE Fundamentals (Equities, Exchanges & Bulls/Bears)": "1. BUNKER.NET & NSE Fundamentals (Equities & Market Regimes)",
+            "2. Cyber Scanners (RSI, 50 SMA, 200 SMA & Golden Cross)": "2. Geiger Scanners (RSI, 50 SMA, 200 SMA & Golden Cross)",
+            "3. Syndicate Heuristics (Rules behind BUY, SELL & HOLD)": "3. DEFCON Signal Matrix (Rules behind BUY, SELL & HOLD)",
+            "4. Corporate Valuation Intel (P/E Ratio, Market Cap, EPS)": "4. Corporate Valuation Intel (P/E Ratio, Market Cap, EPS)",
+            "5. Heist Survival Rules (Risk Management & Allocation)": "5. Bunker Survival Rules (Risk Management & Capital Allocation)",
+        }
+        doom_body_replacements = (
+            ("Market Street Fundamentals", "Bunker Market Fundamentals"),
+            ("(Real-World BAWSAQ & LCN)", "(BUNKER.NET & Sector Omega Feeds)"),
+            ("company's turf,", "company's armored sector,"),
+            ("No black boxes here, runner", "No black boxes here, Commander"),
+            ("Mid-range street trend line.", "Mid-range perimeter trendline."),
+            ("Risk & Stash Protection", "Risk & War Capital Protection"),
+            ("whole stash", "entire war capital"),
+            ("tomorrow's heist if you blow the vault today.", "tomorrow's defense if you compromise the bunker today."),
+        )
+        out = {}
+        for title, body in CURRICULUM_MODULES.items():
+            clean_title = doom_titles.get(title, _format_for_doomsday(title))
+            clean_body = _format_for_doomsday(body)
+            for old, new in doom_body_replacements:
+                clean_body = clean_body.replace(old, new)
+            out[clean_title] = clean_body
+        return out
+
+    return CURRICULUM_MODULES
 
 
 def generate_tutor_turn(
@@ -278,8 +415,11 @@ def generate_tutor_turn(
     Returns: (reply_text, mood ['bullish'|'bearish'|'neutral'], scanned_metrics_list)
     """
     raw_reply, raw_mood, raw_scans = _generate_tutor_turn_inner(query, edition=edition)
-    if edition.strip().upper() in {"DEFAULT", "PRO", "STANDARD"}:
+    ed_norm = edition.strip().upper()
+    if ed_norm in {"DEFAULT", "PRO", "STANDARD"}:
         return _format_for_pro_standard(raw_reply), raw_mood, raw_scans
+    if ed_norm == "DOOMSDAY":
+        return _format_for_doomsday(raw_reply), raw_mood, raw_scans
     return raw_reply, raw_mood, raw_scans
 
 

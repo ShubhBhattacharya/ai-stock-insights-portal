@@ -73,9 +73,14 @@ def render_price_alerts() -> None:
     with col_a2:
         direction = st.selectbox("Condition:" if default_pro else "TRIGGER CONDITION:", ["Crosses Above", "Falls Below"])
     with col_a3:
+        target_lbl = (
+            "Target Price (INR):"
+            if default_pro
+            else ("TARGET TRIPWIRE (INR):" if doomsday else "TARGET BOUNTY (INR):")
+        )
         target = float(
             st.number_input(
-                "Target Price (INR):" if default_pro else "TARGET BOUNTY (INR):",
+                target_lbl,
                 min_value=1.0,
                 step=10.0,
                 key="alert_target_price",
@@ -96,11 +101,25 @@ def render_price_alerts() -> None:
         st.toast(f"Price alert created for {alert_name} at ₹{target:,.2f}.", icon="🔔")
 
     st.markdown("---")
-    st.subheader("Active Threshold Monitor" if default_pro else "🚨 Active WANTED Threshold Monitor")
+    monitor_hdr = (
+        "Active Threshold Monitor"
+        if default_pro
+        else ("☢️ Active Radiation Tripwire Monitor" if doomsday else "🚨 Active WANTED Threshold Monitor")
+    )
+    st.subheader(monitor_hdr)
 
     alerts = st.session_state["alerts"]
     if not alerts:
-        st.info("No active price alerts configured. Add a threshold trigger above.")
+        empty_msg = (
+            "No active price alerts configured. Add a threshold trigger above."
+            if default_pro
+            else (
+                "No bunker radiation tripwires configured. Arm a target trigger above."
+                if doomsday
+                else "No active target bounties configured. Add a WANTED threshold trigger above."
+            )
+        )
+        st.info(empty_msg)
         return
 
     for alert in list(alerts):

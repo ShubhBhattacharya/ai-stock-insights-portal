@@ -1243,6 +1243,33 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
     box-shadow: 0 0 18px rgba(255, 42, 133, 0.2);
 }}
 
+/* Medium Laptop Responsive Polish (769px - 1366px) */
+@media (min-width: 769px) and (max-width: 1366px) {{
+    .main .block-container,
+    [data-testid="stMainBlockContainer"] {{
+        padding-left: 1.1rem;
+        padding-right: 1.1rem;
+    }}
+    .tactical-card-inner {{
+        padding: 0.45rem 0.65rem 0.55rem 0.65rem;
+    }}
+    .tactical-grid-row {{
+        font-size: 0.78rem;
+        gap: 0.25rem;
+    }}
+    .tactical-card-bottom {{
+        font-size: 0.72rem;
+    }}
+    .kpi-grid {{
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }}
+    .stButton > button, .stDownloadButton > button {{
+        font-size: 0.78rem;
+        padding-left: 0.6rem;
+        padding-right: 0.6rem;
+    }}
+}}
+
 /* Tablet & Mobile Responsive Breakpoints */
 @media (max-width: 1024px) {{
     div[data-testid="stHorizontalBlock"] {{
@@ -2011,6 +2038,22 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {
     border: 1px solid var(--pro-border);
     border-radius: var(--radius-md);
     overflow-x: auto;
+}
+
+@media (min-width: 769px) and (max-width: 1366px) {
+    .main .block-container,
+    [data-testid="stMainBlockContainer"] {
+        padding-left: 1.15rem;
+        padding-right: 1.15rem;
+    }
+    .kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    }
+    .stButton > button, .stDownloadButton > button {
+        font-size: 0.8rem;
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
+    }
 }
 
 @media (max-width: 1024px) {

@@ -14,6 +14,7 @@ from src.services.market_data import fetch_news_sentiment, get_stock_analysis
 from src.services.reporting import generate_text_report
 from src.state import (
     compute_dynamic_wanted_stars,
+    get_portal_theme,
     is_default_theme,
     is_doomsday,
     set_context_risk_heat,
@@ -338,31 +339,31 @@ def render_single_stock_analysis() -> None:
     render_kpi_grid(
         [
             {
-                "label": "Live Market Quote",
+                "label": "Market Price" if default_pro else "Live Market Quote",
                 "value": f"₹{metrics['close']:,.2f}",
                 "delta": f"{metrics['day_change']:+.2f} ({metrics['day_change_pct']:+.2f}%)",
                 "tone": change_tone,
             },
             {
-                "label": "RSI (14) Radar",
+                "label": "RSI (14)" if default_pro else ("RSI (14) Geiger" if doomsday else "RSI (14) Radar"),
                 "value": f"{metrics['rsi']:.1f}",
                 "delta": "Oversold" if metrics["rsi"] < 35 else ("Overbought" if metrics["rsi"] > 70 else "Neutral Zone"),
                 "tone": rsi_tone,
             },
             {
-                "label": "50-Day SMA (Laser)",
+                "label": "50-Day SMA" if default_pro else "50-Day SMA (Laser)",
                 "value": f"₹{metrics['sma50']:,.2f}",
                 "delta": "Above SMA50" if metrics["close"] >= metrics["sma50"] else "Below SMA50",
                 "tone": "up" if metrics["close"] >= metrics["sma50"] else "down",
             },
             {
-                "label": "200-Day SMA (Cyber)",
+                "label": "200-Day SMA" if default_pro else "200-Day SMA (Trend)",
                 "value": f"₹{metrics['sma200']:,.2f}",
                 "delta": "Golden Bias" if metrics["sma50"] > metrics["sma200"] else "Bearish Bias",
                 "tone": "up" if metrics["sma50"] > metrics["sma200"] else "down",
             },
             {
-                "label": "52-Week Perimeter",
+                "label": "52-Week Range" if default_pro else "52-Week Perimeter",
                 "value": f"₹{metrics['low_52w']:,.0f} – ₹{metrics['high_52w']:,.0f}",
                 "delta": f"Vol: {metrics['volume']:,}",
                 "tone": "neutral",
@@ -409,18 +410,31 @@ def render_single_stock_analysis() -> None:
     st.markdown("---")
     dcol1, dcol2 = st.columns(2)
     with dcol1:
+        rep_label = (
+            "📥 Download Research Report (.txt)"
+            if default_pro
+            else ("📥 Download Bunker Tactical Dossier (.txt)" if doomsday else "📥 Download Classified Intel Dossier (.txt)")
+        )
+        rep_filename = (
+            f"{metrics['symbol']}_Analysis_Report.txt"
+            if default_pro
+            else (
+                f"{metrics['symbol']}_Bunker_Tactical_Dossier.txt"
+                if doomsday
+                else f"{metrics['symbol']}_Classified_Intel_Dossier.txt"
+            )
+        )
         st.download_button(
-            label="📥 Download Research Report (.txt)" if default_pro else "📥 Download Classified Intel Dossier (.txt)",
-            data=generate_text_report(metrics),
-            file_name=f"{metrics['symbol']}_Analysis_Report.txt" if default_pro else f"{metrics['symbol']}_Classified_Intel_Dossier.txt",
+            label=rep_label,
+            data=generate_text_report(metrics, edition=get_portal_theme()),
+            file_name=rep_filename,
             mime="text/plain",
             width="stretch",
         )
     with dcol2:
-        csv_data = df.to_csv().encode("utf-8")
         st.download_button(
             label="📊 Export Historical OHLCV & Indicators (.csv)" if default_pro else "📊 Export Intercepted Telemetry & Bars (.csv)",
-            data=csv_data,
+            data=df.to_csv().encode("utf-8"),
             file_name=f"{metrics['symbol']}_1Y_Telemetry.csv",
             mime="text/csv",
             width="stretch",
@@ -430,11 +444,16 @@ def render_single_stock_analysis() -> None:
 
     chart_header_col1, chart_header_col2 = st.columns([3, 1])
     with chart_header_col1:
-        st.subheader(
+        chart_sub = (
             f"Technical Chart & {forecast_days}-Day ML Forecast"
             if default_pro
-            else f"📈 Synthwave Technical Chart & {forecast_days}-Day Magenta ML Curve"
+            else (
+                f"📈 DEFCON Technical Chart & {forecast_days}-Day Fallout ML Curve"
+                if doomsday
+                else f"📈 Synthwave Technical Chart & {forecast_days}-Day Magenta ML Curve"
+            )
         )
+        st.subheader(chart_sub)
     with chart_header_col2:
         show_bbands = st.checkbox("Show Bollinger Bands (20, 2)", value=False)
 
