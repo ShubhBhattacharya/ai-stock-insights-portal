@@ -95,8 +95,8 @@ def render_market_overview() -> None:
 
     if search_query:
         mask = (
-            df_filtered["Company Name"].str.lower().str.contains(search_query, na=False)
-            | df_filtered["Symbol"].str.lower().str.contains(search_query, na=False)
+            df_filtered["Company Name"].str.lower().str.contains(search_query, na=False, regex=False)
+            | df_filtered["Symbol"].str.lower().str.contains(search_query, na=False, regex=False)
         )
         df_filtered = df_filtered[mask]
 

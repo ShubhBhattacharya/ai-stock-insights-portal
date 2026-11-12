@@ -104,18 +104,27 @@ Risk diversification prevents catastrophic drawdowns. Here is a balanced asset a
 - **🟢 Golden Cross:** Occurs when the 50-Day SMA crosses *above* the 200-Day SMA. Strong long-term bullish signal.
 - **🔴 Death Cross:** Occurs when the 50-Day SMA crosses *below* the 200-Day SMA. Long-term bearish warning."""
 
-    if any(k in q for k in ("buy", "khareed", "signal", "logic")):
+    has_buy = any(k in q for k in ("buy", "khareed"))
+    has_sell = any(k in q for k in ("sell", "bech"))
+
+    if has_buy and has_sell:
+        return """🎯 **Synopsis Rule-Based BUY & SELL Signal Conditions:**
+- **🟢 BUY (88% Confidence):** Triggered when **RSI < 40** AND **Close Price > 95% of 50-Day SMA**.
+- **🔴 SELL (82% Confidence):** Triggered when **RSI > 65** OR **Close Price < 92% of 50-Day SMA**.
+- **🟡 HOLD (65% Confidence):** All other range-bound market conditions."""
+
+    if has_sell:
+        return """🛑 **Synopsis Rule-Based SELL Signal Condition:**
+1. **RSI > 65** (Momentum overbought).
+2. **OR Close Price < 92% of 50-Day SMA** (Severe breakdown below support).
+When either triggers, the portal emits a **SELL** signal with **82% Confidence** to protect capital."""
+
+    if has_buy or any(k in q for k in ("signal", "logic")):
         return """🎯 **Synopsis Rule-Based BUY Signal Condition:**
 Under the BCC 351 Mini Project rules:
 1. **RSI < 40** (Stock is in oversold/attractive momentum territory).
 2. **Close Price > 95% of 50-Day SMA** (Price is maintaining structural moving average support).
 When both align, the portal emits a **BUY** signal with **88% Confidence**!"""
-
-    if "sell" in q or "bech" in q:
-        return """🛑 **Synopsis Rule-Based SELL Signal Condition:**
-1. **RSI > 65** (Momentum overbought).
-2. **OR Close Price < 92% of 50-Day SMA** (Severe breakdown below support).
-When either triggers, the portal emits a **SELL** signal with **82% Confidence** to protect capital."""
 
     return f"""🤖 **AI Stock Tutor Response:**
 

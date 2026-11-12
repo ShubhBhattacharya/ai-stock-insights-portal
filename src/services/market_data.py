@@ -362,7 +362,10 @@ def fetch_news_sentiment(ticker_symbol: str) -> tuple[str, str, list[dict[str, s
         )
         return sentiment, summary, news_items
     except Exception as exc:
-        return "Neutral 🟡", f"News feed unavailable: {exc}", []
+        err_text = str(exc)
+        if "CURRENTLY DOWN" in err_text.upper() or "YF" in type(exc).__name__.upper():
+            return "Neutral 🟡", "Live news headlines temporarily unavailable from Yahoo Finance.", []
+        return "Neutral 🟡", f"News feed unavailable: {err_text}", []
 
 
 def clear_market_cache() -> None:

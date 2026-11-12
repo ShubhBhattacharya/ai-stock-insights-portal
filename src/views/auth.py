@@ -46,9 +46,15 @@ def render_login_page() -> None:
 
         with tab_login:
             with st.form("login_form", clear_on_submit=False):
-                username_input = st.text_input("Username", value="admin", key="login_username")
+                username_input = st.text_input(
+                    "Username", value="admin", placeholder="e.g. admin", key="login_username"
+                )
                 password_input = st.text_input(
-                    "Password", type="password", value="admin123", key="login_password"
+                    "Password",
+                    type="password",
+                    value="",
+                    placeholder="Demo password: admin123",
+                    key="login_password",
                 )
                 submitted = st.form_submit_button("Sign In to Portal", width="stretch")
 
