@@ -91,7 +91,19 @@ The application will open in your default browser at `http://localhost:8501`.
 ## 📂 Project Directory Structure
 ```
 Mini Project/
-├── app.py                          # Main Streamlit application codebase
+├── .streamlit/
+│   └── config.toml                 # Streamlit dark fintech theme configuration
+├── app.py                          # Entry point, sidebar navigation & view routing
+├── src/
+│   ├── constants.py                # NSE stock universe, defaults & team metadata
+│   ├── state.py                    # Session state initialization & order/alert helpers
+│   ├── styles.py                   # Responsive CSS, KPI cards, badges & Plotly styling
+│   ├── services/
+│   │   ├── market_data.py          # yfinance OHLCV, indicators, batch scan & news sentiment
+│   │   ├── forecasting.py          # Scikit-Learn Linear Regression trend projection
+│   │   ├── reporting.py            # Executive .txt technical report generator
+│   │   └── tutor.py                # Financial curriculum & AI Stock Tutor engine
+│   └── views/                      # Modular UI views (Auth + 8 dashboard modules)
 ├── requirements.txt                # Python package dependencies
 ├── README.md                       # Comprehensive project documentation
 └── AI stocks prediction app (2).pdf # Official BCC 351 Mini Project Synopsis
