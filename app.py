@@ -21,6 +21,7 @@ from src.state import (
     logout,
 )
 from src.styles import (
+    build_gta_chase_transition_html,
     inject_global_styles,
     render_doomsday_reboot_overlay,
     render_edition_toggle,
@@ -211,6 +212,21 @@ def main() -> None:
         return
 
     selected_mode = render_sidebar()
+    st.session_state["active_module"] = selected_mode
+    prev_module = st.session_state.get("prev_module", selected_mode)
+
+    if not is_default_theme() and not is_doomsday() and selected_mode != prev_module:
+        chase_placeholder = st.empty()
+        chase_placeholder.markdown(
+            build_gta_chase_transition_html(wanted_stars=compute_dynamic_wanted_stars()),
+            unsafe_allow_html=True,
+        )
+        time.sleep(3.0)
+        st.session_state["prev_module"] = selected_mode
+        chase_placeholder.empty()
+    else:
+        st.session_state["prev_module"] = selected_mode
+
     view_fn = VIEW_DISPATCH.get(selected_mode, render_market_overview)
     view_fn()
     if not is_default_theme():

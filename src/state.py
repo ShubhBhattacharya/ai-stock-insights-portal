@@ -6,7 +6,7 @@ import datetime
 import uuid
 import streamlit as st
 
-from src.constants import DEFAULT_USERS, INITIAL_VIRTUAL_CAPITAL
+from src.constants import DEFAULT_USERS, INITIAL_VIRTUAL_CAPITAL, NAV_ITEMS
 
 
 def _normalize_portal_theme(edition: str | None) -> str:
@@ -39,6 +39,8 @@ def init_session_state() -> None:
         "voice_enabled": True,
         "latest_bot_reply": "",
         "reply_id": "",
+        "active_module": NAV_ITEMS[0],
+        "prev_module": NAV_ITEMS[0],
         "messages": [
             {
                 "role": "assistant",
@@ -84,6 +86,8 @@ def logout() -> None:
     st.session_state["authenticated"] = False
     st.session_state["transitioning"] = False
     st.session_state["edition_transitioning"] = False
+    st.session_state["active_module"] = NAV_ITEMS[0]
+    st.session_state["prev_module"] = NAV_ITEMS[0]
 
 
 def is_doomsday() -> bool:
