@@ -41,6 +41,7 @@ def init_session_state() -> None:
         "reply_id": "",
         "active_module": NAV_ITEMS[0],
         "prev_module": NAV_ITEMS[0],
+        "module_selector": NAV_ITEMS[0],
         "show_gta_transition": False,
         "messages": [
             {
@@ -90,6 +91,7 @@ def logout() -> None:
     st.session_state["show_gta_transition"] = False
     st.session_state["active_module"] = NAV_ITEMS[0]
     st.session_state["prev_module"] = NAV_ITEMS[0]
+    st.session_state["module_selector"] = NAV_ITEMS[0]
 
 
 def is_doomsday() -> bool:

@@ -110,6 +110,26 @@ VIEW_DISPATCH = {
 }
 
 
+def on_module_change() -> None:
+    """Instantly handle module switch on single click via native Streamlit radio callback."""
+    chosen = st.session_state.get("module_selector")
+    if not chosen:
+        return
+    prev = st.session_state.get("prev_module", chosen)
+    portal_theme = str(st.session_state.get("portal_theme", "GTA VI (Vice City)"))
+    is_gta_theme = (
+        "GTA VI" in portal_theme
+        or "Vice City" in portal_theme
+        or "VICE CITY" in portal_theme.upper()
+        or (not is_default_theme() and not is_doomsday())
+    )
+    if is_gta_theme and chosen != prev:
+        st.session_state["show_gta_transition"] = True
+
+    st.session_state["active_module"] = chosen
+    st.session_state["prev_module"] = chosen
+
+
 def render_sidebar() -> str:
     """Render clean theme-aware sidebar profile, cash balance, logout, 3-mode switcher, and nav."""
     default_pro = is_default_theme()
@@ -118,6 +138,11 @@ def render_sidebar() -> str:
     cash_balance = float(st.session_state["cash_balance"])
     num_holdings = len(st.session_state["portfolio"])
     num_alerts = len(st.session_state["alerts"])
+
+    active_mod = str(st.session_state.get("active_module", NAV_ITEMS[0]))
+    active_idx = NAV_ITEMS.index(active_mod) if active_mod in NAV_ITEMS else 0
+    if "module_selector" not in st.session_state:
+        st.session_state["module_selector"] = active_mod
 
     if default_pro:
         st.sidebar.markdown(
@@ -137,13 +162,12 @@ def render_sidebar() -> str:
         render_edition_toggle(in_sidebar=True)
         st.sidebar.markdown("---")
 
-        active_mod = str(st.session_state.get("active_module", NAV_ITEMS[0]))
-        active_idx = NAV_ITEMS.index(active_mod) if active_mod in NAV_ITEMS else 0
-
         selected_mode = st.sidebar.radio(
             "Navigation Modules",
             NAV_ITEMS,
             index=active_idx,
+            key="module_selector",
+            on_change=on_module_change,
         )
 
         st.sidebar.markdown("---")
@@ -187,13 +211,12 @@ def render_sidebar() -> str:
     render_edition_toggle(in_sidebar=True)
     st.sidebar.markdown("---")
 
-    active_mod = str(st.session_state.get("active_module", NAV_ITEMS[0]))
-    active_idx = NAV_ITEMS.index(active_mod) if active_mod in NAV_ITEMS else 0
-
     selected_mode = st.sidebar.radio(
         "☢️ BUNKER MODULES" if doomsday else "🕹️ MODULE SELECTOR",
         NAV_ITEMS,
         index=active_idx,
+        key="module_selector",
+        on_change=on_module_change,
     )
 
     st.sidebar.markdown("---")
@@ -238,35 +261,15 @@ def main() -> None:
         render_login_page()
         return
 
-    # Render sidebar and track current module
+    # Render sidebar with native single-click module selector
     current_module = render_sidebar()
-    prev_module = st.session_state.get("prev_module", current_module)
-    portal_theme = str(st.session_state.get("portal_theme", "GTA VI (Vice City)"))
-    is_gta_theme = (
-        "GTA VI" in portal_theme
-        or "Vice City" in portal_theme
-        or "VICE CITY" in portal_theme.upper()
-        or (not is_default_theme() and not is_doomsday())
-    )
-
-    # Trigger GTA VI transition when user changes tabs/modules
-    if is_gta_theme and current_module != prev_module:
-        st.session_state["show_gta_transition"] = True
-        st.session_state["prev_module"] = current_module
-        st.session_state["active_module"] = current_module
-
-    # Render Persistent Full-Screen GTA VI Module-Switch Transition Overlay with 3.5s timeout
-    if st.session_state.get("show_gta_transition", False):
-        transition_placeholder = st.empty()
-        with transition_placeholder.container():
-            render_gta_chase_transition(wanted_stars=compute_dynamic_wanted_stars())
-        time.sleep(3.5)
-        st.session_state["show_gta_transition"] = False
-        transition_placeholder.empty()
-
-    # Keep active and prev module synced
-    st.session_state["prev_module"] = current_module
     st.session_state["active_module"] = current_module
+    st.session_state["prev_module"] = current_module
+
+    # Render non-blocking GTA VI 3.5s video transition overlay when triggered
+    if st.session_state.get("show_gta_transition", False):
+        render_gta_chase_transition(wanted_stars=compute_dynamic_wanted_stars())
+        st.session_state["show_gta_transition"] = False
 
     view_fn = VIEW_DISPATCH.get(current_module, render_market_overview)
     view_fn()

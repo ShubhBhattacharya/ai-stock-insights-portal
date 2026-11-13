@@ -2572,6 +2572,12 @@ html, body {{
     100% {{ width: 100%; }}
 }}
 
+@keyframes modalDismiss {{
+    0%, 90% {{ opacity: 1; pointer-events: auto; }}
+    98%     {{ opacity: 0; pointer-events: none; }}
+    100%    {{ opacity: 0; pointer-events: none; display: none; }}
+}}
+
 .gta-chase-backdrop {{
     position: fixed;
     inset: 0;
@@ -2583,6 +2589,7 @@ html, body {{
     background: rgba(7, 3, 18, 0.78);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    animation: modalDismiss 3.5s ease-in forwards;
 }}
 
 .gta-chase-modal {{
@@ -2705,6 +2712,25 @@ html, body {{
     </div>
   </div>
 </div>
+<script>
+setTimeout(function() {{
+    var modal = document.querySelector('.gta-chase-backdrop');
+    if (modal) {{
+        modal.style.transition = 'opacity 0.25s ease';
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
+        setTimeout(function() {{
+            modal.style.display = 'none';
+            try {{
+                if (window.frameElement) {{
+                    window.frameElement.style.display = 'none';
+                    window.frameElement.style.height = '0px';
+                }}
+            }} catch(e) {{}}
+        }}, 250);
+    }}
+}}, 3450);
+</script>
 </body>
 </html>
 """
