@@ -14,13 +14,18 @@ from src.state import get_portal_theme, is_default_theme, is_doomsday, switch_wo
 _ASSETS_DIR = Path(__file__).resolve().parents[1] / "assets"
 
 
-@st.cache_data(show_spinner=False)
 def _load_gta_transition_video_uri() -> str:
-    """Load assets/gta_transition_3s.mp4 once and cache as a base64 data URI."""
+    """Load assets/gta_transition_3s.mp4 once and cache as a base64 data URI based on file mtime."""
     video_path = _ASSETS_DIR / "gta_transition_3s.mp4"
     if not video_path.is_file():
         return ""
-    b64 = base64.b64encode(video_path.read_bytes()).decode("ascii")
+    mtime = video_path.stat().st_mtime
+    return _cached_load_gta_video_uri(str(video_path), mtime)
+
+
+@st.cache_data(show_spinner=False)
+def _cached_load_gta_video_uri(path_str: str, mtime: float) -> str:
+    b64 = base64.b64encode(Path(path_str).read_bytes()).decode("ascii")
     return f"data:video/mp4;base64,{b64}"
 
 _PALM_LEFT_SVG = (

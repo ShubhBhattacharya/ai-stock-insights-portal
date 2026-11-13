@@ -238,7 +238,24 @@ def main() -> None:
         render_login_page()
         return
 
-    # 1. Persistent Full-Screen GTA VI Module-Switch Transition Overlay with Auto-Timeout (3.5s)
+    # Render sidebar and track current module
+    current_module = render_sidebar()
+    prev_module = st.session_state.get("prev_module", current_module)
+    portal_theme = str(st.session_state.get("portal_theme", "GTA VI (Vice City)"))
+    is_gta_theme = (
+        "GTA VI" in portal_theme
+        or "Vice City" in portal_theme
+        or "VICE CITY" in portal_theme.upper()
+        or (not is_default_theme() and not is_doomsday())
+    )
+
+    # Trigger GTA VI transition when user changes tabs/modules
+    if is_gta_theme and current_module != prev_module:
+        st.session_state["show_gta_transition"] = True
+        st.session_state["prev_module"] = current_module
+        st.session_state["active_module"] = current_module
+
+    # Render Persistent Full-Screen GTA VI Module-Switch Transition Overlay with 3.5s timeout
     if st.session_state.get("show_gta_transition", False):
         transition_placeholder = st.empty()
         with transition_placeholder.container():
@@ -246,29 +263,12 @@ def main() -> None:
         time.sleep(3.5)
         st.session_state["show_gta_transition"] = False
         transition_placeholder.empty()
-        st.rerun()
-        return
-
-    # 2. Render sidebar and track current module
-    selected_mode = render_sidebar()
-    prev_mode = st.session_state.get("prev_module", selected_mode)
-
-    # 3. Detect module switch and trigger GTA VI transition
-    portal_theme = get_portal_theme()
-    is_gta_theme = portal_theme == "GTA VI" or (not is_default_theme() and not is_doomsday())
-
-    if is_gta_theme and selected_mode != prev_mode:
-        st.session_state["show_gta_transition"] = True
-        st.session_state["prev_module"] = selected_mode
-        st.session_state["active_module"] = selected_mode
-        st.rerun()
-        return
 
     # Keep active and prev module synced
-    st.session_state["prev_module"] = selected_mode
-    st.session_state["active_module"] = selected_mode
+    st.session_state["prev_module"] = current_module
+    st.session_state["active_module"] = current_module
 
-    view_fn = VIEW_DISPATCH.get(selected_mode, render_market_overview)
+    view_fn = VIEW_DISPATCH.get(current_module, render_market_overview)
     view_fn()
     if not is_default_theme():
         render_ifruit_phone_widget()
