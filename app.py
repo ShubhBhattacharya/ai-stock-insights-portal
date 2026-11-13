@@ -15,6 +15,7 @@ if _ROOT_DIR not in sys.path:
 from src.constants import NAV_ITEMS
 from src.state import (
     compute_dynamic_wanted_stars,
+    get_portal_theme,
     init_session_state,
     is_default_theme,
     is_doomsday,
@@ -136,10 +137,13 @@ def render_sidebar() -> str:
         render_edition_toggle(in_sidebar=True)
         st.sidebar.markdown("---")
 
+        active_mod = str(st.session_state.get("active_module", NAV_ITEMS[0]))
+        active_idx = NAV_ITEMS.index(active_mod) if active_mod in NAV_ITEMS else 0
+
         selected_mode = st.sidebar.radio(
             "Navigation Modules",
             NAV_ITEMS,
-            index=0,
+            index=active_idx,
         )
 
         st.sidebar.markdown("---")
@@ -183,10 +187,13 @@ def render_sidebar() -> str:
     render_edition_toggle(in_sidebar=True)
     st.sidebar.markdown("---")
 
+    active_mod = str(st.session_state.get("active_module", NAV_ITEMS[0]))
+    active_idx = NAV_ITEMS.index(active_mod) if active_mod in NAV_ITEMS else 0
+
     selected_mode = st.sidebar.radio(
         "☢️ BUNKER MODULES" if doomsday else "🕹️ MODULE SELECTOR",
         NAV_ITEMS,
-        index=0,
+        index=active_idx,
     )
 
     st.sidebar.markdown("---")
@@ -231,19 +238,35 @@ def main() -> None:
         render_login_page()
         return
 
-    selected_mode = render_sidebar()
-    st.session_state["active_module"] = selected_mode
-    prev_module = st.session_state.get("prev_module", selected_mode)
-
-    if not is_default_theme() and not is_doomsday() and selected_mode != prev_module:
-        chase_placeholder = st.empty()
-        with chase_placeholder.container():
+    # 1. Persistent Full-Screen GTA VI Module-Switch Transition Overlay with Auto-Timeout (3.5s)
+    if st.session_state.get("show_gta_transition", False):
+        transition_placeholder = st.empty()
+        with transition_placeholder.container():
             render_gta_chase_transition(wanted_stars=compute_dynamic_wanted_stars())
         time.sleep(3.5)
+        st.session_state["show_gta_transition"] = False
+        transition_placeholder.empty()
+        st.rerun()
+        return
+
+    # 2. Render sidebar and track current module
+    selected_mode = render_sidebar()
+    prev_mode = st.session_state.get("prev_module", selected_mode)
+
+    # 3. Detect module switch and trigger GTA VI transition
+    portal_theme = get_portal_theme()
+    is_gta_theme = portal_theme == "GTA VI" or (not is_default_theme() and not is_doomsday())
+
+    if is_gta_theme and selected_mode != prev_mode:
+        st.session_state["show_gta_transition"] = True
         st.session_state["prev_module"] = selected_mode
-        chase_placeholder.empty()
-    else:
-        st.session_state["prev_module"] = selected_mode
+        st.session_state["active_module"] = selected_mode
+        st.rerun()
+        return
+
+    # Keep active and prev module synced
+    st.session_state["prev_module"] = selected_mode
+    st.session_state["active_module"] = selected_mode
 
     view_fn = VIEW_DISPATCH.get(selected_mode, render_market_overview)
     view_fn()

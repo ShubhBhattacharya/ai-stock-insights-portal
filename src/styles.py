@@ -2537,7 +2537,7 @@ def build_gta_chase_transition_html(wanted_stars: int = 2) -> str:
     video_uri = _load_gta_transition_video_uri()
 
     video_tag = (
-        f'<video class="gta-video-player" src="{video_uri}" autoplay muted playsinline loop></video>'
+        f'<video class="gta-video-player" src="{video_uri}" autoplay muted playsinline loop style="width:100%; height:100%; object-fit:cover;"></video>'
         if video_uri
         else '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ff2a85;font-family:Orbitron,sans-serif;">ASSET NOT FOUND: gta_transition_3s.mp4</div>'
     )

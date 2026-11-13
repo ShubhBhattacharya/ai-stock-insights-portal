@@ -41,6 +41,7 @@ def init_session_state() -> None:
         "reply_id": "",
         "active_module": NAV_ITEMS[0],
         "prev_module": NAV_ITEMS[0],
+        "show_gta_transition": False,
         "messages": [
             {
                 "role": "assistant",
@@ -86,6 +87,7 @@ def logout() -> None:
     st.session_state["authenticated"] = False
     st.session_state["transitioning"] = False
     st.session_state["edition_transitioning"] = False
+    st.session_state["show_gta_transition"] = False
     st.session_state["active_module"] = NAV_ITEMS[0]
     st.session_state["prev_module"] = NAV_ITEMS[0]
 
