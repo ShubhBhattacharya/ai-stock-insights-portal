@@ -20,15 +20,34 @@ from src.state import (
     is_doomsday,
     logout,
 )
-from src.styles import (
-    build_gta_chase_transition_html,
-    inject_global_styles,
-    render_doomsday_reboot_overlay,
-    render_edition_toggle,
-    render_gta_chase_transition,
-    render_login_transition_overlay,
-    render_wanted_stars_html,
-)
+try:
+    from src.styles import (
+        build_gta_chase_transition_html,
+        inject_global_styles,
+        render_doomsday_reboot_overlay,
+        render_edition_toggle,
+        render_gta_chase_transition,
+        render_login_transition_overlay,
+        render_wanted_stars_html,
+    )
+except Exception:
+    try:
+        import src.styles as _styles_mod
+        build_gta_chase_transition_html = getattr(_styles_mod, "build_gta_chase_transition_html", lambda *a, **k: "")
+        inject_global_styles = getattr(_styles_mod, "inject_global_styles", lambda *a, **k: None)
+        render_doomsday_reboot_overlay = getattr(_styles_mod, "render_doomsday_reboot_overlay", lambda *a, **k: None)
+        render_edition_toggle = getattr(_styles_mod, "render_edition_toggle", lambda *a, **k: None)
+        render_gta_chase_transition = getattr(_styles_mod, "render_gta_chase_transition", lambda *a, **k: None)
+        render_login_transition_overlay = getattr(_styles_mod, "render_login_transition_overlay", lambda *a, **k: None)
+        render_wanted_stars_html = getattr(_styles_mod, "render_wanted_stars_html", lambda *a, **k: "")
+    except Exception:
+        build_gta_chase_transition_html = lambda *a, **k: ""  # type: ignore[assignment]
+        inject_global_styles = lambda *a, **k: None  # type: ignore[assignment]
+        render_doomsday_reboot_overlay = lambda *a, **k: None  # type: ignore[assignment]
+        render_edition_toggle = lambda *a, **k: None  # type: ignore[assignment]
+        render_gta_chase_transition = lambda *a, **k: None  # type: ignore[assignment]
+        render_login_transition_overlay = lambda *a, **k: None  # type: ignore[assignment]
+        render_wanted_stars_html = lambda *a, **k: ""  # type: ignore[assignment]
 from src.views.ai_tutor import render_ai_tutor
 from src.views.auth import render_login_page
 from src.views.comparison import render_stock_comparison

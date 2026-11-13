@@ -2853,3 +2853,19 @@ def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = N
         zeroline=False,
     )
     return fig
+
+
+__all__ = [
+    "build_gta_chase_transition_html",
+    "inject_global_styles",
+    "render_doomsday_reboot_overlay",
+    "render_edition_toggle",
+    "render_gta_chase_transition",
+    "render_kpi_grid",
+    "render_login_transition_overlay",
+    "render_page_header",
+    "render_signal_badge",
+    "render_wanted_stars_html",
+    "render_weazel_flash_ticker",
+    "style_plotly_figure",
+]
