@@ -2536,198 +2536,84 @@ def render_login_transition_overlay(username: str) -> None:
 
 def build_gta_chase_transition_html(wanted_stars: int = 2) -> str:
     """Build the 3.5-second GTA VI Video Transition Modal (LOADING... + Purple-Blue Progress Bar)."""
-    stars = max(2, min(6, int(wanted_stars)))
-    filled = "★" * stars
-    empty = "☆" * (6 - stars)
     video_uri = _load_gta_transition_video_uri()
-
-    video_tag = (
-        f'<video class="gta-video-player" src="{video_uri}" autoplay muted playsinline loop style="width:100%; height:100%; object-fit:cover;"></video>'
-        if video_uri
-        else '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ff2a85;font-family:Orbitron,sans-serif;">ASSET NOT FOUND: gta_transition_3s.mp4</div>'
-    )
+    source_tags = ""
+    if video_uri:
+        source_tags += f'<source src="{video_uri}" type="video/mp4">\n'
+    source_tags += '<source src="app/static/gta_transition_3s.mp4" type="video/mp4">\n'
+    source_tags += '<source src="static/gta_transition_3s.mp4" type="video/mp4">\n'
 
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Rajdhani:wght@600;700&display=swap');
-
 * {{
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }}
-
 html, body {{
     width: 100%;
     height: 100%;
     overflow: hidden;
     background: transparent;
 }}
-
-@keyframes gtaChaseProgress {{
+@keyframes loadProgress {{
     0%   {{ width: 0%; }}
     100% {{ width: 100%; }}
 }}
-
 @keyframes modalDismiss {{
-    0%, 90% {{ opacity: 1; pointer-events: auto; }}
-    98%     {{ opacity: 0; pointer-events: none; }}
+    0%, 92% {{ opacity: 1; pointer-events: auto; }}
+    99%     {{ opacity: 0; pointer-events: none; }}
     100%    {{ opacity: 0; pointer-events: none; display: none; }}
 }}
-
-.gta-chase-backdrop {{
+#gta-transition-root {{
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
     z-index: 999999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 14px;
-    background: rgba(7, 3, 18, 0.78);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    animation: modalDismiss 3.5s ease-in forwards;
-}}
-
-.gta-chase-modal {{
-    position: relative;
-    width: min(860px, 92vw);
-    aspect-ratio: 16 / 9;
-    max-height: 480px;
-    border-radius: 18px;
-    overflow: hidden;
-    border: 2px solid transparent;
-    background:
-        linear-gradient(#0b061a, #0b061a) padding-box,
-        linear-gradient(135deg, #ff2a85 0%, #8b5cf6 50%, #00f5d4 100%) border-box;
-    box-shadow: 0 0 36px rgba(255, 42, 133, 0.6), 0 0 22px rgba(0, 245, 212, 0.35);
-}}
-
-.gta-video-player {{
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}}
-
-.gta-chase-wanted {{
-    position: absolute;
-    top: 14px;
-    right: 16px;
-    z-index: 4;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    background: rgba(11, 6, 24, 0.88);
-    border: 1px solid rgba(255, 255, 255, 0.24);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(0.65rem, 1.3vw, 0.85rem);
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    color: #f8fafc;
-}}
-
-.gta-chase-wanted .stars-on {{
-    color: #fbbf24;
-    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
-}}
-
-.gta-chase-wanted .stars-off {{
-    color: rgba(148, 163, 184, 0.45);
-}}
-
-.gta-chase-bottom {{
-    position: absolute;
-    left: 24px;
-    right: 24px;
-    bottom: 16px;
-    z-index: 4;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-}}
-
-.gta-chase-loading-txt {{
-    font-family: 'Orbitron', 'Rajdhani', sans-serif;
-    font-size: clamp(1.05rem, 2.8vw, 1.85rem);
-    font-weight: 900;
-    letter-spacing: 0.12em;
-    color: #ffffff;
-    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9), 0 0 18px rgba(255, 42, 133, 0.55);
-    margin: 0;
-    line-height: 1;
-}}
-
-.gta-chase-track {{
-    width: 100%;
-    height: clamp(8px, 1.2vw, 12px);
-    border-radius: 999px;
-    background: rgba(12, 8, 28, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.24);
-    overflow: hidden;
-    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.75);
-}}
-
-.gta-chase-fill {{
-    height: 100%;
-    width: 0%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #ff2a85 0%, #8b5cf6 52%, #00f5d4 100%);
-    box-shadow: 0 0 14px rgba(0, 245, 212, 0.75);
-    animation: gtaChaseProgress 3.45s linear forwards;
-}}
-
-@media (max-width: 640px) {{
-    .gta-chase-wanted {{ top: 8px; right: 8px; padding: 4px 8px; gap: 5px; }}
-    .gta-chase-bottom {{ left: 12px; right: 12px; bottom: 10px; gap: 5px; }}
+    justify-content: center;
+    animation: modalDismiss 3.5s ease-in forwards;
 }}
 </style>
 </head>
 <body>
-<div class="gta-chase-backdrop" role="dialog" aria-label="Loading module transition">
-  <div class="gta-chase-modal">
-    {video_tag}
-
-    <!-- Minimal Top-Right WANTED Pill -->
-    <div class="gta-chase-wanted">
-      <span>WANTED</span>
-      <span><span class="stars-on">{filled}</span><span class="stars-off">{empty}</span></span>
+<div id="gta-transition-root">
+    <div style="width:min(860px, 92vw); border-radius:18px; border:2px solid #ff2a85; box-shadow:0 0 40px rgba(255,42,133,0.6); overflow:hidden; background:#000;">
+        <video autoplay muted playsinline style="width:100%; height:auto; display:block; object-fit:cover;">
+            {source_tags}
+        </video>
+        <div style="padding:15px; text-align:center; background:linear-gradient(180deg, #111, #000);">
+            <p style="color:#fff; font-family:monospace; font-size:18px; letter-spacing:2px; margin-bottom:8px;">LOADING...</p>
+            <div style="width:100%; height:6px; background:#222; border-radius:3px; overflow:hidden;">
+                <div style="width:100%; height:100%; background:linear-gradient(90deg, #ff2a85, #8b5cf6, #00f5d4); animation: loadProgress 3.5s linear forwards;"></div>
+            </div>
+        </div>
     </div>
-
-    <!-- Minimal Bottom LOADING... + Smooth Purple-to-Cyan Progress Bar -->
-    <div class="gta-chase-bottom">
-      <div class="gta-chase-loading-txt">LOADING...</div>
-      <div class="gta-chase-track">
-        <div class="gta-chase-fill"></div>
-      </div>
-    </div>
-  </div>
 </div>
 <script>
 setTimeout(function() {{
-    var modal = document.querySelector('.gta-chase-backdrop');
-    if (modal) {{
-        modal.style.transition = 'opacity 0.25s ease';
-        modal.style.opacity = '0';
-        modal.style.pointerEvents = 'none';
+    var el = document.getElementById('gta-transition-root');
+    if (el) {{
+        el.style.transition = 'opacity 0.25s ease';
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
         setTimeout(function() {{
-            modal.style.display = 'none';
+            el.style.display = 'none';
             try {{
                 if (window.frameElement) {{
                     window.frameElement.style.display = 'none';
                     window.frameElement.style.height = '0px';
                 }}
             }} catch(e) {{}}
-        }}, 250);
+        }}, 200);
     }}
 }}, 3450);
 </script>

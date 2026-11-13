@@ -127,7 +127,6 @@ def on_module_change() -> None:
         st.session_state["show_gta_transition"] = True
 
     st.session_state["active_module"] = chosen
-    st.session_state["prev_module"] = chosen
 
 
 def render_sidebar() -> str:
@@ -263,13 +262,34 @@ def main() -> None:
 
     # Render sidebar with native single-click module selector
     current_module = render_sidebar()
+    prev_module = st.session_state.get("prev_module", current_module)
+    portal_theme = str(st.session_state.get("portal_theme", "GTA VI (Vice City)"))
+    is_gta_theme = (
+        "GTA VI" in portal_theme
+        or "Vice City" in portal_theme
+        or "VICE CITY" in portal_theme.upper()
+        or (not is_default_theme() and not is_doomsday())
+    )
+
+    # Reliable Video Transition Trigger: When switching modules in GTA VI mode
+    should_transition = is_gta_theme and (
+        st.session_state.get("show_gta_transition", False) or current_module != prev_module
+    )
+
+    if should_transition:
+        st.session_state["show_gta_transition"] = False
+        st.session_state["prev_module"] = current_module
+        st.session_state["active_module"] = current_module
+
+        # Trigger overlay container using st.empty()
+        overlay = st.empty()
+        with overlay.container():
+            render_gta_chase_transition(wanted_stars=compute_dynamic_wanted_stars())
+        time.sleep(3.5)
+        overlay.empty()
+
     st.session_state["active_module"] = current_module
     st.session_state["prev_module"] = current_module
-
-    # Render non-blocking GTA VI 3.5s video transition overlay when triggered
-    if st.session_state.get("show_gta_transition", False):
-        render_gta_chase_transition(wanted_stars=compute_dynamic_wanted_stars())
-        st.session_state["show_gta_transition"] = False
 
     view_fn = VIEW_DISPATCH.get(current_module, render_market_overview)
     view_fn()
