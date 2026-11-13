@@ -271,22 +271,36 @@ def main() -> None:
         or (not is_default_theme() and not is_doomsday())
     )
 
-    # Reliable Video Transition Trigger: When switching modules in GTA VI mode
+    # Native Streamlit Video Integration for GTA VI Module Switches
     should_transition = is_gta_theme and (
         st.session_state.get("show_gta_transition", False) or current_module != prev_module
     )
 
     if should_transition:
-        st.session_state["show_gta_transition"] = False
         st.session_state["prev_module"] = current_module
         st.session_state["active_module"] = current_module
 
-        # Trigger overlay container using st.empty()
-        overlay = st.empty()
-        with overlay.container():
-            render_gta_chase_transition(wanted_stars=compute_dynamic_wanted_stars())
+        # Transition container
+        transition_placeholder = st.empty()
+        with transition_placeholder.container():
+            st.markdown(
+                "<h2 style='text-align:center; color:#ff2a85; font-family:monospace;'>INTERCEPTING BAWSAQ SECTORS...</h2>",
+                unsafe_allow_html=True,
+            )
+            # Use native st.video which handles browser playback & codecs automatically
+            video_file = "assets/gta_transition_3s.mp4"
+            if not Path(video_file).is_file():
+                fallback_path = Path(_ROOT_DIR) / "assets" / "gta_transition_3s.mp4"
+                if fallback_path.is_file():
+                    video_file = str(fallback_path)
+                elif Path("static/gta_transition_3s.mp4").is_file():
+                    video_file = "static/gta_transition_3s.mp4"
+            st.video(video_file, autoplay=True, loop=False, muted=True)
+            st.progress(100)
+
         time.sleep(3.5)
-        overlay.empty()
+        transition_placeholder.empty()
+        st.session_state["show_gta_transition"] = False
 
     st.session_state["active_module"] = current_module
     st.session_state["prev_module"] = current_module

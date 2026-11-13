@@ -5,6 +5,12 @@ from __future__ import annotations
 import base64
 import html
 from pathlib import Path
+import sys
+
+_ROOT_DIR = str(Path(__file__).resolve().parents[1])
+if _ROOT_DIR not in sys.path:
+    sys.path.insert(0, _ROOT_DIR)
+
 import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
