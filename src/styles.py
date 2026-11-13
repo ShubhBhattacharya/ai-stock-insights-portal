@@ -2,11 +2,26 @@
 
 from __future__ import annotations
 
+import base64
 import html
+from pathlib import Path
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 from src.state import get_portal_theme, is_default_theme, is_doomsday, switch_world_edition
+
+_ASSETS_DIR = Path(__file__).resolve().parents[1] / "assets"
+
+
+@st.cache_data(show_spinner=False)
+def _load_gta_transition_video_uri() -> str:
+    """Load assets/gta_transition_3s.mp4 once and cache as a base64 data URI."""
+    video_path = _ASSETS_DIR / "gta_transition_3s.mp4"
+    if not video_path.is_file():
+        return ""
+    b64 = base64.b64encode(video_path.read_bytes()).decode("ascii")
+    return f"data:video/mp4;base64,{b64}"
 
 _PALM_LEFT_SVG = (
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 220'%3E"
@@ -2515,73 +2530,43 @@ def render_login_transition_overlay(username: str) -> None:
 
 
 def build_gta_chase_transition_html(wanted_stars: int = 2) -> str:
-    """Build the 3-second GTA VI Police Chase highway overlay for module switches."""
+    """Build the 3.5-second GTA VI Video Transition Modal (LOADING... + Purple-Blue Progress Bar)."""
     stars = max(2, min(6, int(wanted_stars)))
     filled = "★" * stars
     empty = "☆" * (6 - stars)
-    return f"""
+    video_uri = _load_gta_transition_video_uri()
+
+    video_tag = (
+        f'<video class="gta-video-player" src="{video_uri}" autoplay muted playsinline loop></video>'
+        if video_uri
+        else '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ff2a85;font-family:Orbitron,sans-serif;">ASSET NOT FOUND: gta_transition_3s.mp4</div>'
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Rajdhani:wght@600;700&display=swap');
+
+* {{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}}
+
+html, body {{
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+}}
+
 @keyframes gtaChaseProgress {{
     0%   {{ width: 0%; }}
     100% {{ width: 100%; }}
 }}
-@keyframes gtaBikeBounce {{
-    0%, 100% {{ transform: translate3d(0px, 0px, 0px) rotate(0deg); }}
-    50%      {{ transform: translate3d(1px, -3px, 0px) rotate(-0.8deg); }}
-}}
-@keyframes gtaWheelSpin {{
-    from {{ transform: rotate(0deg); }}
-    to   {{ transform: rotate(360deg); }}
-}}
-@keyframes gtaRoadDash {{
-    from {{ stroke-dashoffset: 0; }}
-    to   {{ stroke-dashoffset: 104; }}
-}}
-@keyframes gtaStreakLeft {{
-    0%   {{ transform: translate3d(140px, 0px, 0px); opacity: 0; }}
-    15%  {{ opacity: 0.95; }}
-    85%  {{ opacity: 0.85; }}
-    100% {{ transform: translate3d(-520px, 14px, 0px); opacity: 0; }}
-}}
-@keyframes gtaTreesMove {{
-    0%   {{ transform: translate3d(60px, 0px, 0px); opacity: 0.78; }}
-    100% {{ transform: translate3d(-190px, 6px, 0px); opacity: 0.95; }}
-}}
-@keyframes gtaHeliHoverA {{
-    0%, 100% {{ transform: translate3d(0px, 0px, 0px); }}
-    50%      {{ transform: translate3d(7px, -7px, 0px); }}
-}}
-@keyframes gtaHeliHoverB {{
-    0%, 100% {{ transform: translate3d(0px, -4px, 0px); }}
-    50%      {{ transform: translate3d(-6px, 5px, 0px); }}
-}}
-@keyframes gtaRotorSpin {{
-    0%   {{ transform: scaleX(1); }}
-    50%  {{ transform: scaleX(0.18); }}
-    100% {{ transform: scaleX(1); }}
-}}
-@keyframes gtaStrobeRed {{
-    0%, 45%  {{ opacity: 1; }}
-    50%, 95% {{ opacity: 0.15; }}
-    100%     {{ opacity: 1; }}
-}}
-@keyframes gtaStrobeBlue {{
-    0%, 45%  {{ opacity: 0.15; }}
-    50%, 95% {{ opacity: 1; }}
-    100%     {{ opacity: 0.15; }}
-}}
-@keyframes gtaBeamSweepA {{
-    0%, 100% {{ transform: rotate(-6deg); opacity: 0.52; }}
-    50%      {{ transform: rotate(7deg); opacity: 0.72; }}
-}}
-@keyframes gtaBeamSweepB {{
-    0%, 100% {{ transform: rotate(6deg); opacity: 0.45; }}
-    50%      {{ transform: rotate(-5deg); opacity: 0.68; }}
-}}
-@keyframes gtaSparksFly {{
-    0%   {{ transform: translate3d(0px, 0px, 0px) scale(1); opacity: 1; }}
-    100% {{ transform: translate3d(-120px, 14px, 0px) scale(0.35); opacity: 0; }}
-}}
+
 .gta-chase-backdrop {{
     position: fixed;
     inset: 0;
@@ -2590,30 +2575,34 @@ def build_gta_chase_transition_html(wanted_stars: int = 2) -> str:
     align-items: center;
     justify-content: center;
     padding: 14px;
-    background: rgba(7, 3, 18, 0.74);
+    background: rgba(7, 3, 18, 0.78);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }}
+
 .gta-chase-modal {{
     position: relative;
     width: min(860px, 92vw);
     aspect-ratio: 16 / 9;
-    min-height: 220px;
+    max-height: 480px;
     border-radius: 18px;
     overflow: hidden;
     border: 2px solid transparent;
     background:
         linear-gradient(#0b061a, #0b061a) padding-box,
         linear-gradient(135deg, #ff2a85 0%, #8b5cf6 50%, #00f5d4 100%) border-box;
-    box-shadow: 0 0 40px rgba(255, 42, 133, 0.55), 0 0 22px rgba(0, 245, 212, 0.3);
+    box-shadow: 0 0 36px rgba(255, 42, 133, 0.6), 0 0 22px rgba(0, 245, 212, 0.35);
 }}
-.gta-chase-svg {{
+
+.gta-video-player {{
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    object-fit: cover;
     display: block;
 }}
+
 .gta-chase-wanted {{
     position: absolute;
     top: 14px;
@@ -2633,8 +2622,16 @@ def build_gta_chase_transition_html(wanted_stars: int = 2) -> str:
     letter-spacing: 0.08em;
     color: #f8fafc;
 }}
-.gta-chase-wanted .stars-on {{ color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.8); }}
-.gta-chase-wanted .stars-off {{ color: rgba(148, 163, 184, 0.45); }}
+
+.gta-chase-wanted .stars-on {{
+    color: #fbbf24;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}}
+
+.gta-chase-wanted .stars-off {{
+    color: rgba(148, 163, 184, 0.45);
+}}
+
 .gta-chase-bottom {{
     position: absolute;
     left: 24px;
@@ -2646,272 +2643,47 @@ def build_gta_chase_transition_html(wanted_stars: int = 2) -> str:
     align-items: center;
     gap: 8px;
 }}
+
 .gta-chase-loading-txt {{
     font-family: 'Orbitron', 'Rajdhani', sans-serif;
     font-size: clamp(1.05rem, 2.8vw, 1.85rem);
     font-weight: 900;
     letter-spacing: 0.12em;
     color: #ffffff;
-    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9), 0 0 18px rgba(255, 42, 133, 0.45);
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9), 0 0 18px rgba(255, 42, 133, 0.55);
     margin: 0;
     line-height: 1;
 }}
+
 .gta-chase-track {{
     width: 100%;
     height: clamp(8px, 1.2vw, 12px);
     border-radius: 999px;
     background: rgba(12, 8, 28, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.24);
     overflow: hidden;
     box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.75);
 }}
+
 .gta-chase-fill {{
     height: 100%;
     width: 0%;
     border-radius: 999px;
     background: linear-gradient(90deg, #ff2a85 0%, #8b5cf6 52%, #00f5d4 100%);
     box-shadow: 0 0 14px rgba(0, 245, 212, 0.75);
-    animation: gtaChaseProgress 2.95s linear forwards;
+    animation: gtaChaseProgress 3.45s linear forwards;
 }}
-.gta-wheel-spin {{
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: gtaWheelSpin 0.2s linear infinite;
-}}
-.gta-rotor-blade {{
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: gtaRotorSpin 0.08s linear infinite;
-}}
-.gta-bike-rig {{
-    animation: gtaBikeBounce 0.36s ease-in-out infinite alternate;
-    transform-origin: 600px 350px;
-}}
-.gta-heli-1 {{ animation: gtaHeliHoverA 2.2s ease-in-out infinite; }}
-.gta-heli-2 {{ animation: gtaHeliHoverB 1.9s ease-in-out infinite; }}
-.gta-heli-3 {{ animation: gtaHeliHoverA 2.5s ease-in-out infinite; }}
-.gta-heli-4 {{ animation: gtaHeliHoverB 2.1s ease-in-out infinite; }}
-.gta-beam-a {{ transform-origin: top center; transform-box: fill-box; animation: gtaBeamSweepA 2.4s ease-in-out infinite; }}
-.gta-beam-b {{ transform-origin: top center; transform-box: fill-box; animation: gtaBeamSweepB 2.1s ease-in-out infinite; }}
-.gta-strobe-r {{ animation: gtaStrobeRed 0.26s linear infinite; }}
-.gta-strobe-b {{ animation: gtaStrobeBlue 0.26s linear infinite; }}
-.gta-road-dash {{ animation: gtaRoadDash 0.35s linear infinite; }}
-.gta-sparks {{ animation: gtaSparksFly 0.42s linear infinite; }}
-.gta-trees-slide {{ animation: gtaTreesMove 1.4s linear infinite; }}
-.gta-streak {{ animation: gtaStreakLeft 0.7s linear infinite; }}
+
 @media (max-width: 640px) {{
     .gta-chase-wanted {{ top: 8px; right: 8px; padding: 4px 8px; gap: 5px; }}
     .gta-chase-bottom {{ left: 12px; right: 12px; bottom: 10px; gap: 5px; }}
 }}
 </style>
-
+</head>
+<body>
 <div class="gta-chase-backdrop" role="dialog" aria-label="Loading module transition">
   <div class="gta-chase-modal">
-    <svg class="gta-chase-svg" viewBox="0 0 860 484" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="viceSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#191038"/>
-          <stop offset="38%" stop-color="#5b2266"/>
-          <stop offset="72%" stop-color="#d44778"/>
-          <stop offset="100%" stop-color="#ff9955"/>
-        </linearGradient>
-        <radialGradient id="sunsetGlow" cx="62%" cy="56%" r="44%">
-          <stop offset="0%" stop-color="#ffe08a" stop-opacity="0.92"/>
-          <stop offset="42%" stop-color="#ff7e47" stop-opacity="0.45"/>
-          <stop offset="100%" stop-color="#ff2a85" stop-opacity="0"/>
-        </radialGradient>
-        <linearGradient id="highwayAsphalt" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#2b1e3d"/>
-          <stop offset="50%" stop-color="#1c152e"/>
-          <stop offset="100%" stop-color="#100b1e"/>
-        </linearGradient>
-        <linearGradient id="beamCone" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#fff8d6" stop-opacity="0.72"/>
-          <stop offset="55%" stop-color="#fde68a" stop-opacity="0.28"/>
-          <stop offset="100%" stop-color="#fde68a" stop-opacity="0"/>
-        </linearGradient>
-        <linearGradient id="headBeam" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#fffbe6" stop-opacity="0.82"/>
-          <stop offset="100%" stop-color="#fde047" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-
-      <!-- Sunset Sky & Skyline -->
-      <rect width="860" height="310" fill="url(#viceSky)"/>
-      <rect width="860" height="310" fill="url(#sunsetGlow)"/>
-      <circle cx="535" cy="242" r="56" fill="#ffd27d" opacity="0.65"/>
-
-      <!-- Neon Vice City Skyline -->
-      <g fill="#1c1236" opacity="0.85">
-        <rect x="40" y="198" width="28" height="82"/>
-        <rect x="74" y="172" width="34" height="108"/>
-        <rect x="116" y="210" width="26" height="70"/>
-        <rect x="440" y="190" width="32" height="90"/>
-        <rect x="480" y="160" width="44" height="120"/>
-        <rect x="530" y="182" width="34" height="98"/>
-        <rect x="655" y="164" width="46" height="116"/>
-        <rect x="708" y="190" width="34" height="90"/>
-        <rect x="752" y="152" width="44" height="128"/>
-        <rect x="802" y="184" width="40" height="96"/>
-      </g>
-
-      <!-- Moving Palm Silhouettes & Neon Billboards -->
-      <g class="gta-trees-slide" fill="#120824">
-        <path d="M95,274 L103,186 L109,274 Z"/>
-        <path d="M103,186 C75,168 50,174 36,192 C60,184 82,184 103,190 Z"/>
-        <path d="M103,186 C128,164 156,170 170,188 C146,180 124,182 103,190 Z"/>
-        <path d="M103,184 C94,152 108,142 126,154 Z"/>
-        <path d="M775,274 L784,180 L791,274 Z"/>
-        <path d="M784,180 C754,162 728,170 714,188 C740,180 762,180 784,185 Z"/>
-        <path d="M784,180 C812,160 838,168 852,186 C826,178 806,180 784,185 Z"/>
-        <rect x="692" y="212" width="48" height="24" rx="3" fill="#0f0724" stroke="#00f5d4" stroke-width="1.5"/>
-        <rect x="180" y="220" width="42" height="20" rx="2" fill="#0f0724" stroke="#ff2a85" stroke-width="1.5"/>
-      </g>
-
-      <!-- Perspective Highway Tarmac -->
-      <polygon points="0,275 860,275 860,484 0,484" fill="url(#highwayAsphalt)"/>
-      <polygon points="355,275 430,275 180,484 0,484" fill="#221938" opacity="0.65"/>
-      <polygon points="430,275 505,275 860,484 680,484" fill="#18122b" opacity="0.72"/>
-
-      <!-- Highway Guardrails & Shoulder Streaks -->
-      <line x1="340" y1="276" x2="0" y2="412" stroke="#ff2a85" stroke-width="2.2" opacity="0.75"/>
-      <line x1="510" y1="276" x2="860" y2="395" stroke="#00f5d4" stroke-width="2.2" opacity="0.7"/>
-      <line x1="395" y1="276" x2="115" y2="484" stroke="#f8fafc" stroke-width="3.5" stroke-dasharray="28 24" class="gta-road-dash" opacity="0.8"/>
-      <line x1="422" y1="276" x2="310" y2="484" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="26 26" class="gta-road-dash" opacity="0.85"/>
-      <line x1="448" y1="276" x2="540" y2="484" stroke="#f8fafc" stroke-width="3.5" stroke-dasharray="28 24" class="gta-road-dash" opacity="0.8"/>
-
-      <!-- High-Speed Motion Streaks -->
-      <g class="gta-streak" opacity="0.6">
-        <line x1="650" y1="305" x2="780" y2="298" stroke="#00f5d4" stroke-width="1.8"/>
-        <line x1="480" y1="358" x2="620" y2="350" stroke="#ff2a85" stroke-width="2"/>
-        <line x1="250" y1="418" x2="410" y2="408" stroke="#fde68a" stroke-width="1.5"/>
-      </g>
-
-      <!-- 4 Police Helicopters Chasing Overhead -->
-      <!-- Heli 1 (Far Left Small) -->
-      <g class="gta-heli-3" transform="translate(155, 195) scale(0.55)">
-        <polygon points="8,14 -38,162 42,162" fill="url(#beamCone)" class="gta-beam-b"/>
-        <rect x="-48" y="-2" width="52" height="5" rx="2" fill="#0f172a"/>
-        <ellipse cx="0" cy="0" rx="24" ry="13" fill="#0f172a" stroke="#e2e8f0" stroke-width="1.5"/>
-        <path d="M-8,-6 L18,-4 L20,4 L-6,5 Z" fill="#38bdf8" opacity="0.72"/>
-        <ellipse cx="0" cy="-16" rx="54" ry="4" fill="#cbd5e1" opacity="0.55" class="gta-rotor-blade"/>
-        <circle cx="-4" cy="-14" r="3" fill="#ef4444" class="gta-strobe-r"/>
-        <circle cx="4" cy="-14" r="3" fill="#3b82f6" class="gta-strobe-b"/>
-        <circle cx="14" cy="10" r="3.5" fill="#fef08a"/>
-      </g>
-
-      <!-- Heli 2 (Mid Left) -->
-      <g class="gta-heli-1" transform="translate(275, 118) scale(0.92)">
-        <polygon points="10,16 -35,235 95,235" fill="url(#beamCone)" class="gta-beam-a"/>
-        <rect x="-66" y="-2" width="66" height="6" rx="3" fill="#111827"/>
-        <line x1="-18" y1="18" x2="22" y2="18" stroke="#94a3b8" stroke-width="2.5"/>
-        <ellipse cx="0" cy="0" rx="30" ry="16" fill="#0f172a" stroke="#f8fafc" stroke-width="1.8"/>
-        <ellipse cx="3" cy="2" rx="18" ry="8" fill="#1e293b"/>
-        <text x="-8" y="6" fill="#f8fafc" font-family="Orbitron" font-size="8" font-weight="800">PD</text>
-        <path d="M-4,-9 L24,-6 L26,4 L-2,6 Z" fill="#60a5fa" opacity="0.78"/>
-        <ellipse cx="0" cy="-20" rx="74" ry="5" fill="#e2e8f0" opacity="0.62" class="gta-rotor-blade"/>
-        <circle cx="-5" cy="-17" r="3.8" fill="#ff2a6d" class="gta-strobe-r"/>
-        <circle cx="5" cy="-17" r="3.8" fill="#3b82f6" class="gta-strobe-b"/>
-        <circle cx="16" cy="12" r="4.5" fill="#fef08a"/>
-      </g>
-
-      <!-- Heli 3 (Center Top Lead) -->
-      <g class="gta-heli-2" transform="translate(465, 96) scale(1.0)">
-        <polygon points="10,18 -40,220 75,220" fill="url(#beamCone)" class="gta-beam-b"/>
-        <rect x="-72" y="-3" width="72" height="7" rx="3" fill="#0f172a"/>
-        <line x1="-20" y1="20" x2="24" y2="20" stroke="#94a3b8" stroke-width="2.6"/>
-        <ellipse cx="0" cy="0" rx="33" ry="18" fill="#0b1120" stroke="#f8fafc" stroke-width="2"/>
-        <text x="-10" y="6" fill="#f8fafc" font-family="Orbitron" font-size="9" font-weight="800">PD</text>
-        <path d="M-5,-10 L26,-7 L28,5 L-3,7 Z" fill="#38bdf8" opacity="0.76"/>
-        <ellipse cx="0" cy="-22" rx="84" ry="5.5" fill="#e2e8f0" opacity="0.65" class="gta-rotor-blade"/>
-        <circle cx="-5" cy="-19" r="4" fill="#ff2a6d" class="gta-strobe-r"/>
-        <circle cx="5" cy="-19" r="4" fill="#3b82f6" class="gta-strobe-b"/>
-        <circle cx="17" cy="13" r="4.8" fill="#fef9c3"/>
-      </g>
-
-      <!-- Heli 4 (Upper Right Flank) -->
-      <g class="gta-heli-4" transform="translate(650, 140) scale(0.76)">
-        <polygon points="-8,16 -75,195 25,195" fill="url(#beamCone)" class="gta-beam-a"/>
-        <rect x="0" y="-2" width="60" height="5" rx="2.5" fill="#111827"/>
-        <line x1="-22" y1="18" x2="18" y2="18" stroke="#94a3b8" stroke-width="2.2"/>
-        <ellipse cx="0" cy="0" rx="28" ry="15" fill="#0f172a" stroke="#f8fafc" stroke-width="1.6"/>
-        <text x="-8" y="5" fill="#f8fafc" font-family="Orbitron" font-size="8" font-weight="800">PD</text>
-        <path d="M-24,-6 L4,-9 L2,6 L-26,4 Z" fill="#60a5fa" opacity="0.76"/>
-        <ellipse cx="0" cy="-19" rx="68" ry="4.5" fill="#e2e8f0" opacity="0.58" class="gta-rotor-blade"/>
-        <circle cx="-4" cy="-16" r="3.5" fill="#ff2a6d" class="gta-strobe-r"/>
-        <circle cx="4" cy="-16" r="3.5" fill="#3b82f6" class="gta-strobe-b"/>
-        <circle cx="-14" cy="11" r="4" fill="#fef08a"/>
-      </g>
-
-      <!-- Exhaust Dust Cloud Behind Tire -->
-      <ellipse cx="380" cy="402" rx="125" ry="22" fill="#cbd5e1" opacity="0.22"/>
-      <ellipse cx="320" cy="410" rx="85" ry="15" fill="#f8fafc" opacity="0.16"/>
-
-      <!-- Rear-Tire Orange Sparks -->
-      <g class="gta-sparks">
-        <line x1="472" y1="406" x2="412" y2="418" stroke="#fbbf24" stroke-width="2.4"/>
-        <line x1="476" y1="412" x2="425" y2="430" stroke="#fb923c" stroke-width="2.0"/>
-        <line x1="468" y1="400" x2="396" y2="404" stroke="#fef08a" stroke-width="1.8"/>
-        <circle cx="432" cy="414" r="2.2" fill="#fde047"/>
-        <circle cx="445" cy="422" r="2" fill="#fb923c"/>
-        <circle cx="418" cy="406" r="1.8" fill="#fef9c3"/>
-      </g>
-
-      <!-- Hero Riding Dark-Red / Black Sportbike -->
-      <g class="gta-bike-rig">
-        <!-- Headlight Beam -->
-        <polygon points="622,254 860,218 860,336 622,276" fill="url(#headBeam)" opacity="0.72"/>
-
-        <!-- Rear Wheel -->
-        <g transform="translate(508, 370)">
-          <circle r="44" fill="#09090b" stroke="#334155" stroke-width="4"/>
-          <circle r="31" fill="none" stroke="#64748b" stroke-width="2.5"/>
-          <g class="gta-wheel-spin" stroke="#94a3b8" stroke-width="1.8">
-            <line x1="-29" y1="0" x2="29" y2="0"/>
-            <line x1="0" y1="-29" x2="0" y2="29"/>
-            <line x1="-21" y1="-21" x2="21" y2="21"/>
-            <line x1="-21" y1="21" x2="21" y2="-21"/>
-          </g>
-          <circle r="9" fill="#475569"/>
-        </g>
-
-        <!-- Front Wheel -->
-        <g transform="translate(672, 384)">
-          <circle r="46" fill="#09090b" stroke="#334155" stroke-width="4"/>
-          <circle r="33" fill="none" stroke="#64748b" stroke-width="2.5"/>
-          <g class="gta-wheel-spin" stroke="#94a3b8" stroke-width="1.8">
-            <line x1="-31" y1="0" x2="31" y2="0"/>
-            <line x1="0" y1="-31" x2="0" y2="31"/>
-            <line x1="-22" y1="-22" x2="22" y2="22"/>
-            <line x1="-22" y1="22" x2="22" y2="-22"/>
-          </g>
-          <circle r="10" fill="#dc2626"/>
-        </g>
-
-        <!-- Sportbike Chassis, Engine, & Crimson Fairing -->
-        <path d="M475,326 L545,310 L615,288 L646,315 L595,365 L525,366 Z" fill="#18181b" stroke="#475569" stroke-width="2"/>
-        <path d="M540,295 C565,274 606,272 628,292 L608,320 L548,315 Z" fill="#b91c1c" stroke="#ef4444" stroke-width="1.8"/>
-        <path d="M465,312 L525,302 L515,320 L458,325 Z" fill="#991b1b"/>
-        <!-- Front Forks & Headlight -->
-        <line x1="615" y1="252" x2="672" y2="384" stroke="#cbd5e1" stroke-width="6.5" stroke-linecap="round"/>
-        <path d="M594,230 L628,244 L616,274 L588,262 Z" fill="#1e293b"/>
-        <circle cx="622" cy="264" r="12" fill="#fef08a" stroke="#f59e0b" stroke-width="2"/>
-        <circle cx="622" cy="264" r="6" fill="#ffffff"/>
-
-        <!-- Protagonist Rider (Jason) Leaning Forward -->
-        <!-- Legs & Boots -->
-        <path d="M530,275 L560,305 L546,356 L530,356 L542,312 L516,288 Z" fill="#1e3a5f"/>
-        <rect x="525" y="352" width="22" height="10" rx="3" fill="#0f172a"/>
-        <!-- Torso & Olive Jacket -->
-        <path d="M506,272 C522,226 562,216 588,228 L572,278 L522,285 Z" fill="#3f4d36" stroke="#657b58" stroke-width="1.5"/>
-        <!-- Arms Gripping Handlebars -->
-        <path d="M565,228 L602,246 L596,256 L556,242 Z" fill="#d49b79"/>
-        <!-- Head & Hair -->
-        <circle cx="574" cy="202" r="16" fill="#d49b79"/>
-        <path d="M560,196 C562,184 584,182 589,194 C582,190 568,191 560,196 Z" fill="#271c15"/>
-        <path d="M565,204 L586,204 L582,216 L565,215 Z" fill="#c08463"/>
-      </g>
-    </svg>
+    {video_tag}
 
     <!-- Minimal Top-Right WANTED Pill -->
     <div class="gta-chase-wanted">
@@ -2928,7 +2700,15 @@ def build_gta_chase_transition_html(wanted_stars: int = 2) -> str:
     </div>
   </div>
 </div>
+</body>
+</html>
 """
+
+
+def render_gta_chase_transition(wanted_stars: int = 2) -> None:
+    """Render the 3.5s GTA VI video transition overlay inside streamlit.components.v1.html(..., height=520)."""
+    html_content = build_gta_chase_transition_html(wanted_stars=wanted_stars)
+    components.html(html_content, height=520, scrolling=False)
 
 
 def render_weazel_flash_ticker(headlines: list[str]) -> None:

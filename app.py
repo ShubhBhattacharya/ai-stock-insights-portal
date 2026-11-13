@@ -25,6 +25,7 @@ from src.styles import (
     inject_global_styles,
     render_doomsday_reboot_overlay,
     render_edition_toggle,
+    render_gta_chase_transition,
     render_login_transition_overlay,
     render_wanted_stars_html,
 )
@@ -217,11 +218,9 @@ def main() -> None:
 
     if not is_default_theme() and not is_doomsday() and selected_mode != prev_module:
         chase_placeholder = st.empty()
-        chase_placeholder.markdown(
-            build_gta_chase_transition_html(wanted_stars=compute_dynamic_wanted_stars()),
-            unsafe_allow_html=True,
-        )
-        time.sleep(3.0)
+        with chase_placeholder.container():
+            render_gta_chase_transition(wanted_stars=compute_dynamic_wanted_stars())
+        time.sleep(3.5)
         st.session_state["prev_module"] = selected_mode
         chase_placeholder.empty()
     else:
