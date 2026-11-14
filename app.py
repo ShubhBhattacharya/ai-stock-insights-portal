@@ -23,30 +23,24 @@ from src.state import (
 )
 try:
     from src.styles import (
-        build_gta_chase_transition_html,
         inject_global_styles,
         render_doomsday_reboot_overlay,
         render_edition_toggle,
-        render_gta_chase_transition,
         render_login_transition_overlay,
         render_wanted_stars_html,
     )
 except Exception:
     try:
         import src.styles as _styles_mod
-        build_gta_chase_transition_html = getattr(_styles_mod, "build_gta_chase_transition_html", lambda *a, **k: "")
         inject_global_styles = getattr(_styles_mod, "inject_global_styles", lambda *a, **k: None)
         render_doomsday_reboot_overlay = getattr(_styles_mod, "render_doomsday_reboot_overlay", lambda *a, **k: None)
         render_edition_toggle = getattr(_styles_mod, "render_edition_toggle", lambda *a, **k: None)
-        render_gta_chase_transition = getattr(_styles_mod, "render_gta_chase_transition", lambda *a, **k: None)
         render_login_transition_overlay = getattr(_styles_mod, "render_login_transition_overlay", lambda *a, **k: None)
         render_wanted_stars_html = getattr(_styles_mod, "render_wanted_stars_html", lambda *a, **k: "")
     except Exception:
-        build_gta_chase_transition_html = lambda *a, **k: ""  # type: ignore[assignment]
         inject_global_styles = lambda *a, **k: None  # type: ignore[assignment]
         render_doomsday_reboot_overlay = lambda *a, **k: None  # type: ignore[assignment]
         render_edition_toggle = lambda *a, **k: None  # type: ignore[assignment]
-        render_gta_chase_transition = lambda *a, **k: None  # type: ignore[assignment]
         render_login_transition_overlay = lambda *a, **k: None  # type: ignore[assignment]
         render_wanted_stars_html = lambda *a, **k: ""  # type: ignore[assignment]
 from src.views.ai_tutor import render_ai_tutor
@@ -113,20 +107,9 @@ VIEW_DISPATCH = {
 def on_module_change() -> None:
     """Instantly handle module switch on single click via native Streamlit radio callback."""
     chosen = st.session_state.get("module_selector")
-    if not chosen:
-        return
-    prev = st.session_state.get("prev_module", chosen)
-    portal_theme = str(st.session_state.get("portal_theme", "GTA VI (Vice City)"))
-    is_gta_theme = (
-        "GTA VI" in portal_theme
-        or "Vice City" in portal_theme
-        or "VICE CITY" in portal_theme.upper()
-        or (not is_default_theme() and not is_doomsday())
-    )
-    if is_gta_theme and chosen != prev:
-        st.session_state["show_gta_transition"] = True
-
-    st.session_state["active_module"] = chosen
+    if chosen:
+        st.session_state["active_module"] = chosen
+        st.session_state["prev_module"] = chosen
 
 
 def render_sidebar() -> str:
@@ -271,42 +254,20 @@ def main() -> None:
         or (not is_default_theme() and not is_doomsday())
     )
 
-    # Native Streamlit Video Integration for GTA VI Module Switches
-    should_transition = is_gta_theme and (
-        st.session_state.get("show_gta_transition", False) or current_module != prev_module
-    )
-
-    if should_transition:
-        st.session_state["prev_module"] = current_module
-        st.session_state["active_module"] = current_module
-
-        # Transition container
-        transition_placeholder = st.empty()
-        with transition_placeholder.container():
-            st.markdown(
-                "<h2 style='text-align:center; color:#ff2a85; font-family:monospace;'>INTERCEPTING BAWSAQ SECTORS...</h2>",
-                unsafe_allow_html=True,
-            )
-            # Use native st.video which handles browser playback & codecs automatically
-            video_file = "assets/gta_transition_3s.mp4"
-            if not Path(video_file).is_file():
-                fallback_path = Path(_ROOT_DIR) / "assets" / "gta_transition_3s.mp4"
-                if fallback_path.is_file():
-                    video_file = str(fallback_path)
-                elif Path("static/gta_transition_3s.mp4").is_file():
-                    video_file = "static/gta_transition_3s.mp4"
-            st.video(video_file, autoplay=True, loop=False, muted=True)
-            st.progress(100)
-
-        time.sleep(3.5)
-        transition_placeholder.empty()
-        st.session_state["show_gta_transition"] = False
+    # Fast CSS Fade & Neon Glow Transition for GTA VI (Vice City) mode
+    if is_gta_theme:
+        st.markdown(
+            '<div class="gta-neon-glow-line"></div>',
+            unsafe_allow_html=True,
+        )
 
     st.session_state["active_module"] = current_module
     st.session_state["prev_module"] = current_module
 
-    view_fn = VIEW_DISPATCH.get(current_module, render_market_overview)
-    view_fn()
+    module_container = st.container()
+    with module_container:
+        view_fn = VIEW_DISPATCH.get(current_module, render_market_overview)
+        view_fn()
     if not is_default_theme():
         render_ifruit_phone_widget()
 

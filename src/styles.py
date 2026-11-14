@@ -21,18 +21,13 @@ _ASSETS_DIR = Path(__file__).resolve().parents[1] / "assets"
 
 
 def _load_gta_transition_video_uri() -> str:
-    """Load assets/gta_transition_3s.mp4 once and cache as a base64 data URI based on file mtime."""
-    video_path = _ASSETS_DIR / "gta_transition_3s.mp4"
-    if not video_path.is_file():
-        return ""
-    mtime = video_path.stat().st_mtime
-    return _cached_load_gta_video_uri(str(video_path), mtime)
+    """Video transitions removed in favor of instant CSS fade animations."""
+    return ""
 
 
 @st.cache_data(show_spinner=False)
 def _cached_load_gta_video_uri(path_str: str, mtime: float) -> str:
-    b64 = base64.b64encode(Path(path_str).read_bytes()).decode("ascii")
-    return f"data:video/mp4;base64,{b64}"
+    return ""
 
 _PALM_LEFT_SVG = (
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 220'%3E"
@@ -183,6 +178,55 @@ GLOBAL_CSS = f"""
     0% {{ top: -8%; opacity: 0.9; }}
     50% {{ top: 52%; opacity: 0.75; }}
     100% {{ top: 105%; opacity: 0.9; }}
+}}
+
+@keyframes fadeInModal {{
+    0% {{
+        opacity: 0;
+        transform: translateY(6px);
+    }}
+    100% {{
+        opacity: 1;
+        transform: translateY(0);
+    }}
+}}
+
+@keyframes neonTopLineGlow {{
+    0% {{
+        transform: scaleX(0);
+        opacity: 1;
+    }}
+    60% {{
+        transform: scaleX(0.85);
+        opacity: 0.95;
+    }}
+    100% {{
+        transform: scaleX(1);
+        opacity: 0;
+    }}
+}}
+
+div[data-testid="stMainBlockContainer"] {{
+    animation: fadeInModal 0.4s ease forwards !important;
+    box-shadow: inset 0 0 35px rgba(255, 42, 133, 0.05);
+}}
+
+.gta-fade-module-wrap {{
+    opacity: 0;
+    animation: fadeInModal 0.4s ease forwards;
+    box-shadow: inset 0 0 35px rgba(255, 42, 133, 0.06);
+    border-radius: 12px;
+}}
+
+.gta-neon-glow-line {{
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg, #ff2a85, #8b5cf6, #00f5d4);
+    box-shadow: 0 0 12px #ff2a85, 0 0 22px rgba(0, 245, 212, 0.6);
+    transform-origin: left center;
+    animation: neonTopLineGlow 0.45s ease-out forwards;
+    margin-bottom: 0.6rem;
+    border-radius: 999px;
 }}
 
 /* Global Edition Toggle Armored Console */
@@ -2541,97 +2585,13 @@ def render_login_transition_overlay(username: str) -> None:
 
 
 def build_gta_chase_transition_html(wanted_stars: int = 2) -> str:
-    """Build the 3.5-second GTA VI Video Transition Modal (LOADING... + Purple-Blue Progress Bar)."""
-    video_uri = _load_gta_transition_video_uri()
-    source_tags = ""
-    if video_uri:
-        source_tags += f'<source src="{video_uri}" type="video/mp4">\n'
-    source_tags += '<source src="app/static/gta_transition_3s.mp4" type="video/mp4">\n'
-    source_tags += '<source src="static/gta_transition_3s.mp4" type="video/mp4">\n'
-
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<style>
-* {{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}}
-html, body {{
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: transparent;
-}}
-@keyframes loadProgress {{
-    0%   {{ width: 0%; }}
-    100% {{ width: 100%; }}
-}}
-@keyframes modalDismiss {{
-    0%, 92% {{ opacity: 1; pointer-events: auto; }}
-    99%     {{ opacity: 0; pointer-events: none; }}
-    100%    {{ opacity: 0; pointer-events: none; display: none; }}
-}}
-#gta-transition-root {{
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.85);
-    z-index: 999999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    animation: modalDismiss 3.5s ease-in forwards;
-}}
-</style>
-</head>
-<body>
-<div id="gta-transition-root">
-    <div style="width:min(860px, 92vw); border-radius:18px; border:2px solid #ff2a85; box-shadow:0 0 40px rgba(255,42,133,0.6); overflow:hidden; background:#000;">
-        <video autoplay muted playsinline style="width:100%; height:auto; display:block; object-fit:cover;">
-            {source_tags}
-        </video>
-        <div style="padding:15px; text-align:center; background:linear-gradient(180deg, #111, #000);">
-            <p style="color:#fff; font-family:monospace; font-size:18px; letter-spacing:2px; margin-bottom:8px;">LOADING...</p>
-            <div style="width:100%; height:6px; background:#222; border-radius:3px; overflow:hidden;">
-                <div style="width:100%; height:100%; background:linear-gradient(90deg, #ff2a85, #8b5cf6, #00f5d4); animation: loadProgress 3.5s linear forwards;"></div>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-setTimeout(function() {{
-    var el = document.getElementById('gta-transition-root');
-    if (el) {{
-        el.style.transition = 'opacity 0.25s ease';
-        el.style.opacity = '0';
-        el.style.pointerEvents = 'none';
-        setTimeout(function() {{
-            el.style.display = 'none';
-            try {{
-                if (window.frameElement) {{
-                    window.frameElement.style.display = 'none';
-                    window.frameElement.style.height = '0px';
-                }}
-            }} catch(e) {{}}
-        }}, 200);
-    }}
-}}, 3450);
-</script>
-</body>
-</html>
-"""
+    """Fast CSS neon glow transition line (video transition removed)."""
+    return '<div class="gta-neon-glow-line"></div>'
 
 
 def render_gta_chase_transition(wanted_stars: int = 2) -> None:
-    """Render the 3.5s GTA VI video transition overlay inside streamlit.components.v1.html(..., height=520)."""
-    html_content = build_gta_chase_transition_html(wanted_stars=wanted_stars)
-    components.html(html_content, height=520, scrolling=False)
+    """Render fast CSS neon glow transition line without blocking or video."""
+    st.markdown('<div class="gta-neon-glow-line"></div>', unsafe_allow_html=True)
 
 
 def render_weazel_flash_ticker(headlines: list[str]) -> None:
