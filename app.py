@@ -61,6 +61,7 @@ from src.views.ifruit_widget import render_ifruit_phone_widget
 from src.views.market_overview import render_market_overview
 from src.views.paper_trading import render_paper_trading
 from src.views.price_alerts import render_price_alerts
+from src.views.home import render_home_dashboard
 from src.views.risk_optimizer import render_risk_optimizer
 from src.views.single_stock import render_single_stock_analysis
 from src.views.synopsis import render_synopsis
@@ -104,13 +105,18 @@ def inject_google_tag() -> None:
 inject_google_tag()
 
 VIEW_DISPATCH = {
-    "📊 Market Overview": render_market_overview,
+    "🏠 Home": render_home_dashboard,
+    "📈 Stock Analysis": render_single_stock_analysis,
     "🤖 Single Stock AI & ML Prediction": render_single_stock_analysis,
+    "🌐 Market Overview": render_market_overview,
+    "📊 Market Overview": render_market_overview,
+    "✨ AI Insights": render_ai_tutor,
+    "🎓 AI Stock Tutor & Chatbot": render_ai_tutor,
     "⚖️ Two-Stock Comparison": render_stock_comparison,
     "💼 Virtual Paper Trading": render_paper_trading,
     "🎯 Portfolio Risk Optimizer": render_risk_optimizer,
     "🚨 Price Alerts": render_price_alerts,
-    "🎓 AI Stock Tutor & Chatbot": render_ai_tutor,
+    "ℹ️ About & Synopsis": render_synopsis,
     "📜 Project Synopsis & Credits": render_synopsis,
 }
 
@@ -129,6 +135,14 @@ def set_pending_navigation(target: str) -> None:
         st.session_state["pending_nav_target"] = target
         st.session_state["active_module"] = target
         st.session_state["prev_module"] = target
+    elif target in VIEW_DISPATCH:
+        view_func = VIEW_DISPATCH[target]
+        for item in NAV_ITEMS:
+            if VIEW_DISPATCH.get(item) == view_func:
+                st.session_state["pending_nav_target"] = item
+                st.session_state["active_module"] = item
+                st.session_state["prev_module"] = item
+                break
 
 
 def apply_pending_navigation() -> None:
@@ -152,7 +166,7 @@ def _render_sidebar_voice_widget(default_pro: bool) -> None:
                 st.toast(f"Navigating to {cmd['target']} via voice!", icon="🚀")
                 st.rerun()
             else:
-                set_pending_navigation("🎓 AI Stock Tutor & Chatbot")
+                set_pending_navigation("✨ AI Insights")
                 st.session_state.setdefault("messages", []).append({"role": "user", "content": transcript})
                 try:
                     from src.services.tutor import (
@@ -223,7 +237,7 @@ def render_top_voice_dictation_bar(portal_theme: str) -> None:
             st.toast(f"Navigating to {cmd['target']} via voice!", icon="🚀")
             st.rerun()
         else:
-            set_pending_navigation("🎓 AI Stock Tutor & Chatbot")
+            set_pending_navigation("✨ AI Insights")
             st.session_state.setdefault("messages", []).append({"role": "user", "content": transcript})
             try:
                 from src.services.tutor import (
@@ -309,6 +323,21 @@ def render_sidebar() -> str:
     wanted_level = compute_dynamic_wanted_stars()
     wanted_html = render_wanted_stars_html(active_stars=wanted_level, total_stars=6)
 
+    # Top Brand Logo for Leonida / Vice City Mode
+    if not is_default_theme() and not doomsday:
+        st.sidebar.markdown(
+            """
+            <div class="ref-sidebar-logo-container">
+              <div class="ref-sidebar-logo-icon">🌴🏙️</div>
+              <div class="ref-sidebar-logo-text">
+                <div class="ref-logo-title">AI Stock</div>
+                <div class="ref-logo-sub">Insights Portal</div>
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
     user_line = f"👤 AUTHORIZED USER: {upper_name}" if doomsday else f"👤 WELCOME, {upper_name}"
     cash_line = f"💰 WAR CAPITAL: ₹{cash_balance:,.2f}" if doomsday else f"💰 CASH: ₹{cash_balance:,.2f}"
     sub_counts = (
@@ -348,19 +377,26 @@ def render_sidebar() -> str:
     )
 
     st.sidebar.markdown("---")
-    if doomsday:
+    if not is_default_theme() and not doomsday:
+        st.sidebar.markdown(
+            """
+            <div class="ref-sidebar-powered-card">
+              <div class="ref-powered-top">
+                <span class="ref-crown-icon">👑</span>
+                <span class="ref-powered-title">Powered by AI</span>
+              </div>
+              <div class="ref-powered-desc">Smarter Decisions.<br>Bigger Opportunities.</div>
+              <div class="ref-powered-chart">📈 🌴</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    elif doomsday:
         st.sidebar.info(
             "**BUNKER NET TERMINAL // DEFCON-1:**\n"
             "- Mission: BCC 351 Mini Project\n"
             "- Stack: Streamlit, yfinance, Plotly, pandas-ta\n"
             "- Feed: NSE India (FALLOUT NODE)"
-        )
-    else:
-        st.sidebar.info(
-            "**LEONIDA INTEL TERMINAL:**\n"
-            "- Mission: BCC 351 Mini Project\n"
-            "- Stack: Streamlit, yfinance, Plotly, pandas-ta\n"
-            "- Feed: NSE India (BAWSAQ / LCN)"
         )
     return selected_mode
 
@@ -411,13 +447,21 @@ def main() -> None:
     st.session_state["active_module"] = current_module
     st.session_state["prev_module"] = current_module
 
-    # Prominent Voice Dictation Whisper Bar directly on user interface
-    render_top_voice_dictation_bar(portal_theme)
+    # Prominent Voice Dictation Whisper Bar directly on user interface (on submodules)
+    if current_module != "🏠 Home":
+        render_top_voice_dictation_bar(portal_theme)
 
     module_container = st.container()
     with module_container:
-        view_fn = VIEW_DISPATCH.get(current_module, render_market_overview)
-        view_fn()
+        view_fn = VIEW_DISPATCH.get(current_module, render_home_dashboard)
+        if current_module == "🏠 Home" or view_fn == render_home_dashboard:
+            def _nav_from_home(target_dest: str) -> None:
+                set_pending_navigation(target_dest)
+                st.rerun()
+
+            render_home_dashboard(on_navigate=_nav_from_home)
+        else:
+            view_fn()
     if not is_default_theme():
         render_ifruit_phone_widget()
 

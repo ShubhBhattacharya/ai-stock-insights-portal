@@ -12,14 +12,15 @@ DEFAULT_USERS: dict[str, str] = {
 }
 
 NAV_ITEMS: list[str] = [
-    "📊 Market Overview",
-    "🤖 Single Stock AI & ML Prediction",
+    "🏠 Home",
+    "📈 Stock Analysis",
+    "🌐 Market Overview",
+    "✨ AI Insights",
     "⚖️ Two-Stock Comparison",
     "💼 Virtual Paper Trading",
     "🎯 Portfolio Risk Optimizer",
     "🚨 Price Alerts",
-    "🎓 AI Stock Tutor & Chatbot",
-    "📜 Project Synopsis & Credits",
+    "ℹ️ About & Synopsis",
 ]
 
 # Comprehensive A-to-Z list of verified active NSE equities

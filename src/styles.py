@@ -350,32 +350,52 @@ hr {{
 
 /* Sidebar Cyber HUD */
 section[data-testid="stSidebar"] {{
-    background:
-        linear-gradient(180deg, rgba(13, 5, 34, 0.98) 0%, rgba(23, 6, 48, 0.97) 60%, rgba(8, 3, 22, 0.99) 100%);
-    border-right: 2px solid var(--neon-pink);
-    box-shadow: 4px 0 26px rgba(255, 42, 133, 0.3), inset -1px 0 14px rgba(0, 245, 212, 0.22);
+    background: linear-gradient(180deg, #090317 0%, #120626 50%, #080214 100%) !important;
+    border-right: 1.5px solid rgba(255, 42, 133, 0.45);
+    box-shadow: 4px 0 26px rgba(0, 0, 0, 0.7), inset -1px 0 14px rgba(0, 245, 212, 0.15);
 }}
 
 section[data-testid="stSidebar"] .stRadio > div {{
-    gap: 0.32rem;
+    gap: 0.45rem;
+}}
+
+/* Hide circular radio buttons so items render as sleek clickable navigation pills */
+section[data-testid="stSidebar"] .stRadio label > div:first-child {{
+    display: none !important;
 }}
 
 section[data-testid="stSidebar"] .stRadio label {{
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.78rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
     letter-spacing: 0.03em;
-    padding: 0.54rem 0.72rem;
-    border-radius: 8px;
-    border: 1px solid rgba(0, 245, 212, 0.2);
-    background: rgba(14, 6, 36, 0.75);
-    transition: all 0.18s ease;
+    padding: 0.62rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(14, 6, 36, 0.65);
+    color: #cbd5e1;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
 }}
 
 section[data-testid="stSidebar"] .stRadio label:hover {{
-    background: linear-gradient(90deg, rgba(255, 42, 133, 0.24), rgba(0, 245, 212, 0.16));
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 14px rgba(0, 245, 212, 0.38);
+    background: rgba(255, 42, 133, 0.18);
+    border-color: rgba(255, 42, 133, 0.65);
+    box-shadow: 0 0 14px rgba(255, 42, 133, 0.35);
+    color: #ffffff;
     transform: translateX(3px);
+}}
+
+/* Active state for sidebar navigation radio */
+section[data-testid="stSidebar"] .stRadio label:has(input:checked),
+section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label[data-checked="true"] {{
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(168, 85, 247, 0.95) 50%, rgba(236, 72, 153, 0.95) 100%) !important;
+    border: 1px solid rgba(255, 42, 133, 0.85) !important;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.6), 0 0 24px rgba(236, 72, 153, 0.4) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
 }}
 
 /* Top GTA Wing Emblem + 6-Star Wanted Rack */
@@ -613,33 +633,17 @@ section[data-testid="stSidebar"] .stRadio label:hover {{
     position: absolute;
     left: 0;
     right: 0;
-    height: 9px;
-    background: repeating-linear-gradient(
-        -45deg,
-        #fee440 0px,
-        #fee440 10px,
-        #0f172a 10px,
-        #0f172a 20px
-    );
-    opacity: 0.94;
+    height: 2.5px;
+    background: linear-gradient(90deg, #00f5d4 0%, #ff2a85 100%);
+    opacity: 0.85;
 }}
 
-.steel-rivet-card::before {{ top: 0; border-bottom: 1px solid #000; }}
-.steel-rivet-card::after {{ bottom: 0; border-top: 1px solid #000; }}
+.steel-rivet-card::before {{ top: 0; }}
+.steel-rivet-card::after {{ bottom: 0; }}
 
 .rivet-dot {{
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #f8fafc, #64748b 60%, #1e293b 100%);
-    box-shadow: 0 0 5px rgba(0, 245, 212, 0.55);
-    z-index: 2;
+    display: none !important;
 }}
-.rivet-tl {{ top: 14px; left: 10px; }}
-.rivet-tr {{ top: 14px; right: 10px; }}
-.rivet-bl {{ bottom: 14px; left: 10px; }}
-.rivet-br {{ bottom: 14px; right: 10px; }}
 
 .graffiti-vi {{
     font-family: 'Orbitron', sans-serif;
@@ -1140,15 +1144,9 @@ button[data-testid="baseButton-primary"] {{
     box-shadow: 0 0 14px rgba(255, 42, 133, 0.28);
 }}
 .tactical-hazard-strip {{
-    height: 7px;
+    height: 3px;
     width: 100%;
-    background: repeating-linear-gradient(
-        -55deg,
-        #fee440 0px,
-        #fee440 8px,
-        #0b0714 8px,
-        #0b0714 16px
-    );
+    background: linear-gradient(90deg, #00f5d4 0%, #ff2a85 100%);
 }}
 .tactical-card-inner {{
     padding: 0.65rem 0.85rem;
@@ -1432,6 +1430,656 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
         background-size: 120px auto, 120px auto, 44px 44px, 44px 44px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
     }}
 }}
+
+/* ==========================================================================
+   REFERENCE DASHBOARD: PIXEL-PERFECT CLEAN SYNTHWAVE / VICE CITY STYLING
+   ========================================================================== */
+
+/* Top Collegiate Header */
+.ref-top-bar {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(13, 6, 32, 0.78);
+    border: 1px solid rgba(0, 245, 212, 0.25);
+    border-radius: 14px;
+    padding: 0.55rem 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(0, 245, 212, 0.05);
+    backdrop-filter: blur(12px);
+    margin-bottom: 0.75rem;
+}}
+
+.ref-top-left {{
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}}
+
+.ref-top-crest {{
+    font-size: 1.55rem;
+}}
+
+.ref-top-title {{
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #ffffff;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 10px rgba(0, 245, 212, 0.4);
+}}
+
+.ref-top-sub {{
+    font-size: 0.74rem;
+    color: #94a3b8;
+    letter-spacing: 0.05em;
+}}
+
+.ref-top-right {{
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}}
+
+.ref-theme-toggle-pill {{
+    background: rgba(18, 9, 44, 0.85);
+    border: 1px solid rgba(254, 228, 64, 0.45);
+    border-radius: 20px;
+    padding: 0.28rem 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(254, 228, 64, 0.2);
+}}
+
+.ref-sun-icon {{ font-size: 0.84rem; }}
+.ref-moon-icon {{ font-size: 0.84rem; opacity: 0.85; }}
+
+.ref-profile-pill {{
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+    color: #ffffff;
+    padding: 0.35rem 1.05rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.55);
+}}
+
+/* Synthwave Sunset Skyline Hero Banner */
+.ref-hero-banner {{
+    position: relative;
+    border-radius: 18px;
+    min-height: 250px;
+    padding: 1.8rem 2.2rem;
+    background: linear-gradient(135deg, rgba(14, 5, 36, 0.95) 0%, rgba(32, 9, 64, 0.95) 55%, rgba(13, 4, 30, 0.95) 100%);
+    border: 1.5px solid rgba(255, 42, 133, 0.38);
+    box-shadow: 0 8px 36px rgba(0, 0, 0, 0.65), inset 0 0 24px rgba(255, 42, 133, 0.12);
+    overflow: hidden;
+}}
+
+.ref-hero-content {{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}}
+
+.ref-hero-left {{
+    max-width: 65%;
+}}
+
+.ref-hero-title {{
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.7rem;
+    font-weight: 800;
+    line-height: 1.12;
+    margin: 0;
+    letter-spacing: 0.03em;
+}}
+
+.glow-cyan {{
+    color: #ffffff;
+    text-shadow: 0 0 16px rgba(0, 245, 212, 0.75), 0 0 32px rgba(0, 245, 212, 0.35);
+}}
+
+.glow-magenta {{
+    color: #ff2a85;
+    text-shadow: 0 0 18px rgba(255, 42, 133, 0.85), 0 0 36px rgba(255, 42, 133, 0.45);
+    margin-left: 0.35rem;
+}}
+
+.ref-hero-subtitle {{
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    letter-spacing: 0.08em;
+    margin-top: 0.4rem;
+}}
+
+.ref-hero-badges-pill {{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: rgba(11, 4, 28, 0.85);
+    border: 1px solid rgba(255, 42, 133, 0.35);
+    border-radius: 30px;
+    padding: 0.38rem 1.15rem;
+    margin-top: 0.95rem;
+    font-size: 0.78rem;
+    color: #f8fafc;
+    box-shadow: 0 0 12px rgba(255, 42, 133, 0.22);
+}}
+
+.pill-divider {{
+    color: rgba(255, 255, 255, 0.22);
+}}
+
+.ref-hero-right {{
+    text-align: right;
+    padding-right: 0.5rem;
+}}
+
+.ref-cursive-script {{
+    font-family: 'Yellowtail', cursive;
+    font-size: 2.25rem;
+    color: #ff2a85;
+    text-shadow: 0 0 16px rgba(255, 42, 133, 0.9), 0 0 28px rgba(255, 42, 133, 0.5);
+    line-height: 1.15;
+    transform: rotate(-3deg);
+}}
+
+/* Centered Search Bar Pill */
+.ref-search-wrapper {{
+    margin-top: -1.45rem;
+    position: relative;
+    z-index: 10;
+    padding: 0 1.5rem;
+}}
+
+.ref-search-wrapper div[data-testid="stTextInput"] input {{
+    background: rgba(14, 5, 34, 0.95) !important;
+    border: 1.5px solid rgba(0, 245, 212, 0.55) !important;
+    border-radius: 30px !important;
+    color: #ffffff !important;
+    padding: 0.65rem 1.45rem !important;
+    font-size: 0.92rem !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(0, 245, 212, 0.12) !important;
+}}
+
+.ref-search-wrapper div[data-testid="stTextInput"] input:focus {{
+    border-color: #00f5d4 !important;
+    box-shadow: 0 0 20px rgba(0, 245, 212, 0.5) !important;
+}}
+
+.ref-search-wrapper div[data-testid="stButton"] button {{
+    background: linear-gradient(90deg, #00f5d4 0%, #a855f7 50%, #ff2a85 100%) !important;
+    border: none !important;
+    border-radius: 30px !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.92rem !important;
+    padding: 0.62rem 1.4rem !important;
+    box-shadow: 0 0 20px rgba(255, 42, 133, 0.6) !important;
+    transition: all 0.22s ease !important;
+}}
+
+.ref-search-wrapper div[data-testid="stButton"] button:hover {{
+    transform: scale(1.02) !important;
+    box-shadow: 0 0 28px rgba(0, 245, 212, 0.8) !important;
+}}
+
+/* 4 Quick Action Cards */
+.ref-action-card {{
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.95rem 1.1rem;
+    border-radius: 14px;
+    background: rgba(14, 6, 36, 0.84);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), inset 0 0 14px rgba(0, 245, 212, 0.06);
+    transition: all 0.22s ease;
+    min-height: 86px;
+    border: 1.5px solid rgba(0, 245, 212, 0.32);
+    margin-bottom: 0.45rem;
+}}
+
+.ref-action-card:hover {{
+    transform: translateY(-3px);
+}}
+
+.ref-card-cyan {{
+    border-color: rgba(0, 245, 212, 0.45);
+    box-shadow: 0 4px 18px rgba(0, 245, 212, 0.2);
+}}
+.ref-card-cyan:hover {{
+    border-color: #00f5d4;
+    box-shadow: 0 0 22px rgba(0, 245, 212, 0.45);
+}}
+
+.ref-card-magenta {{
+    border-color: rgba(255, 42, 133, 0.45);
+    box-shadow: 0 4px 18px rgba(255, 42, 133, 0.2);
+}}
+.ref-card-magenta:hover {{
+    border-color: #ff2a85;
+    box-shadow: 0 0 22px rgba(255, 42, 133, 0.45);
+}}
+
+.ref-card-blue {{
+    border-color: rgba(59, 130, 246, 0.45);
+    box-shadow: 0 4px 18px rgba(59, 130, 246, 0.2);
+}}
+.ref-card-blue:hover {{
+    border-color: #3b82f6;
+    box-shadow: 0 0 22px rgba(59, 130, 246, 0.45);
+}}
+
+.ref-card-gold {{
+    border-color: rgba(254, 228, 64, 0.45);
+    box-shadow: 0 4px 18px rgba(254, 228, 64, 0.2);
+}}
+.ref-card-gold:hover {{
+    border-color: #fee440;
+    box-shadow: 0 0 22px rgba(254, 228, 64, 0.45);
+}}
+
+.ref-action-icon-box {{
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}}
+
+.ref-icon-cyan {{
+    background: rgba(0, 245, 212, 0.15);
+    border: 1px solid #00f5d4;
+    box-shadow: 0 0 10px rgba(0, 245, 212, 0.35);
+}}
+
+.ref-icon-magenta {{
+    background: rgba(255, 42, 133, 0.15);
+    border: 1px solid #ff2a85;
+    box-shadow: 0 0 10px rgba(255, 42, 133, 0.35);
+}}
+
+.ref-icon-blue {{
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid #3b82f6;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+}}
+
+.ref-icon-gold {{
+    background: rgba(254, 228, 64, 0.15);
+    border: 1px solid #fee440;
+    box-shadow: 0 0 10px rgba(254, 228, 64, 0.35);
+}}
+
+.ref-action-text-box {{
+    flex: 1;
+    min-width: 0;
+}}
+
+.ref-action-card-title {{
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}}
+
+.ref-action-card-sub {{
+    font-size: 0.73rem;
+    color: #94a3b8;
+    margin-top: 0.15rem;
+    line-height: 1.3;
+}}
+
+.ref-action-card-arrow {{
+    color: #94a3b8;
+    font-size: 0.95rem;
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}}
+
+.ref-action-card:hover .ref-action-card-arrow {{
+    transform: translateX(3px);
+    color: #ffffff;
+}}
+
+/* Main 3-Column Dashboard Grid Cards */
+.ref-grid-card {{
+    background: rgba(13, 6, 32, 0.88);
+    border: 1.5px solid rgba(0, 245, 212, 0.28);
+    border-radius: 16px;
+    padding: 1.15rem 1.3rem;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), inset 0 0 16px rgba(0, 245, 212, 0.06);
+    margin-bottom: 0.5rem;
+}}
+
+.ref-card-header {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.65rem;
+}}
+
+.ref-card-title-group {{
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}}
+
+.ref-card-title {{
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+}}
+
+.ref-live-badge {{
+    background: rgba(57, 255, 20, 0.14);
+    border: 1px solid #39ff14;
+    border-radius: 16px;
+    padding: 0.2rem 0.65rem;
+    color: #39ff14;
+    font-size: 0.74rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.25);
+}}
+
+.ref-live-dot {{
+    width: 7px;
+    height: 7px;
+    background: #39ff14;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #39ff14;
+    animation: neon-flicker 2s infinite;
+}}
+
+.ref-tabs-row {{
+    display: flex;
+    gap: 0.85rem;
+    margin: 0.35rem 0 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.35rem;
+}}
+
+.ref-tab-item {{
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0.15rem 0.35rem;
+    transition: color 0.18s ease;
+}}
+
+.ref-tab-item.active {{
+    color: #00f5d4;
+    border-bottom: 2px solid #00f5d4;
+    font-weight: 700;
+}}
+
+.ref-metric-block {{
+    margin: 0.25rem 0 0.5rem 0;
+}}
+
+.ref-metric-val {{
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.15rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+}}
+
+.ref-metric-delta {{
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #39ff14;
+    margin-top: 0.15rem;
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+}}
+
+.ref-timeframe-pills {{
+    display: flex;
+    gap: 0.35rem;
+    margin-top: 0.45rem;
+    justify-content: center;
+}}
+
+.ref-tf-pill {{
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94a3b8;
+    cursor: pointer;
+}}
+
+.ref-tf-pill.active {{
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.45);
+}}
+
+.ref-select-pill {{
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.74rem;
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+}}
+
+.ref-view-all-link {{
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #ff2a85;
+    cursor: pointer;
+    text-shadow: 0 0 8px rgba(255, 42, 133, 0.4);
+}}
+
+.ref-outlook-box {{
+    background: rgba(57, 255, 20, 0.07);
+    border: 1px solid rgba(57, 255, 20, 0.35);
+    border-radius: 12px;
+    padding: 0.75rem 0.95rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 0 14px rgba(57, 255, 20, 0.1);
+}}
+
+.ref-outlook-top {{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}}
+
+.ref-outlook-icon {{
+    font-size: 1.15rem;
+}}
+
+.ref-outlook-title {{
+    font-weight: 800;
+    color: #39ff14;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+}}
+
+.ref-outlook-graph {{
+    margin-left: auto;
+    font-size: 1.1rem;
+}}
+
+.ref-outlook-desc {{
+    font-size: 0.76rem;
+    color: #cbd5e1;
+    margin-top: 0.35rem;
+    line-height: 1.35;
+}}
+
+.ref-bullets-list {{
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}}
+
+.ref-bullet-item {{
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.82rem;
+    color: #f8fafc;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+}}
+
+.ref-check-icon {{
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(57, 255, 20, 0.18);
+    border: 1px solid #39ff14;
+    color: #39ff14;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}}
+
+.ref-bullet-text {{
+    font-weight: 600;
+}}
+
+/* Sidebar Logo & Powered by AI Card */
+.ref-sidebar-logo-container {{
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.75rem;
+    background: rgba(14, 5, 34, 0.85);
+    border: 1px solid rgba(255, 42, 133, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 0 16px rgba(255, 42, 133, 0.25);
+}}
+
+.ref-sidebar-logo-icon {{
+    font-size: 1.6rem;
+}}
+
+.ref-logo-title {{
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: #00f5d4;
+    line-height: 1.1;
+    text-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
+}}
+
+.ref-logo-sub {{
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #ff2a85;
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 8px rgba(255, 42, 133, 0.45);
+}}
+
+.ref-sidebar-powered-card {{
+    background: rgba(14, 5, 34, 0.85);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    border-radius: 12px;
+    padding: 0.75rem 0.85rem;
+    margin-top: 0.95rem;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
+}}
+
+.ref-powered-top {{
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}}
+
+.ref-crown-icon {{
+    font-size: 1.05rem;
+}}
+
+.ref-powered-title {{
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #fee440;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 10px rgba(254, 228, 64, 0.5);
+}}
+
+.ref-powered-desc {{
+    font-size: 0.72rem;
+    color: #cbd5e1;
+    margin-top: 0.3rem;
+    line-height: 1.35;
+}}
+
+.ref-powered-chart {{
+    font-size: 1.15rem;
+    margin-top: 0.45rem;
+    text-align: right;
+}}
+
+/* Collegiate Footer Bar */
+.ref-footer-bar {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.4rem;
+    border-top: 1px solid rgba(255, 42, 133, 0.35);
+    margin-top: 1.6rem;
+    background: rgba(11, 4, 28, 0.75);
+    border-radius: 10px;
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.4);
+}}
+
+.ref-footer-quote {{
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.84rem;
+    color: #cbd5e1;
+    letter-spacing: 0.03em;
+}}
+
+.ref-footer-icon {{
+    font-size: 1rem;
+}}
+
+.ref-footer-college {{
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: 0.04em;
+}}
+
 </style>
 """
 
@@ -1483,13 +2131,7 @@ DOOMSDAY_OVERRIDE_CSS = f"""
     box-shadow: 0 0 14px rgba(255, 69, 0, 0.28) !important;
 }}
 .tactical-hazard-strip {{
-    background: repeating-linear-gradient(
-        -55deg,
-        #ffb703 0px,
-        #ffb703 8px,
-        #18120e 8px,
-        #18120e 16px
-    ) !important;
+    background: linear-gradient(90deg, #39ff14 0%, #ff4500 100%) !important;
 }}
 .tactical-center-shell {{
     background: rgba(14, 12, 10, 0.96) !important;
