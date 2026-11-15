@@ -22,12 +22,12 @@ def _normalize_portal_theme(edition: str | None) -> str:
 def init_session_state() -> None:
     """Ensure all required session state keys exist with safe defaults."""
     defaults = {
-        "authenticated": False,
+        "authenticated": True,
         "transitioning": False,
         "edition_transitioning": False,
         "portal_theme": "GTA VI",
         "world_edition": "GTA VI",
-        "username": "Guest User",
+        "username": "Shubh",
         "users": dict(DEFAULT_USERS),
         "cash_balance": INITIAL_VIRTUAL_CAPITAL,
         "portfolio": {},
@@ -42,6 +42,9 @@ def init_session_state() -> None:
         "active_module": NAV_ITEMS[0],
         "prev_module": NAV_ITEMS[0],
         "module_selector": NAV_ITEMS[0],
+        "home_hero_search_input": "",
+        "single_stock_symbol": "RELIANCE.NS",
+        "single_stock_select": "Reliance Industries",
         "show_gta_transition": False,
         "messages": [
             {

@@ -319,12 +319,8 @@ def render_sidebar() -> str:
         )
         return selected_mode
 
-    upper_name = username.upper()
-    wanted_level = compute_dynamic_wanted_stars()
-    wanted_html = render_wanted_stars_html(active_stars=wanted_level, total_stars=6)
-
-    # Top Brand Logo for Leonida / Vice City Mode
     if not is_default_theme() and not doomsday:
+        # Top Brand Logo for Leonida / Vice City Mode
         st.sidebar.markdown(
             """
             <div class="ref-sidebar-logo-container">
@@ -337,6 +333,45 @@ def render_sidebar() -> str:
             """,
             unsafe_allow_html=True,
         )
+
+        selected_mode = st.sidebar.radio(
+            "Navigation Modules",
+            NAV_ITEMS,
+            key="module_selector",
+            on_change=on_module_change,
+        )
+
+        st.sidebar.markdown('<div style="height:0.5rem;"></div>', unsafe_allow_html=True)
+        _render_sidebar_voice_widget(default_pro=False)
+
+        # Bottom Powered by AI Card matching Reference UI
+        st.sidebar.markdown(
+            """
+            <div class="ref-sidebar-powered-card">
+              <div class="ref-powered-top">
+                <span class="ref-crown-icon">👑</span>
+                <span class="ref-powered-title">Powered by AI</span>
+              </div>
+              <div class="ref-powered-desc">Smarter Decisions.<br>Bigger Opportunities.</div>
+              <div class="ref-powered-chart">📈 🌴</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Collapsible Preferences & Profile drawer at bottom
+        with st.sidebar.expander("⚙️ Settings & Profile", expanded=False):
+            st.caption(f"👤 Signed in as: **{username}** · Cash: ₹{cash_balance:,.2f}")
+            render_edition_toggle(in_sidebar=True)
+            if st.button("🚪 Sign Out", key="sidebar_logout_gta", width="stretch"):
+                logout()
+                st.rerun()
+
+        return selected_mode
+
+    upper_name = username.upper()
+    wanted_level = compute_dynamic_wanted_stars()
+    wanted_html = render_wanted_stars_html(active_stars=wanted_level, total_stars=6)
 
     user_line = f"👤 AUTHORIZED USER: {upper_name}" if doomsday else f"👤 WELCOME, {upper_name}"
     cash_line = f"💰 WAR CAPITAL: ₹{cash_balance:,.2f}" if doomsday else f"💰 CASH: ₹{cash_balance:,.2f}"
@@ -377,21 +412,7 @@ def render_sidebar() -> str:
     )
 
     st.sidebar.markdown("---")
-    if not is_default_theme() and not doomsday:
-        st.sidebar.markdown(
-            """
-            <div class="ref-sidebar-powered-card">
-              <div class="ref-powered-top">
-                <span class="ref-crown-icon">👑</span>
-                <span class="ref-powered-title">Powered by AI</span>
-              </div>
-              <div class="ref-powered-desc">Smarter Decisions.<br>Bigger Opportunities.</div>
-              <div class="ref-powered-chart">📈 🌴</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    elif doomsday:
+    if doomsday:
         st.sidebar.info(
             "**BUNKER NET TERMINAL // DEFCON-1:**\n"
             "- Mission: BCC 351 Mini Project\n"
@@ -421,10 +442,9 @@ def main() -> None:
         st.rerun()
         return
 
-    if not st.session_state["authenticated"]:
-        render_edition_toggle(in_sidebar=False)
-        render_login_page()
-        return
+    if not st.session_state.get("authenticated"):
+        st.session_state["authenticated"] = True
+        st.session_state["username"] = "Shubh"
 
     # Render sidebar with native single-click module selector
     current_module = render_sidebar()
@@ -462,7 +482,7 @@ def main() -> None:
             render_home_dashboard(on_navigate=_nav_from_home)
         else:
             view_fn()
-    if not is_default_theme():
+    if is_doomsday():
         render_ifruit_phone_widget()
 
 

@@ -123,26 +123,24 @@ def render_login_page() -> None:
             right_emblem = '<div style="font-size:2.7rem; filter:drop-shadow(0 0 12px #ffb703);">☣️</div>'
             demo_btn_label = "💣 ENTER FALLOUT COVERT ACCESS (DEMO)"
             tabs = ["☢️ BUNKER AUTH", "🪪 ENLIST SURVIVOR"]
+            container_cls = "steel-rivet-card"
         else:
-            card_sub = "⚠️ CLASSIFIED TERMINAL // BAWSAQ &amp; LCN UPLINK"
-            card_title = "🔐 User Portal Sign-In"
-            card_desc = "Unlock live NSE BAWSAQ technical signals, 30-day ML forecasts, Broker-Heist paper trading, and Syndicate risk tools."
-            right_emblem = '<div class="graffiti-vi">VI</div>'
-            demo_btn_label = "🌴 ⚡ HAZARD / VIP ACCESS — 1-CLICK DEMO ✨"
-            tabs = ["🕹️ SIGN IN CONSOLE", "🪪 CREATE OPERATOR"]
+            card_sub = "⚡ AI STOCK INSIGHTS PORTAL // AUTHENTICATION"
+            card_title = "User Portal Sign-In"
+            card_desc = "Access live NSE real-time technical indicators, 30-day ML forecasts, and portfolio intelligence."
+            right_emblem = '<div style="font-size:2.2rem; filter:drop-shadow(0 0 10px rgba(0,229,255,0.6));">🌴🏙️</div>'
+            demo_btn_label = "▶ 1-Click Evaluator / Guest Demo Access"
+            tabs = ["Sign In", "Create Account"]
+            container_cls = "surface-card"
 
         st.markdown(
-            f'<div class="steel-rivet-card">'
-            f'<span class="rivet-dot rivet-tl"></span>'
-            f'<span class="rivet-dot rivet-tr"></span>'
-            f'<span class="rivet-dot rivet-bl"></span>'
-            f'<span class="rivet-dot rivet-br"></span>'
+            f'<div class="{container_cls}">'
             f'<div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding:0.25rem 0;">'
             f'<div style="flex:1; min-width:220px;">'
-            f'<div style="font-family:\'Orbitron\',sans-serif; font-size:0.72rem; color:{"#39ff14" if doomsday else "#ffe600"}; letter-spacing:0.1em; margin-bottom:0.25rem;">'
+            f'<div style="font-family:\'Rajdhani\',sans-serif; font-size:0.75rem; font-weight:700; color:{"#39ff14" if doomsday else "#00E5FF"}; letter-spacing:0.08em; margin-bottom:0.25rem; text-transform:uppercase;">'
             f"{card_sub}"
             f"</div>"
-            f'<h3 style="margin:0 0 0.3rem 0; font-family:\'Orbitron\',sans-serif; font-size:1.25rem; color:#ffffff; text-shadow:0 0 10px rgba(57,255,20,0.6);">'
+            f'<h3 style="margin:0 0 0.3rem 0; font-family:\'Rajdhani\',sans-serif; font-size:1.4rem; font-weight:700; color:#ffffff;">'
             f"{card_title}"
             f"</h3>"
             f'<p style="margin:0; color:#cbd5e1; font-size:0.9rem;">'
@@ -160,10 +158,8 @@ def render_login_page() -> None:
             st.rerun()
 
         st.markdown(
-            '<div class="console-hud-ruler">'
-            "<span>000 ┼ 100 ┼ 200</span>"
-            "<span>— OR AUTHENTICATE TERMINAL ACCESS —</span>"
-            "<span>300 ┼ 400 ┼ [TARGET]</span>"
+            '<div style="text-align:center; color:#94a3b8; font-size:0.76rem; letter-spacing:0.06em; margin:0.85rem 0;">'
+            "— OR SIGN IN WITH ACCOUNT CREDENTIALS —"
             "</div>",
             unsafe_allow_html=True,
         )

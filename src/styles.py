@@ -73,1450 +73,291 @@ _RUINED_RIGHT_SVG = (
 
 GLOBAL_CSS = f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Yellowtail&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Yellowtail&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {{
-    --bg-canvas: #070312;
-    --bg-violet: #170631;
-    --bg-surface: rgba(13, 6, 34, 0.9);
-    --bg-steel: linear-gradient(160deg, rgba(35, 41, 66, 0.95) 0%, rgba(16, 12, 38, 0.97) 55%, rgba(28, 15, 48, 0.96) 100%);
-    --neon-pink: #ff2a85;
-    --neon-orange: #ff7a00;
-    --neon-yellow: #fee440;
-    --neon-cyan: #00f5d4;
-    --neon-green: #39ff14;
-    --neon-crimson: #ff2a6d;
-    --border-neon: rgba(0, 245, 212, 0.45);
-    --border-magenta: rgba(255, 42, 133, 0.58);
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
+    --bg-primary: #070B1A;
+    --bg-secondary: #0D1226;
+    --bg-card: rgba(16, 26, 50, 0.72);
+    --bg-card-solid: #101A32;
+    --accent-cyan: #00E5FF;
+    --accent-magenta: #FF35C8;
+    --accent-violet: #8B5CF6;
+    --text-primary: #F4F7FF;
+    --text-secondary: #94A3B8;
+    --market-green: #00D68F;
+    --market-red: #FF4D6D;
+    --border-cyan: rgba(0, 229, 255, 0.28);
+    --border-magenta: rgba(255, 53, 200, 0.35);
     --radius-lg: 16px;
     --radius-md: 12px;
     --radius-sm: 8px;
 }}
 
-@keyframes vice-pulse {{
-    0%, 100% {{
-        box-shadow: 0 0 12px rgba(0, 245, 212, 0.7), 0 0 26px rgba(255, 42, 133, 0.45), inset 0 0 12px rgba(254, 228, 64, 0.25);
-    }}
-    50% {{
-        box-shadow: 0 0 24px rgba(0, 245, 212, 0.98), 0 0 40px rgba(254, 228, 64, 0.65), inset 0 0 18px rgba(0, 245, 212, 0.45);
-    }}
-}}
-
-@keyframes neon-flicker {{
-    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {{ opacity: 1; }}
-    20%, 24%, 55% {{ opacity: 0.85; }}
-}}
-
-@keyframes badge-float {{
-    0%, 100% {{ transform: translateY(0px); }}
-    50% {{ transform: translateY(-2px); }}
-}}
-
-@keyframes hazard-flash {{
-    0%, 100% {{
-        border-color: #ff2a6d;
-        box-shadow: 0 0 14px rgba(255, 42, 109, 0.72), inset 0 0 12px rgba(255, 42, 109, 0.24);
-    }}
-    50% {{
-        border-color: #00f5d4;
-        box-shadow: 0 0 22px rgba(0, 245, 212, 0.82), inset 0 0 14px rgba(0, 245, 212, 0.26);
-    }}
-}}
-
-@keyframes spin-radar {{
-    from {{ transform: rotate(0deg); }}
-    to {{ transform: rotate(360deg); }}
-}}
-
-@keyframes progress-sweep {{
-    0% {{ width: 8%; }}
-    45% {{ width: 64%; }}
-    85% {{ width: 96%; }}
-    100% {{ width: 100%; }}
-}}
-
-@keyframes transition-zoom-in {{
-    0% {{ opacity: 0; transform: scale(1.04); }}
-    25% {{ opacity: 1; transform: scale(1); }}
-    100% {{ opacity: 1; transform: scale(1); }}
-}}
-
-@keyframes ticker-scroll {{
-    0% {{ transform: translateX(12%); }}
-    100% {{ transform: translateX(-18%); }}
-}}
-
-@keyframes weazel-scroll {{
-    0% {{ transform: translateX(6%); }}
-    100% {{ transform: translateX(-52%); }}
-}}
-
-@keyframes race-bar-sweep {{
-    0% {{ transform: scaleX(0.18); }}
-    100% {{ transform: scaleX(1); }}
-}}
-
-@keyframes phase-seq-1 {{
-    0%, 34% {{ opacity: 1; }}
-    36%, 100% {{ opacity: 0.28; }}
-}}
-
-@keyframes phase-seq-2 {{
-    0%, 33% {{ opacity: 0.28; }}
-    35%, 68% {{ opacity: 1; }}
-    70%, 100% {{ opacity: 0.28; }}
-}}
-
-@keyframes phase-seq-3 {{
-    0%, 67% {{ opacity: 0.28; }}
-    70%, 100% {{ opacity: 1; }}
-}}
-
-@keyframes glitch-scan-sweep {{
-    0% {{ top: -8%; opacity: 0.9; }}
-    50% {{ top: 52%; opacity: 0.75; }}
-    100% {{ top: 105%; opacity: 0.9; }}
-}}
-
-@keyframes fadeInModal {{
-    0% {{
-        opacity: 0;
-        transform: translateY(6px);
-    }}
-    100% {{
-        opacity: 1;
-        transform: translateY(0);
-    }}
-}}
-
-@keyframes neonTopLineGlow {{
-    0% {{
-        transform: scaleX(0);
-        opacity: 1;
-    }}
-    60% {{
-        transform: scaleX(0.85);
-        opacity: 0.95;
-    }}
-    100% {{
-        transform: scaleX(1);
-        opacity: 0;
-    }}
-}}
-
-div[data-testid="stMainBlockContainer"] {{
-    animation: fadeInModal 0.4s ease forwards !important;
-    box-shadow: inset 0 0 35px rgba(255, 42, 133, 0.05);
-}}
-
-.gta-fade-module-wrap {{
-    opacity: 0;
-    animation: fadeInModal 0.4s ease forwards;
-    box-shadow: inset 0 0 35px rgba(255, 42, 133, 0.06);
-    border-radius: 12px;
-}}
-
-.gta-neon-glow-line {{
-    height: 3px;
-    width: 100%;
-    background: linear-gradient(90deg, #ff2a85, #8b5cf6, #00f5d4);
-    box-shadow: 0 0 12px #ff2a85, 0 0 22px rgba(0, 245, 212, 0.6);
-    transform-origin: left center;
-    animation: neonTopLineGlow 0.45s ease-out forwards;
-    margin-bottom: 0.6rem;
-    border-radius: 999px;
-}}
-
-/* Global Edition Toggle Armored Console */
-div[data-testid="stVerticalBlock"]:has(> div.element-container span.edition-toggle-marker),
-div[data-testid="stVerticalBlockBorderWrapper"]:has(span.edition-toggle-marker) {{
-    max-width: 780px !important;
-    margin: 0 auto 0.65rem auto !important;
-    background: linear-gradient(155deg, rgba(22, 26, 38, 0.94), rgba(10, 8, 22, 0.96)) !important;
-    border: 2px solid rgba(0, 245, 212, 0.52) !important;
-    border-radius: 14px !important;
-    padding: 0.45rem 0.75rem 0.6rem 0.75rem !important;
-    box-shadow: 0 0 18px rgba(0, 245, 212, 0.22), inset 0 0 14px rgba(255, 42, 133, 0.14) !important;
-}}
-
-.edition-toggle-header {{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.74rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    color: #fee440;
-    margin-bottom: 0.35rem;
-}}
-
-.doomsday-glitch-stage {{
-    position: relative;
-    overflow: hidden;
-}}
-
-.doomsday-scan-beam {{
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 10px;
-    background: linear-gradient(180deg, transparent, rgba(57, 255, 20, 0.75), rgba(255, 69, 0, 0.55), transparent);
-    box-shadow: 0 0 22px rgba(57, 255, 20, 0.85);
-    animation: glitch-scan-sweep 1.25s linear infinite;
-    pointer-events: none;
-}}
-
-html, body, [class*="css"] {{
-    font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: var(--text-primary);
-}}
-
+/* Base Streamlit Layout & Typography */
 html, body, [data-testid="stAppViewContainer"], .stApp {{
-    overflow-x: hidden !important;
+    background-color: #070B1A !important;
+    color: #F4F7FF !important;
+    font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif !important;
 }}
 
-/* Leonida Synthwave Dusk Sky + Neon Horizon Grid + Dual Palm Shadows */
-.stApp {{
-    background-color: var(--bg-canvas);
-    background-image:
-        url("{_PALM_LEFT_SVG}"),
-        url("{_PALM_RIGHT_SVG}"),
-        linear-gradient(90deg, rgba(255, 42, 133, 0.14) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(0, 245, 212, 0.11) 1px, transparent 1px),
-        radial-gradient(circle at 18% 12%, rgba(255, 42, 133, 0.28), transparent 36%),
-        radial-gradient(circle at 82% 14%, rgba(0, 245, 212, 0.24), transparent 36%),
-        radial-gradient(circle at 50% 85%, rgba(255, 122, 0, 0.16), transparent 45%),
-        linear-gradient(180deg, #070312 0%, #15052e 48%, #210738 82%, #090418 100%);
-    background-position: left bottom, right bottom, center center, center center, center center, center center, center center, center center;
-    background-size: 230px auto, 230px auto, 56px 56px, 56px 56px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
-    background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-    border-top: 2px solid rgba(255, 42, 133, 0.52);
-    border-bottom: 2px solid rgba(0, 245, 212, 0.42);
+[data-testid="stAppViewContainer"] {{
+    background: radial-gradient(circle at 50% 0%, #101835 0%, #070B1A 75%) !important;
 }}
 
-/* Hide Default Streamlit Header Chrome & Keep Sidebar Toggle Clickable */
-header[data-testid="stHeader"] {{
-    background: transparent !important;
-    height: 0px !important;
-    min-height: 0px !important;
-    border: none !important;
-    overflow: visible !important;
+.main .block-container {{
+    max-width: 1440px !important;
+    padding-top: 1.2rem !important;
+    padding-bottom: 2.5rem !important;
+    padding-left: 1.8rem !important;
+    padding-right: 1.8rem !important;
 }}
 
-[data-testid="stToolbar"],
-[data-testid="stDecoration"] {{
-    display: none !important;
+/* Custom Neon Scrollbars */
+::-webkit-scrollbar {{
+    width: 8px;
+    height: 8px;
 }}
-
-#MainMenu,
-footer {{
-    visibility: hidden !important;
-}}
-
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="stExpandSidebarButton"] {{
-    visibility: visible !important;
-    display: flex !important;
-    position: fixed !important;
-    top: 10px !important;
-    left: 10px !important;
-    z-index: 999999 !important;
-}}
-
-/* Main Container Spacing */
-.main .block-container,
-.block-container,
-[data-testid="stMainBlockContainer"] {{
-    padding-top: 0.75rem !important;
-    padding-bottom: 5.5rem;
-    padding-left: clamp(0.85rem, 2.4vw, 2.25rem);
-    padding-right: clamp(0.85rem, 2.4vw, 2.25rem);
-    max-width: 1460px;
-}}
-
-/* Calibration Neon Divider */
-hr {{
-    border: none !important;
-    height: 2px !important;
-    background: linear-gradient(90deg, transparent 0%, var(--neon-pink) 20%, var(--neon-cyan) 50%, var(--neon-yellow) 80%, transparent 100%) !important;
-    box-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
-    margin: 1.15rem 0 !important;
-}}
-
-/* Sidebar Cyber HUD */
-section[data-testid="stSidebar"] {{
-    background: linear-gradient(180deg, #090317 0%, #120626 50%, #080214 100%) !important;
-    border-right: 1.5px solid rgba(255, 42, 133, 0.45);
-    box-shadow: 4px 0 26px rgba(0, 0, 0, 0.7), inset -1px 0 14px rgba(0, 245, 212, 0.15);
-}}
-
-section[data-testid="stSidebar"] .stRadio > div {{
-    gap: 0.45rem;
-}}
-
-/* Hide circular radio buttons so items render as sleek clickable navigation pills */
-section[data-testid="stSidebar"] .stRadio label > div:first-child {{
-    display: none !important;
-}}
-
-section[data-testid="stSidebar"] .stRadio label {{
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.92rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    padding: 0.62rem 0.85rem;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(14, 6, 36, 0.65);
-    color: #cbd5e1;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-}}
-
-section[data-testid="stSidebar"] .stRadio label:hover {{
-    background: rgba(255, 42, 133, 0.18);
-    border-color: rgba(255, 42, 133, 0.65);
-    box-shadow: 0 0 14px rgba(255, 42, 133, 0.35);
-    color: #ffffff;
-    transform: translateX(3px);
-}}
-
-/* Active state for sidebar navigation radio */
-section[data-testid="stSidebar"] .stRadio label:has(input:checked),
-section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label[data-checked="true"] {{
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(168, 85, 247, 0.95) 50%, rgba(236, 72, 153, 0.95) 100%) !important;
-    border: 1px solid rgba(255, 42, 133, 0.85) !important;
-    box-shadow: 0 0 16px rgba(168, 85, 247, 0.6), 0 0 24px rgba(236, 72, 153, 0.4) !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
-}}
-
-/* Top GTA Wing Emblem + 6-Star Wanted Rack */
-.vice-hud-top {{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    padding: 0.5rem 0.9rem;
-    margin-bottom: 0.75rem;
-    border-radius: 12px;
-    background: linear-gradient(90deg, rgba(14, 5, 34, 0.94), rgba(34, 8, 60, 0.94), rgba(14, 5, 34, 0.94));
-    border: 1.5px solid var(--neon-pink);
-    box-shadow: 0 0 18px rgba(255, 42, 133, 0.4), inset 0 0 14px rgba(0, 245, 212, 0.16);
-}}
-
-.vice-telemetry-tag {{
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--neon-cyan);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    text-shadow: 0 0 8px rgba(0, 245, 212, 0.7);
-}}
-
-.vice-wing-emblem {{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.18rem;
-    margin: 0 auto;
-    text-align: center;
-}}
-
-.vice-wing-row {{
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-}}
-
-.wing-chevron {{
-    display: inline-block;
-    width: 34px;
-    height: 10px;
-    background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
-    clip-path: polygon(0 50%, 28% 0, 100% 30%, 82% 50%, 100% 70%, 28% 100%);
-    filter: drop-shadow(0 0 6px rgba(0, 245, 212, 0.85));
-}}
-
-.wing-chevron.right {{
-    transform: scaleX(-1);
-}}
-
-.wing-pill {{
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(0.65rem, 1.12vw, 0.82rem);
-    font-weight: 800;
-    letter-spacing: 0.09em;
-    color: #ffffff;
-    background: linear-gradient(90deg, rgba(255, 42, 133, 0.38), rgba(0, 245, 212, 0.25));
-    border: 1px solid var(--neon-cyan);
-    border-radius: 999px;
-    padding: 0.22rem 0.85rem;
-    text-shadow: 0 0 8px rgba(0, 245, 212, 0.8);
-    box-shadow: 0 0 12px rgba(255, 42, 133, 0.45);
-}}
-
-.vice-sub-ribbon {{
-    font-family: 'Yellowtail', cursive;
-    font-size: 1.08rem;
-    color: #ff6ec7;
-    letter-spacing: 0.04em;
-    text-shadow: 0 0 8px rgba(255, 42, 133, 0.9), 0 0 16px rgba(0, 245, 212, 0.7);
-}}
-
-.wanted-rack {{
-    display: inline-flex;
-    align-items: center;
-    gap: 0.22rem;
-    padding: 0.28rem 0.65rem;
-    border-radius: 8px;
-    background: rgba(7, 3, 18, 0.86);
-    border: 1px solid rgba(254, 228, 64, 0.55);
-    box-shadow: 0 0 14px rgba(254, 228, 64, 0.3);
-}}
-
-.wanted-label {{
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    color: #cbd5e1;
-    margin-right: 0.25rem;
-    letter-spacing: 0.08em;
-}}
-
-.wanted-star-on {{
-    color: var(--neon-yellow);
-    font-size: 1.05rem;
-    text-shadow: 0 0 8px rgba(254, 228, 64, 0.95), 0 0 16px rgba(255, 122, 0, 0.85);
-    animation: neon-flicker 4s infinite;
-}}
-
-.wanted-star-off {{
-    color: rgba(148, 163, 184, 0.28);
-    font-size: 1.05rem;
-}}
-
-/* Hero Banner */
-.portal-hero {{
-    position: relative;
-    background:
-        url("{_PALM_LEFT_SVG}"),
-        url("{_PALM_RIGHT_SVG}"),
-        linear-gradient(90deg, rgba(255, 42, 133, 0.14) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(0, 245, 212, 0.1) 1px, transparent 1px),
-        linear-gradient(135deg, rgba(16, 6, 40, 0.96) 0%, rgba(44, 11, 78, 0.93) 48%, rgba(12, 34, 68, 0.95) 100%);
-    background-position: left bottom, right bottom, center bottom, center bottom, center center;
-    background-size: 165px auto, 165px auto, 32px 32px, 32px 32px, 100% 100%;
-    background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat;
-    border: 2px solid var(--neon-cyan);
-    border-radius: var(--radius-lg);
-    padding: clamp(1.1rem, 2.5vw, 1.75rem) clamp(1.15rem, 3vw, 2rem);
-    margin-bottom: 1.25rem;
-    box-shadow:
-        0 0 24px rgba(0, 245, 212, 0.36),
-        0 0 42px rgba(255, 42, 133, 0.26),
-        inset 0 0 24px rgba(255, 42, 133, 0.16);
-    overflow: hidden;
-}}
-
-.portal-hero::before {{
-    content: "LEONIDA CALIBRATION // 00 -- 25 -- 50 -- 75 -- 100 // SYS.OK";
-    position: absolute;
-    top: 6px;
-    right: 14px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.64rem;
-    letter-spacing: 0.1em;
-    color: rgba(0, 245, 212, 0.68);
-}}
-
-.portal-hero-badge {{
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--neon-yellow);
-    background: rgba(255, 42, 133, 0.24);
-    border: 1px solid var(--neon-pink);
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    margin-bottom: 0.55rem;
-    box-shadow: 0 0 12px rgba(255, 42, 133, 0.48);
-}}
-
-.portal-hero-row {{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-}}
-
-.portal-hero h1 {{
-    margin: 0;
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(1.4rem, 2.8vw, 2.2rem);
-    font-weight: 900;
-    line-height: 1.18;
-    letter-spacing: 0.02em;
-    background: linear-gradient(90deg, #ff2a85 0%, #ff7a00 50%, #fee440 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 10px rgba(0, 245, 212, 0.8));
-}}
-
-.portal-hero h1.vice-calligraphy {{
-    font-family: 'Yellowtail', cursive !important;
-    font-size: clamp(2.15rem, 4.4vw, 3.45rem) !important;
-    font-weight: 400 !important;
-    letter-spacing: 0.02em;
-    padding-right: 0.4rem;
-    background: linear-gradient(180deg, #ff4da6 0%, #ff7a00 58%, #fee440 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(2px 3px 0px #00f5d4) drop-shadow(0 0 14px rgba(0, 245, 212, 0.88));
-}}
-
-.portal-hero p {{
-    margin: 0.45rem 0 0 0;
-    font-family: 'Share Tech Mono', monospace;
-    color: #e2e8f0;
-    font-size: clamp(0.84rem, 1.25vw, 0.98rem);
-    line-height: 1.45;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
-}}
-
-.pixel-arrow-pill {{
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.25rem 0.65rem;
-    border-radius: 6px;
-    background: rgba(7, 3, 18, 0.82);
-    border: 1px solid var(--neon-green);
-    color: var(--neon-green);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.8rem;
-    box-shadow: 0 0 12px rgba(57, 255, 20, 0.38);
-    animation: badge-float 2.8s ease-in-out infinite;
-}}
-
-/* Steel Panel + 4 Corner Rivets + Hazard Stripes */
-.steel-rivet-card {{
-    position: relative;
-    background: var(--bg-steel);
-    border: 2px solid #64748b;
-    border-radius: 14px;
-    padding: 1.35rem 1.45rem;
-    margin-bottom: 1rem;
-    overflow: hidden;
-    box-shadow:
-        0 0 24px rgba(0, 245, 212, 0.32),
-        0 14px 32px rgba(0, 0, 0, 0.78),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-}}
-
-.steel-rivet-card::before,
-.steel-rivet-card::after {{
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2.5px;
-    background: linear-gradient(90deg, #00f5d4 0%, #ff2a85 100%);
-    opacity: 0.85;
-}}
-
-.steel-rivet-card::before {{ top: 0; }}
-.steel-rivet-card::after {{ bottom: 0; }}
-
-.rivet-dot {{
-    display: none !important;
-}}
-
-.graffiti-vi {{
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: 2.65rem;
-    line-height: 1;
-    letter-spacing: -0.06em;
-    background: linear-gradient(135deg, #00f5d4 0%, #c084fc 45%, #ff2a85 75%, #fee440 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(2px 2px 0px #090314) drop-shadow(0 0 12px rgba(255, 42, 133, 0.9));
-    user-select: none;
-}}
-
-/* Cinematic 2-Second Login Transition Sequence */
-.leonida-transition-shell {{
-    animation: transition-zoom-in 0.55s ease-out;
-    max-width: 820px;
-    margin: 1.5rem auto;
+::-webkit-scrollbar-track {{
+    background: #070B1A;
 }}
-
-.cyber-uplink-crest {{
-    position: relative;
-    width: 156px;
-    height: 156px;
-    margin: 0.75rem auto 1rem auto;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2.5px solid var(--neon-cyan);
-    background: radial-gradient(circle, rgba(255, 42, 133, 0.22) 0%, rgba(10, 4, 28, 0.94) 72%);
-    box-shadow: 0 0 28px rgba(0, 245, 212, 0.55), inset 0 0 22px rgba(255, 42, 133, 0.35);
-    animation: vice-pulse 1.5s infinite;
-}}
-
-.cyber-uplink-ring {{
-    position: absolute;
-    inset: 9px;
-    border-radius: 50%;
-    border: 2px dashed rgba(254, 228, 64, 0.68);
-    animation: spin-radar 3.2s linear infinite;
-}}
-
-.neon-progress-track {{
-    width: 100%;
-    height: 18px;
-    border-radius: 999px;
-    background: rgba(7, 3, 18, 0.9);
-    border: 1.5px solid var(--neon-cyan);
-    padding: 2px;
-    overflow: hidden;
-    box-shadow: 0 0 16px rgba(0, 245, 212, 0.4);
-}}
-
-.neon-progress-fill {{
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #ff2a85 0%, #ff7a00 45%, #fee440 75%, #00f5d4 100%);
-    box-shadow: 0 0 16px rgba(255, 42, 133, 0.85);
-    animation: progress-sweep 1.85s ease-out forwards;
-}}
-
-.holo-ticker-strip {{
-    overflow: hidden;
-    white-space: nowrap;
-    margin: 0.8rem 0;
-    padding: 0.35rem 0.6rem;
-    border-top: 1px dashed rgba(0, 245, 212, 0.45);
-    border-bottom: 1px dashed rgba(255, 42, 133, 0.45);
-    background: rgba(7, 3, 18, 0.72);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--neon-cyan);
-}}
-
-.holo-ticker-inner {{
-    display: inline-block;
-    animation: ticker-scroll 3.8s linear infinite;
-}}
-
-.glitch-seq-line {{
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(0.82rem, 1.5vw, 1rem);
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-align: center;
-    margin: 0.25rem 0;
-}}
-
-.seq-1 {{ color: var(--neon-pink); text-shadow: 0 0 10px rgba(255, 42, 133, 0.85); animation: phase-seq-1 1.9s linear forwards; }}
-.seq-2 {{ color: var(--neon-yellow); text-shadow: 0 0 10px rgba(254, 228, 64, 0.85); animation: phase-seq-2 1.9s linear forwards; }}
-.seq-3 {{ color: var(--neon-green); text-shadow: 0 0 12px rgba(57, 255, 20, 0.9); animation: phase-seq-3 1.9s linear forwards; }}
-
-/* Wanted Flashing Triggered Alert Card */
-.wanted-alert-flash {{
-    position: relative;
-    background: linear-gradient(135deg, rgba(45, 7, 28, 0.94), rgba(14, 7, 36, 0.96));
-    border: 2px solid #ff2a6d;
-    border-radius: 12px;
-    padding: 0.9rem 1.2rem;
-    margin-bottom: 0.65rem;
-    animation: hazard-flash 1.4s ease-in-out infinite;
-}}
-
-/* Calibration HUD Ruler */
-.console-hud-ruler {{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.68rem;
-    color: var(--neon-cyan);
-    border-top: 1px dashed rgba(0, 245, 212, 0.45);
-    border-bottom: 1px dashed rgba(255, 42, 133, 0.45);
-    padding: 0.25rem 0.5rem;
-    margin: 0.35rem 0 0.65rem 0;
-    background: rgba(7, 3, 18, 0.72);
-    letter-spacing: 0.08em;
-}}
-
-/* KPI Cards Grid */
-.kpi-grid {{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
-    gap: 0.85rem;
-    margin: 0.75rem 0 1.25rem 0;
-}}
-
-.kpi-card {{
-    position: relative;
-    background: rgba(14, 7, 36, 0.94);
-    border: 1.5px solid var(--border-neon);
-    border-radius: var(--radius-md);
-    padding: 0.95rem 1.1rem;
-    box-shadow: 0 0 12px rgba(0, 245, 212, 0.16);
-    will-change: transform;
-    transition: transform 0.18s ease, border-color 0.18s ease;
-}}
-
-.kpi-card:hover {{
-    transform: translateY(-2px);
-    border-color: var(--neon-pink);
-}}
-
-.kpi-label {{
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--neon-cyan);
-    margin-bottom: 0.35rem;
-}}
-
-.kpi-value {{
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(1.3rem, 2vw, 1.65rem);
-    font-weight: 700;
-    color: var(--text-primary);
-    font-variant-numeric: tabular-nums;
-    line-height: 1.2;
-    word-break: break-word;
-    text-shadow: 0 0 10px rgba(0, 245, 212, 0.34);
-}}
-
-.kpi-delta {{
-    display: inline-block;
-    margin-top: 0.42rem;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.76rem;
-    font-weight: 700;
-    padding: 0.18rem 0.55rem;
-    border-radius: 999px;
-    font-variant-numeric: tabular-nums;
-}}
-
-.tone-up {{ color: #39ff14; background: rgba(57, 255, 20, 0.12); border: 1px solid rgba(57, 255, 20, 0.45); }}
-.tone-down {{ color: #ff4d8d; background: rgba(255, 42, 109, 0.16); border: 1px solid rgba(255, 42, 109, 0.5); }}
-.tone-neutral {{ color: #7dd3fc; background: rgba(0, 245, 212, 0.12); border: 1px solid rgba(0, 245, 212, 0.38); }}
-.tone-warn {{ color: #fee440; background: rgba(254, 228, 64, 0.13); border: 1px solid rgba(254, 228, 64, 0.48); }}
-
-/* Signal Badges */
-.signal-badge {{
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-family: 'Orbitron', sans-serif;
-    padding: 0.32rem 0.85rem;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-}}
-
-.badge-buy {{ background: rgba(57, 255, 20, 0.14); color: #39ff14; border: 1.5px solid #39ff14; box-shadow: 0 0 14px rgba(57, 255, 20, 0.4); }}
-.badge-sell {{ background: rgba(255, 42, 109, 0.18); color: #ff4d8d; border: 1.5px solid #ff2a6d; box-shadow: 0 0 14px rgba(255, 42, 109, 0.45); }}
-.badge-hold {{ background: rgba(254, 228, 64, 0.14); color: #fee440; border: 1.5px solid #fee440; box-shadow: 0 0 14px rgba(254, 228, 64, 0.38); }}
-
-/* WEAZEL NEWS // LEONIDA MARKET FLASH Lower-Third Ticker */
-.weazel-flash-bar {{
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: linear-gradient(90deg, rgba(28, 6, 36, 0.96), rgba(14, 7, 36, 0.96));
-    border: 2px solid #ff2a6d;
-    border-left: 6px solid #fee440;
-    border-radius: 10px;
-    padding: 0.5rem 0.85rem;
-    margin: 0.95rem 0 0.45rem 0;
-    box-shadow: 0 0 20px rgba(255, 42, 109, 0.36);
-    overflow: hidden;
-}}
-
-.weazel-tag {{
-    flex-shrink: 0;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    color: #070312;
-    background: linear-gradient(90deg, #ff2a6d, #fee440);
-    padding: 0.28rem 0.65rem;
-    border-radius: 6px;
-    text-transform: uppercase;
-}}
-
-.weazel-marquee-wrap {{
-    flex: 1;
-    overflow: hidden;
-    white-space: nowrap;
-}}
-
-.weazel-marquee-track {{
-    display: inline-block;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.84rem;
-    color: #f8fafc;
-    animation: weazel-scroll 18s linear infinite;
-}}
-
-/* Safehouse Empire Tier Card & XP Bar */
-.safehouse-card {{
-    position: relative;
-    background: linear-gradient(155deg, rgba(16, 7, 42, 0.96), rgba(32, 9, 54, 0.96));
-    border: 2px solid var(--neon-pink);
-    border-radius: 14px;
-    padding: 1.05rem 1.2rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 0 22px rgba(255, 42, 133, 0.28), inset 0 0 18px rgba(0, 245, 212, 0.16);
-    overflow: hidden;
-}}
-
-.safehouse-tier-badge {{
-    display: inline-block;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    color: #070312;
-    background: linear-gradient(90deg, #00f5d4, #fee440);
-    padding: 0.22rem 0.68rem;
-    border-radius: 999px;
-}}
-
-.xp-bar-track {{
-    width: 100%;
-    height: 16px;
-    border-radius: 999px;
-    background: rgba(7, 3, 18, 0.92);
-    border: 1.5px solid rgba(254, 228, 64, 0.65);
-    padding: 2px;
-    overflow: hidden;
-    margin-top: 0.38rem;
-}}
-
-.xp-bar-fill {{
-    height: 100%;
-    border-radius: 999px;
-    background: repeating-linear-gradient(
-        -55deg,
-        #fee440 0px,
-        #fee440 10px,
-        #00f5d4 10px,
-        #00f5d4 18px
-    );
-    box-shadow: 0 0 14px rgba(0, 245, 212, 0.7);
-    transition: width 0.6s ease-out;
-}}
-
-/* Head-to-Head Street Race Segmented Racing Bars */
-.street-race-board {{
-    position: relative;
-    background: linear-gradient(160deg, rgba(16, 8, 40, 0.96), rgba(10, 5, 28, 0.97));
-    border: 2px solid var(--neon-cyan);
-    border-radius: 14px;
-    padding: 1.1rem 1.25rem;
-    margin: 0.8rem 0 1.15rem 0;
-    box-shadow: 0 0 24px rgba(0, 245, 212, 0.24), inset 0 0 18px rgba(255, 42, 133, 0.14);
-}}
-
-.race-winner-pill {{
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: 0.84rem;
-    letter-spacing: 0.06em;
-    color: #070312;
-    background: linear-gradient(90deg, #fee440, #39ff14);
-    padding: 0.3rem 0.9rem;
-    border-radius: 999px;
-    box-shadow: 0 0 18px rgba(254, 228, 64, 0.75);
-}}
-
-.race-metric-block {{
-    margin-bottom: 0.85rem;
-}}
-
-.race-track {{
-    width: 100%;
-    height: 14px;
-    border-radius: 999px;
-    background: rgba(6, 2, 16, 0.94);
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    overflow: hidden;
-    padding: 2px;
-    margin: 0.22rem 0;
-}}
-
-.race-fill-cyan {{
-    height: 100%;
-    border-radius: 999px;
-    transform-origin: left center;
-    animation: race-bar-sweep 0.9s ease-out forwards;
-    background: repeating-linear-gradient(-55deg, #00f5d4 0px, #00f5d4 10px, #0284c7 10px, #0284c7 16px);
-    box-shadow: 0 0 12px rgba(0, 245, 212, 0.78);
-}}
-
-.race-fill-pink {{
-    height: 100%;
-    border-radius: 999px;
-    transform-origin: left center;
-    animation: race-bar-sweep 0.9s ease-out forwards;
-    background: repeating-linear-gradient(-55deg, #ff2a85 0px, #ff2a85 10px, #9333ea 10px, #9333ea 16px);
-    box-shadow: 0 0 12px rgba(255, 42, 133, 0.78);
-}}
-
-/* Collapsible iFruit Market Phone Floating Right-Edge Dock */
-div[data-testid="stVerticalBlock"]:has(> div.element-container span.ifruit-anchor),
-div[data-testid="stVerticalBlockBorderWrapper"]:has(span.ifruit-anchor) {{
-    position: fixed !important;
-    right: 1rem !important;
-    bottom: 3.4rem !important;
-    width: 295px !important;
-    max-width: calc(100vw - 2rem) !important;
-    max-height: 70vh !important;
-    overflow-y: auto !important;
-    z-index: 950 !important;
-    background: linear-gradient(165deg, rgba(10, 5, 28, 0.97), rgba(24, 9, 48, 0.98)) !important;
-    border: 2px solid #00f5d4 !important;
-    border-radius: 18px !important;
-    padding: 0.55rem 0.7rem !important;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.78) !important;
-    will-change: transform;
-}}
-
-@media (max-width: 768px) {{
-    div[data-testid="stVerticalBlock"]:has(> div.element-container span.ifruit-anchor),
-    div[data-testid="stVerticalBlockBorderWrapper"]:has(span.ifruit-anchor) {{
-        position: static !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        margin-top: 1rem !important;
-    }}
-}}
-
-/* Surface & Sidebar Profile Cards */
-.surface-card {{
-    background: var(--bg-surface);
-    border: 1.5px solid var(--border-neon);
-    border-radius: var(--radius-md);
-    padding: 1.05rem 1.2rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 0 16px rgba(0, 245, 212, 0.16);
-}}
-
-.sidebar-profile-card {{
-    position: relative;
-    background: linear-gradient(145deg, rgba(22, 8, 48, 0.96), rgba(10, 5, 28, 0.98));
-    border: 2px solid var(--neon-cyan);
-    border-radius: var(--radius-md);
-    padding: 1.05rem 1rem 0.95rem 1rem;
-    margin-bottom: 0.85rem;
-    overflow: hidden;
-    box-shadow: 0 0 16px rgba(0, 245, 212, 0.28), inset 0 0 12px rgba(255, 42, 133, 0.16);
+::-webkit-scrollbar-thumb {{
+    background: linear-gradient(180deg, #00E5FF 0%, #FF35C8 100%);
+    border-radius: 4px;
 }}
 
-.sidebar-profile-card::before {{
-    content: "";
-    position: absolute;
+/* Top Fast CSS Neon Glow Progress Line */
+.gta-neon-glow-line {{
+    position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    height: 6px;
-    background: repeating-linear-gradient(-45deg, #fee440 0 8px, #0b0422 8px 16px);
-}}
-
-.sidebar-profile-name {{
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.92rem;
-    font-weight: 800;
-    color: #ffffff;
-    margin-bottom: 0.25rem;
-    text-shadow: 0 0 8px rgba(0, 245, 212, 0.55);
-}}
-
-.sidebar-cash-pill {{
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.88rem;
-    color: var(--neon-green);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-}}
-
-.news-item-card {{
-    background: rgba(14, 6, 36, 0.88);
-    border: 1px solid rgba(255, 42, 133, 0.38);
-    border-radius: var(--radius-sm);
-    padding: 0.72rem 0.9rem;
-    margin-bottom: 0.55rem;
-    transition: all 0.18s ease;
-}}
-
-.news-item-card:hover {{
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 14px rgba(0, 245, 212, 0.28);
-}}
-
-.news-item-card a {{
-    color: #f1f5f9;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.92rem;
-    line-height: 1.35;
-    display: block;
-}}
-
-.news-item-card a:hover {{
-    color: var(--neon-cyan);
-}}
-
-.news-publisher {{
-    font-family: 'Share Tech Mono', monospace;
-    color: var(--neon-pink);
-    font-size: 0.74rem;
-    margin-top: 0.25rem;
-}}
-
-/* Primary Arcade Buttons */
-.stButton > button[kind="primary"],
-button[data-testid="stBaseButton-primary"],
-button[data-testid="baseButton-primary"] {{
-    font-family: 'Orbitron', sans-serif !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase;
-    color: #070312 !important;
-    background: linear-gradient(90deg, #00f5d4 0%, #39ff14 48%, #fee440 100%) !important;
-    border: 2px solid #fee440 !important;
-    border-radius: 10px !important;
-    min-height: 46px !important;
-    box-shadow: 0 0 14px rgba(0, 245, 212, 0.45);
-    will-change: transform;
-    transition: transform 0.15s ease, filter 0.15s ease !important;
-}}
-
-/* Tactical Command Board Ticker Cards & Bottom Status Strip */
-.tactical-card {{
-    position: relative;
-    background: rgba(11, 5, 30, 0.94);
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 0.85rem;
-    will-change: transform;
-    transition: transform 0.16s ease;
-}}
-.tactical-card:hover {{
-    transform: translateY(-2px);
-}}
-.tactical-card-cyan {{
-    border: 2px solid #00f5d4;
-    box-shadow: 0 0 14px rgba(0, 245, 212, 0.28);
-}}
-.tactical-card-magenta {{
-    border: 2px solid #ff2a85;
-    box-shadow: 0 0 14px rgba(255, 42, 133, 0.28);
-}}
-.tactical-hazard-strip {{
-    height: 3px;
     width: 100%;
-    background: linear-gradient(90deg, #00f5d4 0%, #ff2a85 100%);
+    height: 2.5px;
+    background: linear-gradient(90deg, #00E5FF 0%, #8B5CF6 50%, #FF35C8 100%);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.8), 0 0 20px rgba(255, 53, 200, 0.6);
+    z-index: 999999;
+    animation: neonLinePulse 2.5s ease-in-out infinite;
 }}
-.tactical-card-inner {{
-    padding: 0.65rem 0.85rem;
+
+@keyframes neonLinePulse {{
+    0%, 100% {{ opacity: 0.85; filter: drop-shadow(0 0 6px #00E5FF); }}
+    50% {{ opacity: 1; filter: drop-shadow(0 0 14px #FF35C8); }}
 }}
-.tactical-grid-head,
-.tactical-grid-row {{
-    display: grid;
-    grid-template-columns: 1.35fr 1fr 0.9fr;
-    gap: 0.35rem;
+
+/* Sidebar - Deep Obsidian Navy with Cyan Accent Divider */
+[data-testid="stSidebar"] {{
+    background-color: #0D1226 !important;
+    border-right: 1px solid rgba(0, 229, 255, 0.16) !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.45) !important;
+}}
+
+[data-testid="stSidebar"] .block-container {{
+    padding-top: 1.2rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}}
+
+/* Clean Fixed Sidebar Brand Logo */
+.ref-sidebar-logo-container {{
+    display: flex;
     align-items: center;
-    font-family: 'Share Tech Mono', monospace;
-}}
-.tactical-grid-head {{
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.65rem;
-    font-weight: 800;
-    color: #94a3b8;
-    letter-spacing: 0.08em;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-    padding-bottom: 0.32rem;
-    margin-bottom: 0.32rem;
-}}
-.tactical-grid-row {{
-    font-size: 0.84rem;
-    padding: 0.3rem 0;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-    font-variant-numeric: tabular-nums;
-}}
-.tactical-grid-row:last-child {{
-    border-bottom: none;
-    padding-bottom: 0.1rem;
-}}
-.tactical-sym {{
-    color: #f8fafc;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-}}
-.tactical-pos {{ color: #39ff14; font-weight: 700; text-align: right; }}
-.tactical-neg {{ color: #ff4d6d; font-weight: 700; text-align: right; }}
-.tactical-rng {{ color: #cbd5e1; font-weight: 600; text-align: right; }}
-
-.tactical-center-shell {{
-    background: rgba(11, 5, 30, 0.95);
-    border: 2px solid #00f5d4;
-    border-radius: 12px;
-    padding: 0.55rem 0.75rem 0.25rem 0.75rem;
-    box-shadow: 0 0 16px rgba(0, 245, 212, 0.24);
-}}
-
-.tactical-status-strip {{
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.75rem;
-    margin: 0.65rem 0 1.05rem 0;
+    padding: 0.4rem 0.4rem 1rem 0.4rem;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.16);
+    margin-bottom: 0.9rem;
 }}
-.tactical-status-card {{
-    background: rgba(12, 6, 32, 0.94);
-    border: 1.5px solid rgba(0, 245, 212, 0.52);
-    border-radius: 10px;
-    padding: 0.7rem 0.9rem;
+
+.ref-sidebar-logo-icon {{
+    font-size: 2.1rem;
+    filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.65));
+}}
+
+.ref-sidebar-logo-text {{
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: 0.25rem;
-}}
-.tactical-status-wanted {{
-    border-color: #fee440;
-    background: linear-gradient(145deg, rgba(28, 12, 48, 0.95), rgba(14, 7, 32, 0.97));
-    animation: vice-pulse 2.2s ease-in-out infinite;
-    will-change: transform, opacity;
-}}
-@media (max-width: 900px) {{
-    .tactical-status-strip {{
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }}
-}}
-@media (max-width: 560px) {{
-    .tactical-status-strip {{
-        grid-template-columns: 1fr;
-    }}
 }}
 
-.stButton > button[kind="primary"]:hover,
-button[data-testid="stBaseButton-primary"]:hover,
-button[data-testid="baseButton-primary"]:hover {{
-    transform: translateY(-2px) scale(1.01) !important;
-    filter: brightness(1.08);
+.ref-logo-title {{
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: 0.04em;
+    line-height: 1.15;
 }}
 
-.stButton > button, .stDownloadButton > button {{
+.ref-logo-sub {{
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #FF35C8;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}}
+
+/* Sidebar Navigation Radio - Sleek Pills */
+[data-testid="stSidebar"] div[data-testid="stRadio"] label[data-testid="stWidgetLabel"] {{
+    display: none !important;
+}}
+
+[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {{
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.35rem !important;
+}}
+
+[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label {{
+    display: flex !important;
+    align-items: center !important;
+    padding: 0.58rem 0.95rem !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: #94A3B8 !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.94rem !important;
+    letter-spacing: 0.02em !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    margin: 0 !important;
+}}
+
+[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:hover {{
+    background: rgba(0, 229, 255, 0.08) !important;
+    color: #F4F7FF !important;
+    border-color: rgba(0, 229, 255, 0.25) !important;
+    transform: translateX(2px) !important;
+}}
+
+[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked),
+[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label[data-checked="true"] {{
+    background: linear-gradient(90deg, rgba(255, 53, 200, 0.28) 0%, rgba(139, 92, 246, 0.38) 100%) !important;
+    border: 1px solid rgba(255, 53, 200, 0.75) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 16px rgba(255, 53, 200, 0.35) !important;
+}}
+
+[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] input[type="radio"] {{
+    display: none !important;
+}}
+
+[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] div[data-testid="stMarkdownContainer"] p {{
+    margin: 0 !important;
+    color: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+}}
+
+/* Sidebar Powered by AI Badge Card */
+.ref-sidebar-powered-card {{
+    background: rgba(16, 26, 50, 0.85);
+    border: 1px solid rgba(255, 53, 200, 0.35);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    margin-top: 1.4rem;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+}}
+
+.ref-powered-top {{
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
     font-family: 'Orbitron', sans-serif;
     font-size: 0.82rem;
-    letter-spacing: 0.04em;
-    border-radius: 10px;
     font-weight: 700;
-    min-height: 42px;
-    border: 1.5px solid rgba(0, 245, 212, 0.48);
-    background: rgba(16, 7, 38, 0.88);
-    color: #f8fafc;
-    transition: all 0.15s ease;
+    color: #FF35C8;
 }}
 
-.stButton > button:hover, .stDownloadButton > button:hover {{
-    transform: translateY(-1px);
-    border-color: var(--neon-pink);
-    box-shadow: 0 0 14px rgba(255, 42, 133, 0.45);
+.ref-powered-desc {{
+    font-size: 0.75rem;
+    color: #94A3B8;
+    margin-top: 0.35rem;
+    line-height: 1.35;
 }}
 
-/* Zero Standard White/Grey Boxes: Forms, Inputs, Expanders, Alerts, Chat Bubbles */
-div[data-testid="stForm"] {{
-    background: rgba(11, 5, 28, 0.9);
-    border: 1.5px solid var(--neon-pink);
-    border-radius: 12px;
-    padding: 1rem 1.1rem;
-    box-shadow: 0 0 20px rgba(255, 42, 133, 0.24), inset 0 0 14px rgba(0, 245, 212, 0.14);
+.ref-powered-chart {{
+    margin-top: 0.45rem;
+    font-size: 1.1rem;
 }}
 
-div[data-baseweb="input"] > div,
-div[data-baseweb="select"] > div {{
-    background-color: rgba(9, 4, 24, 0.94) !important;
-    border: 1px solid rgba(0, 245, 212, 0.48) !important;
-    border-radius: 8px !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    color: #f8fafc !important;
-}}
-
-div[data-baseweb="input"] > div:focus-within,
-div[data-baseweb="select"] > div:focus-within {{
-    border-color: var(--neon-pink) !important;
-    box-shadow: 0 0 12px rgba(255, 42, 133, 0.55) !important;
-}}
-
-div[data-testid="stExpander"] {{
-    background: rgba(12, 5, 32, 0.9) !important;
-    border: 1.5px solid rgba(0, 245, 212, 0.42) !important;
-    border-radius: 12px !important;
-}}
-
-div[data-testid="stAlert"] {{
-    background: rgba(14, 6, 36, 0.92) !important;
-    border: 1.5px solid rgba(0, 245, 212, 0.45) !important;
-    border-radius: 10px !important;
-}}
-
-div[data-testid="stChatMessage"] {{
-    background: rgba(13, 6, 36, 0.92) !important;
-    border: 1.5px solid rgba(0, 245, 212, 0.48) !important;
-    border-radius: 12px !important;
-    padding: 0.75rem 1rem !important;
-    margin-bottom: 0.6rem !important;
-    box-shadow: 0 0 14px rgba(0, 245, 212, 0.16);
-}}
-
-div[data-testid="stChatInput"] > div {{
-    background: rgba(11, 4, 28, 0.95) !important;
-    border: 1.5px solid var(--neon-pink) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 0 16px rgba(255, 42, 133, 0.28);
-}}
-
-/* Tabs */
-button[data-baseweb="tab"] {{
-    font-family: 'Orbitron', sans-serif !important;
-    font-size: 0.8rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.05em;
-    border-radius: 8px 8px 0 0;
-    background: rgba(15, 6, 38, 0.72) !important;
-    border: 1px solid rgba(0, 245, 212, 0.25) !important;
-    margin-right: 0.25rem;
-}}
-
-/* Native Metrics & DataFrames */
-div[data-testid="stMetric"] {{
-    background: var(--bg-surface);
-    border: 1.5px solid var(--border-neon);
-    border-radius: var(--radius-md);
-    padding: 0.85rem 1rem;
-}}
-
-div[data-testid="stMetricValue"] {{
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(1.2rem, 1.8vw, 1.55rem);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-}}
-
-div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
-    border: 1.5px solid var(--border-magenta);
-    border-radius: var(--radius-md);
-    overflow-x: auto;
-    box-shadow: 0 0 18px rgba(255, 42, 133, 0.2);
-}}
-
-/* Medium Laptop Responsive Polish (769px - 1366px) */
-@media (min-width: 769px) and (max-width: 1366px) {{
-    .main .block-container,
-    [data-testid="stMainBlockContainer"] {{
-        padding-left: 1.1rem;
-        padding-right: 1.1rem;
-    }}
-    .tactical-card-inner {{
-        padding: 0.45rem 0.65rem 0.55rem 0.65rem;
-    }}
-    .tactical-grid-row {{
-        font-size: 0.78rem;
-        gap: 0.25rem;
-    }}
-    .tactical-card-bottom {{
-        font-size: 0.72rem;
-    }}
-    .kpi-grid {{
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }}
-    .stButton > button, .stDownloadButton > button {{
-        font-size: 0.78rem;
-        padding-left: 0.6rem;
-        padding-right: 0.6rem;
-    }}
-}}
-
-/* Tablet & Mobile Responsive Breakpoints */
-@media (max-width: 1024px) {{
-    div[data-testid="stHorizontalBlock"] {{
-        flex-wrap: wrap !important;
-        gap: 0.75rem !important;
-    }}
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"],
-    div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {{
-        min-width: 240px !important;
-        flex: 1 1 240px !important;
-    }}
-}}
-
-@media (max-width: 768px) {{
-    .main .block-container,
-    [data-testid="stMainBlockContainer"] {{
-        padding-top: 0.75rem;
-        padding-bottom: 2.5rem;
-        padding-left: 0.65rem;
-        padding-right: 0.65rem;
-    }}
-    div[data-testid="stHorizontalBlock"] {{
-        flex-direction: column !important;
-    }}
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"],
-    div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {{
-        width: 100% !important;
-        min-width: 100% !important;
-        flex: 1 1 100% !important;
-    }}
-    button[data-baseweb="tab"] {{
-        font-size: 0.7rem !important;
-        padding: 0.45rem 0.55rem !important;
-    }}
-    .console-hud-ruler {{
-        justify-content: center;
-        text-align: center;
-        font-size: 0.64rem;
-    }}
-    .console-hud-ruler span:first-child,
-    .console-hud-ruler span:last-child {{
-        display: none;
-    }}
-    .weazel-flash-bar {{
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.35rem;
-    }}
-    .kpi-grid {{
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.6rem;
-    }}
-    .kpi-card {{
-        padding: 0.75rem 0.8rem;
-    }}
-    .wing-chevron {{
-        display: none;
-    }}
-    .stApp {{
-        background-size: 120px auto, 120px auto, 44px 44px, 44px 44px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
-    }}
-}}
-
-/* ==========================================================================
-   REFERENCE DASHBOARD: PIXEL-PERFECT CLEAN SYNTHWAVE / VICE CITY STYLING
-   ========================================================================== */
-
-/* Top Collegiate Header */
+/* Top Collegiate Header Bar */
 .ref-top-bar {{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(13, 6, 32, 0.78);
-    border: 1px solid rgba(0, 245, 212, 0.25);
+    background: rgba(16, 26, 50, 0.75);
+    border: 1px solid rgba(0, 229, 255, 0.22);
     border-radius: 14px;
-    padding: 0.55rem 1.25rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(0, 245, 212, 0.05);
-    backdrop-filter: blur(12px);
-    margin-bottom: 0.75rem;
+    padding: 0.6rem 1.15rem;
+    margin-bottom: 0.6rem;
 }}
 
 .ref-top-left {{
     display: flex;
     align-items: center;
-    gap: 0.85rem;
+    gap: 0.75rem;
 }}
 
 .ref-top-crest {{
-    font-size: 1.55rem;
+    font-size: 1.4rem;
+    filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.5));
 }}
 
 .ref-top-title {{
     font-family: 'Rajdhani', sans-serif;
     font-weight: 700;
-    font-size: 1.05rem;
-    color: #ffffff;
-    letter-spacing: 0.04em;
-    text-shadow: 0 0 10px rgba(0, 245, 212, 0.4);
+    font-size: 0.95rem;
+    color: #F4F7FF;
+    letter-spacing: 0.03em;
 }}
 
 .ref-top-sub {{
-    font-size: 0.74rem;
-    color: #94a3b8;
-    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+    color: #94A3B8;
+    letter-spacing: 0.04em;
 }}
 
 .ref-top-right {{
     display: flex;
     align-items: center;
-    gap: 0.85rem;
+    gap: 0.75rem;
 }}
 
 .ref-theme-toggle-pill {{
-    background: rgba(18, 9, 44, 0.85);
-    border: 1px solid rgba(254, 228, 64, 0.45);
-    border-radius: 20px;
-    padding: 0.28rem 0.7rem;
     display: flex;
     align-items: center;
     gap: 0.45rem;
-    cursor: pointer;
-    box-shadow: 0 0 10px rgba(254, 228, 64, 0.2);
+    background: rgba(7, 11, 26, 0.85);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 20px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.85rem;
 }}
 
-.ref-sun-icon {{ font-size: 0.84rem; }}
-.ref-moon-icon {{ font-size: 0.84rem; opacity: 0.85; }}
-
 .ref-profile-pill {{
-    background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-    color: #ffffff;
-    padding: 0.35rem 1.05rem;
-    border-radius: 20px;
     display: flex;
     align-items: center;
     gap: 0.45rem;
+    background: linear-gradient(90deg, #FF35C8 0%, #8B5CF6 100%);
+    border-radius: 20px;
+    padding: 0.35rem 0.95rem;
+    color: #FFFFFF;
     font-size: 0.82rem;
     font-weight: 700;
-    box-shadow: 0 0 16px rgba(168, 85, 247, 0.55);
+    letter-spacing: 0.03em;
+    box-shadow: 0 0 12px rgba(255, 53, 200, 0.4);
 }}
 
 /* Synthwave Sunset Skyline Hero Banner */
 .ref-hero-banner {{
     position: relative;
     border-radius: 18px;
-    min-height: 250px;
-    padding: 1.8rem 2.2rem;
-    background: linear-gradient(135deg, rgba(14, 5, 36, 0.95) 0%, rgba(32, 9, 64, 0.95) 55%, rgba(13, 4, 30, 0.95) 100%);
-    border: 1.5px solid rgba(255, 42, 133, 0.38);
-    box-shadow: 0 8px 36px rgba(0, 0, 0, 0.65), inset 0 0 24px rgba(255, 42, 133, 0.12);
+    min-height: 255px;
+    padding: 2rem 2.4rem;
+    background: linear-gradient(135deg, rgba(7, 11, 26, 0.95) 0%, rgba(16, 26, 50, 0.95) 55%, rgba(24, 9, 43, 0.95) 100%);
+    border: 1.5px solid rgba(255, 53, 200, 0.38);
+    box-shadow: 0 8px 36px rgba(0, 0, 0, 0.7), inset 0 0 24px rgba(255, 53, 200, 0.12);
     overflow: hidden;
 }}
 
@@ -1534,48 +375,48 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 
 .ref-hero-title {{
     font-family: 'Rajdhani', sans-serif;
-    font-size: 2.7rem;
+    font-size: 2.85rem;
     font-weight: 800;
-    line-height: 1.12;
+    line-height: 1.1;
     margin: 0;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.02em;
 }}
 
 .glow-cyan {{
-    color: #ffffff;
-    text-shadow: 0 0 16px rgba(0, 245, 212, 0.75), 0 0 32px rgba(0, 245, 212, 0.35);
+    color: #FFFFFF;
+    text-shadow: 0 0 16px rgba(0, 229, 255, 0.85), 0 0 32px rgba(0, 229, 255, 0.4);
 }}
 
 .glow-magenta {{
-    color: #ff2a85;
-    text-shadow: 0 0 18px rgba(255, 42, 133, 0.85), 0 0 36px rgba(255, 42, 133, 0.45);
+    color: #FF35C8;
+    text-shadow: 0 0 18px rgba(255, 53, 200, 0.85), 0 0 36px rgba(255, 53, 200, 0.45);
     margin-left: 0.35rem;
 }}
 
 .ref-hero-subtitle {{
-    font-size: 1.05rem;
+    font-size: 1.08rem;
     font-weight: 600;
-    color: #cbd5e1;
+    color: #CBD5E1;
     letter-spacing: 0.08em;
-    margin-top: 0.4rem;
+    margin-top: 0.45rem;
 }}
 
 .ref-hero-badges-pill {{
     display: inline-flex;
     align-items: center;
     gap: 0.65rem;
-    background: rgba(11, 4, 28, 0.85);
-    border: 1px solid rgba(255, 42, 133, 0.35);
+    background: rgba(7, 11, 26, 0.88);
+    border: 1px solid rgba(255, 53, 200, 0.38);
     border-radius: 30px;
     padding: 0.38rem 1.15rem;
-    margin-top: 0.95rem;
+    margin-top: 1rem;
     font-size: 0.78rem;
-    color: #f8fafc;
-    box-shadow: 0 0 12px rgba(255, 42, 133, 0.22);
+    color: #F4F7FF;
+    box-shadow: 0 0 14px rgba(255, 53, 200, 0.25);
 }}
 
 .pill-divider {{
-    color: rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.25);
 }}
 
 .ref-hero-right {{
@@ -1585,9 +426,9 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 
 .ref-cursive-script {{
     font-family: 'Yellowtail', cursive;
-    font-size: 2.25rem;
-    color: #ff2a85;
-    text-shadow: 0 0 16px rgba(255, 42, 133, 0.9), 0 0 28px rgba(255, 42, 133, 0.5);
+    font-size: 2.35rem;
+    color: #FF35C8;
+    text-shadow: 0 0 16px rgba(255, 53, 200, 0.9), 0 0 30px rgba(255, 53, 200, 0.5);
     line-height: 1.15;
     transform: rotate(-3deg);
 }}
@@ -1601,35 +442,35 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 }}
 
 .ref-search-wrapper div[data-testid="stTextInput"] input {{
-    background: rgba(14, 5, 34, 0.95) !important;
-    border: 1.5px solid rgba(0, 245, 212, 0.55) !important;
+    background: rgba(16, 26, 50, 0.96) !important;
+    border: 1.5px solid rgba(0, 229, 255, 0.55) !important;
     border-radius: 30px !important;
-    color: #ffffff !important;
+    color: #FFFFFF !important;
     padding: 0.65rem 1.45rem !important;
     font-size: 0.92rem !important;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(0, 245, 212, 0.12) !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(0, 229, 255, 0.12) !important;
 }}
 
 .ref-search-wrapper div[data-testid="stTextInput"] input:focus {{
-    border-color: #00f5d4 !important;
-    box-shadow: 0 0 20px rgba(0, 245, 212, 0.5) !important;
+    border-color: #00E5FF !important;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.55) !important;
 }}
 
 .ref-search-wrapper div[data-testid="stButton"] button {{
-    background: linear-gradient(90deg, #00f5d4 0%, #a855f7 50%, #ff2a85 100%) !important;
+    background: linear-gradient(90deg, #00E5FF 0%, #8B5CF6 50%, #FF35C8 100%) !important;
     border: none !important;
     border-radius: 30px !important;
-    color: #ffffff !important;
+    color: #FFFFFF !important;
     font-weight: 700 !important;
     font-size: 0.92rem !important;
     padding: 0.62rem 1.4rem !important;
-    box-shadow: 0 0 20px rgba(255, 42, 133, 0.6) !important;
+    box-shadow: 0 0 20px rgba(255, 53, 200, 0.6) !important;
     transition: all 0.22s ease !important;
 }}
 
 .ref-search-wrapper div[data-testid="stButton"] button:hover {{
     transform: scale(1.02) !important;
-    box-shadow: 0 0 28px rgba(0, 245, 212, 0.8) !important;
+    box-shadow: 0 0 28px rgba(0, 229, 255, 0.8) !important;
 }}
 
 /* 4 Quick Action Cards */
@@ -1639,43 +480,43 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
     gap: 0.85rem;
     padding: 0.95rem 1.1rem;
     border-radius: 14px;
-    background: rgba(14, 6, 36, 0.84);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), inset 0 0 14px rgba(0, 245, 212, 0.06);
+    background: rgba(16, 26, 50, 0.75);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), inset 0 0 14px rgba(0, 229, 255, 0.06);
     transition: all 0.22s ease;
     min-height: 86px;
-    border: 1.5px solid rgba(0, 245, 212, 0.32);
+    border: 1.5px solid rgba(0, 229, 255, 0.28);
     margin-bottom: 0.45rem;
 }}
 
 .ref-action-card:hover {{
-    transform: translateY(-3px);
+    transform: translateY(-4px);
 }}
 
 .ref-card-cyan {{
-    border-color: rgba(0, 245, 212, 0.45);
-    box-shadow: 0 4px 18px rgba(0, 245, 212, 0.2);
+    border-color: rgba(0, 229, 255, 0.45);
+    box-shadow: 0 4px 18px rgba(0, 229, 255, 0.2);
 }}
 .ref-card-cyan:hover {{
-    border-color: #00f5d4;
-    box-shadow: 0 0 22px rgba(0, 245, 212, 0.45);
+    border-color: #00E5FF;
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.45);
 }}
 
 .ref-card-magenta {{
-    border-color: rgba(255, 42, 133, 0.45);
-    box-shadow: 0 4px 18px rgba(255, 42, 133, 0.2);
+    border-color: rgba(255, 53, 200, 0.45);
+    box-shadow: 0 4px 18px rgba(255, 53, 200, 0.2);
 }}
 .ref-card-magenta:hover {{
-    border-color: #ff2a85;
-    box-shadow: 0 0 22px rgba(255, 42, 133, 0.45);
+    border-color: #FF35C8;
+    box-shadow: 0 0 22px rgba(255, 53, 200, 0.45);
 }}
 
 .ref-card-blue {{
-    border-color: rgba(59, 130, 246, 0.45);
-    box-shadow: 0 4px 18px rgba(59, 130, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.45);
+    box-shadow: 0 4px 18px rgba(139, 92, 246, 0.2);
 }}
 .ref-card-blue:hover {{
-    border-color: #3b82f6;
-    box-shadow: 0 0 22px rgba(59, 130, 246, 0.45);
+    border-color: #8B5CF6;
+    box-shadow: 0 0 22px rgba(139, 92, 246, 0.45);
 }}
 
 .ref-card-gold {{
@@ -1699,21 +540,21 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 }}
 
 .ref-icon-cyan {{
-    background: rgba(0, 245, 212, 0.15);
-    border: 1px solid #00f5d4;
-    box-shadow: 0 0 10px rgba(0, 245, 212, 0.35);
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid #00E5FF;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
 }}
 
 .ref-icon-magenta {{
-    background: rgba(255, 42, 133, 0.15);
-    border: 1px solid #ff2a85;
-    box-shadow: 0 0 10px rgba(255, 42, 133, 0.35);
+    background: rgba(255, 53, 200, 0.15);
+    border: 1px solid #FF35C8;
+    box-shadow: 0 0 10px rgba(255, 53, 200, 0.35);
 }}
 
 .ref-icon-blue {{
-    background: rgba(59, 130, 246, 0.15);
-    border: 1px solid #3b82f6;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid #8B5CF6;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.35);
 }}
 
 .ref-icon-gold {{
@@ -1730,7 +571,7 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 .ref-action-card-title {{
     font-size: 0.94rem;
     font-weight: 700;
-    color: #ffffff;
+    color: #FFFFFF;
     letter-spacing: 0.02em;
     white-space: nowrap;
     overflow: hidden;
@@ -1739,13 +580,13 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 
 .ref-action-card-sub {{
     font-size: 0.73rem;
-    color: #94a3b8;
+    color: #94A3B8;
     margin-top: 0.15rem;
     line-height: 1.3;
 }}
 
 .ref-action-card-arrow {{
-    color: #94a3b8;
+    color: #94A3B8;
     font-size: 0.95rem;
     margin-left: auto;
     flex-shrink: 0;
@@ -1754,16 +595,16 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 
 .ref-action-card:hover .ref-action-card-arrow {{
     transform: translateX(3px);
-    color: #ffffff;
+    color: #FFFFFF;
 }}
 
 /* Main 3-Column Dashboard Grid Cards */
 .ref-grid-card {{
-    background: rgba(13, 6, 32, 0.88);
-    border: 1.5px solid rgba(0, 245, 212, 0.28);
+    background: rgba(16, 26, 50, 0.75);
+    border: 1.5px solid rgba(0, 229, 255, 0.25);
     border-radius: 16px;
     padding: 1.15rem 1.3rem;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), inset 0 0 16px rgba(0, 245, 212, 0.06);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), inset 0 0 16px rgba(0, 229, 255, 0.06);
     margin-bottom: 0.5rem;
 }}
 
@@ -1783,134 +624,132 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 .ref-card-title {{
     font-size: 1.05rem;
     font-weight: 700;
-    color: #ffffff;
+    color: #FFFFFF;
     letter-spacing: 0.02em;
 }}
 
 .ref-live-badge {{
-    background: rgba(57, 255, 20, 0.14);
-    border: 1px solid #39ff14;
+    background: rgba(0, 214, 143, 0.14);
+    border: 1px solid #00D68F;
     border-radius: 16px;
     padding: 0.2rem 0.65rem;
-    color: #39ff14;
+    color: #00D68F;
     font-size: 0.74rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    box-shadow: 0 0 10px rgba(57, 255, 20, 0.25);
 }}
 
 .ref-live-dot {{
     width: 7px;
     height: 7px;
-    background: #39ff14;
     border-radius: 50%;
-    box-shadow: 0 0 8px #39ff14;
-    animation: neon-flicker 2s infinite;
+    background: #00D68F;
+    box-shadow: 0 0 8px #00D68F;
+    animation: badge-float 1.8s infinite ease-in-out;
 }}
 
 .ref-tabs-row {{
     display: flex;
-    gap: 0.85rem;
-    margin: 0.35rem 0 0.75rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding-bottom: 0.35rem;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
 }}
 
 .ref-tab-item {{
     font-size: 0.78rem;
-    font-weight: 600;
-    color: #94a3b8;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    color: #94A3B8;
+    background: rgba(7, 11, 26, 0.6);
+    border: 1px solid rgba(0, 229, 255, 0.14);
     cursor: pointer;
-    padding: 0.15rem 0.35rem;
-    transition: color 0.18s ease;
 }}
 
 .ref-tab-item.active {{
-    color: #00f5d4;
-    border-bottom: 2px solid #00f5d4;
-    font-weight: 700;
+    color: #FFFFFF;
+    background: linear-gradient(90deg, rgba(255, 53, 200, 0.25), rgba(139, 92, 246, 0.35));
+    border-color: #FF35C8;
+    box-shadow: 0 0 10px rgba(255, 53, 200, 0.3);
 }}
 
 .ref-metric-block {{
-    margin: 0.25rem 0 0.5rem 0;
+    margin-bottom: 0.65rem;
 }}
 
 .ref-metric-val {{
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 2.15rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.95rem;
     font-weight: 800;
-    color: #ffffff;
-    line-height: 1.1;
-    letter-spacing: 0.02em;
+    color: #FFFFFF;
+    letter-spacing: 0.03em;
 }}
 
 .ref-metric-delta {{
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     font-weight: 700;
-    color: #39ff14;
+    color: #00D68F;
     margin-top: 0.15rem;
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
 }}
 
 .ref-timeframe-pills {{
     display: flex;
-    gap: 0.35rem;
-    margin-top: 0.45rem;
-    justify-content: center;
+    gap: 0.4rem;
+    justify-content: flex-start;
+    margin-top: 0.6rem;
 }}
 
 .ref-tf-pill {{
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 0.2rem 0.65rem;
     font-size: 0.72rem;
-    font-weight: 600;
-    color: #94a3b8;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    color: #94A3B8;
+    background: rgba(7, 11, 26, 0.6);
+    border: 1px solid rgba(0, 229, 255, 0.14);
     cursor: pointer;
 }}
 
 .ref-tf-pill.active {{
-    background: linear-gradient(135deg, #6366f1, #a855f7);
-    color: #ffffff;
-    border-color: transparent;
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.45);
+    color: #00E5FF;
+    border-color: #00E5FF;
+    background: rgba(0, 229, 255, 0.12);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
 }}
 
 .ref-select-pill {{
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(7, 11, 26, 0.7);
+    border: 1px solid rgba(0, 229, 255, 0.25);
     border-radius: 8px;
-    padding: 0.2rem 0.6rem;
-    font-size: 0.74rem;
-    color: #cbd5e1;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #00E5FF;
     display: flex;
     align-items: center;
 }}
 
 .ref-view-all-link {{
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #ff2a85;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #FF35C8;
     cursor: pointer;
-    text-shadow: 0 0 8px rgba(255, 42, 133, 0.4);
 }}
 
 .ref-outlook-box {{
-    background: rgba(57, 255, 20, 0.07);
-    border: 1px solid rgba(57, 255, 20, 0.35);
+    background: rgba(7, 11, 26, 0.8);
+    border: 1px solid rgba(0, 214, 143, 0.35);
     border-radius: 12px;
-    padding: 0.75rem 0.95rem;
-    margin-bottom: 0.75rem;
-    box-shadow: 0 0 14px rgba(57, 255, 20, 0.1);
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.95rem;
+    box-shadow: inset 0 0 12px rgba(0, 214, 143, 0.08);
 }}
 
 .ref-outlook-top {{
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
 }}
 
 .ref-outlook-icon {{
@@ -1918,10 +757,9 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 }}
 
 .ref-outlook-title {{
-    font-weight: 800;
-    color: #39ff14;
-    font-size: 0.95rem;
-    letter-spacing: 0.02em;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #00D68F;
 }}
 
 .ref-outlook-graph {{
@@ -1931,7 +769,7 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
 
 .ref-outlook-desc {{
     font-size: 0.76rem;
-    color: #cbd5e1;
+    color: #CBD5E1;
     margin-top: 0.35rem;
     line-height: 1.35;
 }}
@@ -1947,103 +785,22 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
     align-items: center;
     gap: 0.55rem;
     font-size: 0.82rem;
-    color: #f8fafc;
-    padding: 0.35rem 0.5rem;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.03);
+    color: #F4F7FF;
 }}
 
 .ref-check-icon {{
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: rgba(57, 255, 20, 0.18);
-    border: 1px solid #39ff14;
-    color: #39ff14;
+    background: rgba(0, 214, 143, 0.2);
+    border: 1px solid #00D68F;
+    color: #00D68F;
+    font-size: 0.68rem;
+    font-weight: 900;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.65rem;
-    font-weight: 800;
     flex-shrink: 0;
-}}
-
-.ref-bullet-text {{
-    font-weight: 600;
-}}
-
-/* Sidebar Logo & Powered by AI Card */
-.ref-sidebar-logo-container {{
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.65rem 0.85rem;
-    margin-bottom: 0.75rem;
-    background: rgba(14, 5, 34, 0.85);
-    border: 1px solid rgba(255, 42, 133, 0.35);
-    border-radius: 12px;
-    box-shadow: 0 0 16px rgba(255, 42, 133, 0.25);
-}}
-
-.ref-sidebar-logo-icon {{
-    font-size: 1.6rem;
-}}
-
-.ref-logo-title {{
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 800;
-    font-size: 1.15rem;
-    color: #00f5d4;
-    line-height: 1.1;
-    text-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
-}}
-
-.ref-logo-sub {{
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #ff2a85;
-    letter-spacing: 0.05em;
-    text-shadow: 0 0 8px rgba(255, 42, 133, 0.45);
-}}
-
-.ref-sidebar-powered-card {{
-    background: rgba(14, 5, 34, 0.85);
-    border: 1px solid rgba(168, 85, 247, 0.4);
-    border-radius: 12px;
-    padding: 0.75rem 0.85rem;
-    margin-top: 0.95rem;
-    box-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
-}}
-
-.ref-powered-top {{
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-}}
-
-.ref-crown-icon {{
-    font-size: 1.05rem;
-}}
-
-.ref-powered-title {{
-    font-size: 0.84rem;
-    font-weight: 800;
-    color: #fee440;
-    letter-spacing: 0.04em;
-    text-shadow: 0 0 10px rgba(254, 228, 64, 0.5);
-}}
-
-.ref-powered-desc {{
-    font-size: 0.72rem;
-    color: #cbd5e1;
-    margin-top: 0.3rem;
-    line-height: 1.35;
-}}
-
-.ref-powered-chart {{
-    font-size: 1.15rem;
-    margin-top: 0.45rem;
-    text-align: right;
 }}
 
 /* Collegiate Footer Bar */
@@ -2051,35 +808,187 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.85rem 1.4rem;
-    border-top: 1px solid rgba(255, 42, 133, 0.35);
-    margin-top: 1.6rem;
-    background: rgba(11, 4, 28, 0.75);
-    border-radius: 10px;
-    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.4);
+    border-top: 1px solid rgba(0, 229, 255, 0.16);
+    padding: 0.95rem 0.5rem 0.5rem 0.5rem;
+    margin-top: 1.2rem;
+    font-size: 0.82rem;
+    color: #94A3B8;
 }}
 
 .ref-footer-quote {{
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    font-size: 0.84rem;
-    color: #cbd5e1;
-    letter-spacing: 0.03em;
-}}
-
-.ref-footer-icon {{
-    font-size: 1rem;
+    gap: 0.5rem;
+    color: #F4F7FF;
+    font-style: italic;
 }}
 
 .ref-footer-college {{
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.86rem;
+    color: #94A3B8;
+    letter-spacing: 0.03em;
+}}
+
+/* Clean Subpage Header (Used across Single Stock, Market Overview, AI Tutor, etc.) */
+.ref-subpage-header {{
+    background: rgba(16, 26, 50, 0.75);
+    border: 1.5px solid rgba(0, 229, 255, 0.25);
+    border-radius: 16px;
+    padding: 1.25rem 1.6rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}}
+
+.ref-subpage-badge {{
+    display: inline-block;
+    font-size: 0.74rem;
     font-weight: 700;
-    color: #f8fafc;
+    letter-spacing: 0.08em;
+    color: #00E5FF;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+}}
+
+.ref-subpage-title {{
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    text-shadow: 0 0 16px rgba(0, 229, 255, 0.4);
+    margin: 0;
+    line-height: 1.15;
+}}
+
+.ref-subpage-sub {{
+    font-size: 0.88rem;
+    color: #94A3B8;
+    margin: 0.35rem 0 0 0;
+}}
+
+/* Global Streamlit Widgets Styling for GTA VI Mode */
+div[data-testid="stTextInput"] input,
+div[data-testid="stNumberInput"] input,
+div[data-testid="stSelectbox"] select,
+div[data-testid="stSelectbox"] > div > div {{
+    background-color: #101A32 !important;
+    border: 1px solid rgba(0, 229, 255, 0.28) !important;
+    color: #F4F7FF !important;
+    border-radius: 10px !important;
+}}
+
+div[data-testid="stButton"] button {{
+    background: linear-gradient(90deg, #00E5FF 0%, #8B5CF6 50%, #FF35C8 100%) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    padding: 0.55rem 1.2rem !important;
+    box-shadow: 0 4px 16px rgba(255, 53, 200, 0.35) !important;
+    transition: all 0.2s ease !important;
+}}
+
+div[data-testid="stButton"] button:hover {{
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 22px rgba(0, 229, 255, 0.55) !important;
+}}
+
+/* Surface & KPI Card Styling Across Submodules */
+.surface-card, .tactical-card, .kpi-card, .vice-card, .stock-stat-box {{
+    background: rgba(16, 26, 50, 0.75) !important;
+    border: 1px solid rgba(0, 229, 255, 0.22) !important;
+    border-radius: 14px !important;
+    padding: 1.1rem 1.25rem !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4) !important;
+    color: #F4F7FF !important;
+}}
+
+.kpi-grid {{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.85rem;
+    margin: 0.95rem 0;
+}}
+
+.kpi-label {{
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}}
+
+.kpi-value {{
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin: 0.25rem 0;
+}}
+
+.kpi-delta.tone-up {{ color: #00D68F !important; font-weight: 700; }}
+.kpi-delta.tone-down {{ color: #FF4D6D !important; font-weight: 700; }}
+.kpi-delta.tone-warn {{ color: #FEE440 !important; font-weight: 700; }}
+.kpi-delta.tone-neutral {{ color: #94A3B8 !important; }}
+
+/* Signal Badges */
+.signal-badge {{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.82rem;
     letter-spacing: 0.04em;
 }}
 
+.badge-buy {{
+    background: rgba(0, 214, 143, 0.16);
+    border: 1px solid #00D68F;
+    color: #00D68F;
+}}
+
+.badge-sell {{
+    background: rgba(255, 77, 109, 0.16);
+    border: 1px solid #FF4D6D;
+    color: #FF4D6D;
+}}
+
+.badge-hold {{
+    background: rgba(254, 228, 64, 0.16);
+    border: 1px solid #FEE440;
+    color: #FEE440;
+}}
+
+/* Neuter and Suppress Old Legacy Artifacts completely */
+.vice-hud-top,
+.wanted-rack,
+.weazel-flash-bar,
+.tactical-hazard-strip,
+.rivet-dot,
+.graffiti-vi {{
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+}}
+
+.steel-rivet-card {{
+    background: rgba(16, 26, 50, 0.75) !important;
+    border: 1.5px solid rgba(0, 229, 255, 0.25) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5) !important;
+}}
+
+@keyframes fadeInModal {{
+    from {{ opacity: 0; transform: translateY(6px); }}
+    to {{ opacity: 1; transform: translateY(0); }}
+}}
+
+@keyframes badge-float {{
+    0%, 100% {{ transform: translateY(0px); }}
+    50% {{ transform: translateY(-2px); }}
+}}
 </style>
 """
 
@@ -2281,6 +1190,8 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(span.ifruit-anchor) {{
 }}
 </style>
 """
+
+
 
 
 DEFAULT_PRO_CSS = """
@@ -2866,8 +1777,12 @@ div[data-testid="stDataFrame"], div[data-testid="stTable"] {
 """
 
 
+
+
+
+
 def inject_global_styles() -> None:
-    """Inject ONLY the active portal theme CSS so zero styles bleed between modes."""
+    """Inject active portal theme CSS cleanly with zero bleed between modes."""
     theme = get_portal_theme()
     if theme == "DEFAULT":
         st.markdown(DEFAULT_PRO_CSS, unsafe_allow_html=True)
@@ -2879,7 +1794,7 @@ def inject_global_styles() -> None:
 
 
 def render_edition_toggle(in_sidebar: bool = False) -> None:
-    """Render the 3-option Portal Theme / Edition Switcher (Default Pro | GTA VI | Doomsday)."""
+    """Render Portal Theme / Edition Switcher."""
     theme = get_portal_theme()
     if theme == "DEFAULT":
         active_badge = "💼 ACTIVE: DEFAULT (PRO STANDARD)"
@@ -2889,7 +1804,7 @@ def render_edition_toggle(in_sidebar: bool = False) -> None:
         badge_color = "#39ff14"
     else:
         active_badge = "🌴 ACTIVE: GTA VI (VICE CITY)"
-        badge_color = "#00f5d4"
+        badge_color = "#00E5FF"
 
     target = st.sidebar if in_sidebar else st
 
@@ -2901,29 +1816,32 @@ def render_edition_toggle(in_sidebar: bool = False) -> None:
             f"</div>",
             unsafe_allow_html=True,
         )
-        if st.sidebar.button(
-            "💼 Default (Pro Standard)",
-            key="edition_btn_default",
-            type="primary" if theme == "DEFAULT" else "secondary",
-            width="stretch",
-        ):
-            if theme != "DEFAULT":
-                switch_world_edition("DEFAULT")
-                st.rerun()
-        if st.sidebar.button(
-            "🌴 GTA VI (Vice City)",
-            key="edition_btn_gta",
-            type="primary" if theme == "GTA VI" else "secondary",
-            width="stretch",
-        ):
-            if theme != "GTA VI":
-                switch_world_edition("GTA VI")
-                st.rerun()
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.sidebar.button(
+                "💼 Default Pro",
+                key="edition_btn_default",
+                type="primary" if theme == "DEFAULT" else "secondary",
+                use_container_width=True,
+            ):
+                if theme != "DEFAULT":
+                    switch_world_edition("DEFAULT")
+                    st.rerun()
+        with col2:
+            if st.sidebar.button(
+                "🌴 GTA VI",
+                key="edition_btn_gta",
+                type="primary" if theme == "GTA VI" else "secondary",
+                use_container_width=True,
+            ):
+                if theme != "GTA VI":
+                    switch_world_edition("GTA VI")
+                    st.rerun()
         if st.sidebar.button(
             "🌋 Doomsday (Apocalypse)",
             key="edition_btn_doomsday",
             type="primary" if theme == "DOOMSDAY" else "secondary",
-            width="stretch",
+            use_container_width=True,
         ):
             if theme != "DOOMSDAY":
                 switch_world_edition("DOOMSDAY")
@@ -2931,65 +1849,40 @@ def render_edition_toggle(in_sidebar: bool = False) -> None:
         return
 
     with target.container():
-        st.markdown('<span class="edition-toggle-marker"></span>', unsafe_allow_html=True)
         st.markdown(
-            f'<div class="edition-toggle-header">'
-            f'<span>⚡ PORTAL THEME // EDITION SWITCHER</span>'
-            f'<span style="color:{badge_color};">{active_badge}</span>'
+            f'<div style="background:rgba(16,26,50,0.85); border:1px solid rgba(0,229,255,0.25); border-radius:12px; padding:0.6rem 1rem; margin-bottom:0.8rem; display:flex; justify-content:space-between; align-items:center;">'
+            f'<span style="font-size:0.82rem; font-weight:700; color:#00E5FF;">PORTAL THEME // EDITION SWITCHER</span>'
+            f'<span style="font-size:0.78rem; font-weight:700; color:{badge_color};">{active_badge}</span>'
             f"</div>",
             unsafe_allow_html=True,
         )
         col_def, col_gta, col_doom = st.columns(3, gap="small")
         with col_def:
-            if st.button(
-                "💼 Default (Pro Standard)",
-                key="edition_btn_default",
-                type="primary" if theme == "DEFAULT" else "secondary",
-                width="stretch",
-            ):
+            if st.button("💼 Default Pro", key="edition_btn_top_def", use_container_width=True):
                 if theme != "DEFAULT":
                     switch_world_edition("DEFAULT")
                     st.rerun()
         with col_gta:
-            if st.button(
-                "🌴 GTA VI (Vice City)",
-                key="edition_btn_gta",
-                type="primary" if theme == "GTA VI" else "secondary",
-                width="stretch",
-            ):
+            if st.button("🌴 GTA VI", key="edition_btn_top_gta", use_container_width=True):
                 if theme != "GTA VI":
                     switch_world_edition("GTA VI")
                     st.rerun()
         with col_doom:
-            if st.button(
-                "🌋 Doomsday (Apocalypse)",
-                key="edition_btn_doomsday",
-                type="primary" if theme == "DOOMSDAY" else "secondary",
-                width="stretch",
-            ):
+            if st.button("🌋 Doomsday", key="edition_btn_top_doom", use_container_width=True):
                 if theme != "DOOMSDAY":
                     switch_world_edition("DOOMSDAY")
                     st.rerun()
 
 
 def render_wanted_stars_html(active_stars: int = 6, total_stars: int = 6) -> str:
-    """Return HTML markup for Wanted stars (GTA VI), Alert System (Doomsday), or empty string in Default."""
-    if is_default_theme():
+    """Wanted stars removed in GTA VI Vice City Edition (kept only for Doomsday)."""
+    if not is_doomsday():
         return ""
     clamped = max(0, min(active_stars, total_stars))
-    if is_doomsday():
-        on_icons = "".join('<span class="wanted-star-on" style="color:#ffb703;">⚠️</span>' for _ in range(clamped))
-        off_icons = "".join('<span class="wanted-star-off">△</span>' for _ in range(total_stars - clamped))
-        return (
-            f'<div class="wanted-rack">'
-            f'<span class="wanted-label" style="color:#ff4500; font-weight:700;">🚨 APOCALYPSE ALERT SYSTEM (TIER {clamped})</span>'
-            f"{on_icons}{off_icons}"
-            f"</div>"
-        )
     stars_on = "".join('<span class="wanted-star-on">★</span>' for _ in range(clamped))
     stars_off = "".join('<span class="wanted-star-off">☆</span>' for _ in range(total_stars - clamped))
     return (
-        f'<div class="wanted-rack">'
+        f'<div class="wanted-rack" style="display:flex !important; opacity:1 !important;">'
         f'<span class="wanted-label">WANTED</span>'
         f"{stars_on}{stars_off}"
         f"</div>"
@@ -2997,32 +1890,17 @@ def render_wanted_stars_html(active_stars: int = 6, total_stars: int = 6) -> str
 
 
 def render_vice_hud_banner(wanted_stars: int = 6, telemetry: str = "BAWSAQ // LCN LIVE LINK") -> None:
-    """Render top armored wing emblem (GTA/Doomsday only; hidden in Default Pro Standard)."""
-    if is_default_theme():
+    """Top eagle wing & wanted banner removed in GTA VI (kept only for Doomsday)."""
+    if not is_doomsday():
         return
-    doomsday = is_doomsday()
     stars_html = render_wanted_stars_html(active_stars=wanted_stars, total_stars=6)
-    safe_telemetry = html.escape(
-        "SECURITY LEVEL: DEFCON-1 · RADIOACTIVITY ALERT" if (doomsday and telemetry == "BAWSAQ // LCN LIVE LINK") else telemetry
-    )
-    wing_text = (
-        "☣️ ★ DRONACHARYA GROUP OF INSTITUTIONS • AKTU ★ ☣️"
-        if doomsday
-        else "🦅 ★ DRONACHARYA GROUP OF INSTITUTIONS • AKTU ★ 🦅"
-    )
-    sub_ribbon = (
-        "⚠️ DEFCON-1 BUNKER PROTOCOL • APOCALYPSE TERMINAL ⚠️"
-        if doomsday
-        else "★ ★ ★ Vice City Special Events • Leonida Terminal ★ ★ ★"
-    )
-    title_grad = (
-        "linear-gradient(90deg,#ffb703,#ff4500,#39ff14)"
-        if doomsday
-        else "linear-gradient(90deg,#ff2a85,#ff7a00,#fee440)"
-    )
+    safe_telemetry = html.escape("SECURITY LEVEL: DEFCON-1 · RADIOACTIVITY ALERT")
+    wing_text = "☣️ ★ DRONACHARYA GROUP OF INSTITUTIONS • AKTU ★ ☣️"
+    sub_ribbon = "⚠️ DEFCON-1 BUNKER PROTOCOL • APOCALYPSE TERMINAL ⚠️"
+    title_grad = "linear-gradient(90deg,#ffb703,#ff4500,#39ff14)"
 
     st.markdown(
-        f'<div class="vice-hud-top">'
+        f'<div class="vice-hud-top" style="display:flex !important; opacity:1 !important;">'
         f'<div class="vice-telemetry-tag">▸▸ {safe_telemetry}<br/>'
         f'<span style="font-family:\'Orbitron\',sans-serif; font-weight:900; font-size:0.78rem; '
         f'background:{title_grad}; -webkit-background-clip:text; '
@@ -3033,11 +1911,11 @@ def render_vice_hud_banner(wanted_stars: int = 6, telemetry: str = "BAWSAQ // LC
         f'<span class="wing-chevron"></span>'
         f'<span class="wing-pill">{wing_text}</span>'
         f'<span class="wing-chevron right"></span>'
-        f"</div>"
+        f'</div>'
         f'<div class="vice-sub-ribbon">{sub_ribbon}</div>'
-        f"</div>"
-        f"{stars_html}"
-        f"</div>",
+        f'</div>'
+        f'{stars_html}'
+        f'</div>',
         unsafe_allow_html=True,
     )
 
@@ -3045,15 +1923,16 @@ def render_vice_hud_banner(wanted_stars: int = 6, telemetry: str = "BAWSAQ // LC
 def render_page_header(
     title: str,
     subtitle: str,
-    badge: str = "NSE INDIA • BAWSAQ LIVE",
+    badge: str = "NSE INDIA • AI INSIGHTS",
     use_calligraphy: bool = False,
-    wanted_stars: int = 6,
+    wanted_stars: int = 0,
 ) -> None:
-    """Render clean corporate header (Default) or synthwave/apocalypse hero banner."""
+    """Render clean collegiate header (Default Pro) or sleek modern Vice City card (GTA VI)."""
+    safe_badge = html.escape(badge)
+    safe_title = html.escape(title)
+    safe_subtitle = html.escape(subtitle)
+
     if is_default_theme():
-        safe_badge = html.escape(badge)
-        safe_title = html.escape(title)
-        safe_subtitle = html.escape(subtitle)
         st.markdown(
             f'<div class="pro-page-header">'
             f'<div class="pro-header-badge">● {safe_badge}</div>'
@@ -3064,42 +1943,41 @@ def render_page_header(
         )
         return
 
-    doomsday = is_doomsday()
-    render_vice_hud_banner(wanted_stars=wanted_stars)
-    safe_badge = html.escape(badge)
-    safe_title = html.escape(title)
-    safe_subtitle = html.escape(subtitle)
-    title_cls = ' class="vice-calligraphy"' if (use_calligraphy and not doomsday) else ""
-    badge_icon = "☣️" if doomsday else "🌴"
-    right_pill = "☢️ 📉🔥 DEFCON-1 INDEX ▾▾" if doomsday else "🌅 📈🌴 BAWSAQ INDEX ▲▲"
+    if is_doomsday():
+        render_vice_hud_banner(wanted_stars=wanted_stars)
+        st.markdown(
+            f'<div class="portal-hero">'
+            f'<div class="portal-hero-badge">☣️ {safe_badge}</div>'
+            f'<div class="portal-hero-row">'
+            f"<div style='flex:1; min-width:260px;'>"
+            f"<h1>{safe_title}</h1>"
+            f"<p>▸▸ {safe_subtitle}</p>"
+            f"</div>"
+            f'<div class="pixel-arrow-pill">☢️ 📉🔥 DEFCON-1 INDEX ▾▾</div>'
+            f"</div>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+        return
 
+    # GTA VI (Vice City) Clean Reference Header Card
     st.markdown(
-        f'<div class="portal-hero">'
-        f'<div class="portal-hero-badge">{badge_icon} {safe_badge}</div>'
-        f'<div class="portal-hero-row">'
-        f"<div style='flex:1; min-width:260px;'>"
-        f"<h1{title_cls}>{safe_title}</h1>"
-        f"<p>▸▸ {safe_subtitle}</p>"
-        f"</div>"
-        f'<div class="pixel-arrow-pill">{right_pill}</div>'
-        f"</div>"
-        f"</div>",
+        f'<div class="ref-subpage-header">'
+        f'<div class="ref-subpage-badge">⚡ {safe_badge}</div>'
+        f'<h1 class="ref-subpage-title">{safe_title}</h1>'
+        f'<p class="ref-subpage-sub">▸▸ {safe_subtitle}</p>'
+        f'</div>',
         unsafe_allow_html=True,
     )
 
 
 def render_doomsday_reboot_overlay() -> None:
-    """Render full-screen Fallback / Emergency Reboot transition when switching into Doomsday."""
-    render_vice_hud_banner(wanted_stars=6, telemetry="EMERGENCY REBOOT // BUNKER.NET")
+    """Render fallback reboot overlay for Doomsday edition."""
     st.markdown(
         """
         <div class="leonida-transition-shell">
-            <div class="steel-rivet-card doomsday-glitch-stage" style="text-align:center; padding:1.75rem 1.5rem;">
+            <div class="steel-rivet-card doomsday-glitch-stage" style="text-align:center; padding:1.8rem 1.4rem;">
                 <div class="doomsday-scan-beam"></div>
-                <span class="rivet-dot rivet-tl"></span>
-                <span class="rivet-dot rivet-tr"></span>
-                <span class="rivet-dot rivet-bl"></span>
-                <span class="rivet-dot rivet-br"></span>
                 <div style="font-family:'Orbitron',sans-serif; color:#ffb703; font-size:0.85rem; letter-spacing:0.14em;">
                     ⚠️ FALLBACK / EMERGENCY REBOOT INITIATED
                 </div>
@@ -3110,14 +1988,7 @@ def render_doomsday_reboot_overlay() -> None:
                 <div class="neon-progress-track" style="border-color:#39ff14;">
                     <div class="neon-progress-fill" style="background:linear-gradient(90deg,#9a1b00,#ff4500,#ffb703,#39ff14);"></div>
                 </div>
-                <div class="holo-ticker-strip" style="color:#39ff14; border-color:rgba(255,69,0,0.55);">
-                    <div class="holo-ticker-inner">
-                        DEFCON-1 ACTIVE // BUNKER.NET ENCRYPTED LINK &nbsp;//&nbsp; NSE FEED ROUTED TO SHELTER NODES
-                        &nbsp;//&nbsp; RADIATION SHIELDS: ENGAGED
-                    </div>
-                </div>
                 <div class="glitch-seq-line seq-1" style="color:#ff4500;">▸ ALERT: REDIRECTING TO bunker.net CLIENT...</div>
-                <div class="glitch-seq-line seq-2" style="color:#ffb703;">▸ BYPASSING GLOBAL SECURITY RADARS...</div>
                 <div class="glitch-seq-line seq-3" style="color:#39ff14;">▸ DEFCON-1 STATUS ACTIVE // BUNKER ONLINE</div>
             </div>
         </div>
@@ -3127,7 +1998,7 @@ def render_doomsday_reboot_overlay() -> None:
 
 
 def render_login_transition_overlay(username: str) -> None:
-    """Render theme-aware login loading transition (1.5s fintech bar in Default, 2s in GTA/Doomsday)."""
+    """Render clean theme-aware login loading transition."""
     safe_user = html.escape(username)
     if is_default_theme():
         st.markdown(
@@ -3145,80 +2016,26 @@ def render_login_transition_overlay(username: str) -> None:
                 <div class="pro-progress-track">
                     <div class="pro-progress-fill"></div>
                 </div>
-                <div style="font-size:0.78rem; color:#64748b;">
-                    Dronacharya Group of Institutions · B.Tech Mini Project BCC 351
-                </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
         return
 
-    doomsday = is_doomsday()
-    if doomsday:
-        render_vice_hud_banner(wanted_stars=6, telemetry="BUNKER.NET ENTRY PROTOCOL")
-        st.markdown(
-            f"""
-            <div class="leonida-transition-shell">
-                <div class="steel-rivet-card doomsday-glitch-stage" style="text-align:center; padding:1.75rem 1.5rem;">
-                    <div class="doomsday-scan-beam"></div>
-                    <span class="rivet-dot rivet-tl"></span>
-                    <span class="rivet-dot rivet-tr"></span>
-                    <span class="rivet-dot rivet-bl"></span>
-                    <span class="rivet-dot rivet-br"></span>
-                    <div style="font-family:'Orbitron',sans-serif; color:#39ff14; font-size:0.82rem; letter-spacing:0.14em;">
-                        SURVIVOR CLEARANCE // {safe_user.upper()}
-                    </div>
-                    <div class="cyber-uplink-crest" style="border-color:#ff4500;">
-                        <div class="cyber-uplink-ring" style="border-color:#39ff14;"></div>
-                        <div style="font-size:3.1rem; filter:drop-shadow(0 0 14px #39ff14);">☣️</div>
-                    </div>
-                    <div class="neon-progress-track" style="border-color:#39ff14;">
-                        <div class="neon-progress-fill" style="background:linear-gradient(90deg,#9a1b00,#ff4500,#ffb703,#39ff14);"></div>
-                    </div>
-                    <div class="holo-ticker-strip" style="color:#39ff14; border-color:rgba(255,69,0,0.55);">
-                        <div class="holo-ticker-inner">
-                            BUNKER.NET UPLINK LOCKED &nbsp;//&nbsp; RELIANCE.NS &nbsp;//&nbsp; TCS.NS &nbsp;//&nbsp; SBIN.NS &nbsp;//&nbsp; WAR CAPITAL READY
-                        </div>
-                    </div>
-                    <div class="glitch-seq-line seq-1" style="color:#ff4500;">▸ ALERT: CONNECTING TO BUNKER.NET...</div>
-                    <div class="glitch-seq-line seq-2" style="color:#ffb703;">▸ BYPASSING GLOBAL SECURITY RADARS...</div>
-                    <div class="glitch-seq-line seq-3" style="color:#39ff14;">▸ DEFCON-1 STATUS ACTIVE // ACCESS GRANTED</div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        return
-
-    render_vice_hud_banner(wanted_stars=6, telemetry="LEONIDA ENTRY PROTOCOL")
     st.markdown(
         f"""
-        <div class="leonida-transition-shell">
-            <div class="steel-rivet-card" style="text-align:center; padding:1.75rem 1.5rem;">
-                <span class="rivet-dot rivet-tl"></span>
-                <span class="rivet-dot rivet-tr"></span>
-                <span class="rivet-dot rivet-bl"></span>
-                <span class="rivet-dot rivet-br"></span>
-                <div style="font-family:'Orbitron',sans-serif; color:#00f5d4; font-size:0.82rem; letter-spacing:0.14em;">
-                    OPERATOR VERIFIED // {safe_user.upper()}
+        <div style="display:flex; justify-content:center; align-items:center; min-height:240px;">
+            <div style="background:rgba(16,26,50,0.92); border:1.5px solid rgba(0,229,255,0.45); border-radius:16px; padding:2rem 2.5rem; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.6);">
+                <div style="font-size:2.2rem; margin-bottom:0.6rem;">🌴🏙️</div>
+                <div style="font-family:'Orbitron',sans-serif; font-size:1.15rem; font-weight:800; color:#00E5FF; margin-bottom:0.35rem;">
+                    WELCOME, {safe_user.upper()}
                 </div>
-                <div class="cyber-uplink-crest">
-                    <div class="cyber-uplink-ring"></div>
-                    <div class="graffiti-vi" style="font-size:3.1rem;">VI</div>
+                <div style="font-size:0.85rem; color:#94a3b8; margin-bottom:1.2rem;">
+                    Loading AI Stock Insights & Live NSE Analytics...
                 </div>
-                <div class="neon-progress-track">
-                    <div class="neon-progress-fill"></div>
+                <div style="width:260px; height:4px; background:rgba(0,229,255,0.15); border-radius:4px; overflow:hidden; margin:0 auto;">
+                    <div style="width:100%; height:100%; background:linear-gradient(90deg, #00E5FF, #FF35C8); animation: neonLinePulse 1.5s infinite;"></div>
                 </div>
-                <div class="holo-ticker-strip">
-                    <div class="holo-ticker-inner">
-                        RELIANCE.NS ▲ +1.84% &nbsp;//&nbsp; TCS.NS ▲ +0.92% &nbsp;//&nbsp; HDFCBANK.NS ▲ +1.15%
-                        &nbsp;//&nbsp; INFY.NS ▼ -0.38% &nbsp;//&nbsp; SBIN.NS ▲ +2.07% &nbsp;//&nbsp; ADANIENT.NS ▲ +1.02%
-                    </div>
-                </div>
-                <div class="glitch-seq-line seq-1">▸ INITIALIZING BAWSAQ / NSE FEED...</div>
-                <div class="glitch-seq-line seq-2">▸ BYPASSING SECURITY...</div>
-                <div class="glitch-seq-line seq-3">▸ ACCESS GRANTED // WELCOME TO LEONIDA</div>
             </div>
         </div>
         """,
@@ -3237,20 +2054,15 @@ def render_gta_chase_transition(wanted_stars: int = 2) -> None:
 
 
 def render_weazel_flash_ticker(headlines: list[str]) -> None:
-    """Render lower-third breaking ticker (hidden in Default Pro Standard)."""
-    if is_default_theme():
+    """Ticker removed in GTA VI Vice City Edition (kept only for Doomsday)."""
+    if not is_doomsday():
         return
-    doomsday = is_doomsday()
     joined = "   ✦   ".join(html.escape(h) for h in headlines if h)
     if not joined:
-        joined = (
-            "CRITICAL EMERGENCY MONITORING ACTIVE — BUNKER.NET NSE SURVEILLANCE LOCKED"
-            if doomsday
-            else "BAWSAQ / LCN EQUITIES MONITORING ACTIVE — NO EXTREME SIGNAL ALERTS TRIGGERED"
-        )
-    tag_text = "☣️ DISASTER BROADCAST NETWORK" if doomsday else "WEAZEL NEWS // LEONIDA MARKET FLASH"
+        joined = "CRITICAL EMERGENCY MONITORING ACTIVE — BUNKER.NET NSE SURVEILLANCE LOCKED"
+    tag_text = "☣️ DISASTER BROADCAST NETWORK"
     st.markdown(
-        f'<div class="weazel-flash-bar">'
+        f'<div class="weazel-flash-bar" style="display:flex !important; opacity:1 !important;">'
         f'<div class="weazel-tag">{tag_text}</div>'
         f'<div class="weazel-marquee-wrap">'
         f'<div class="weazel-marquee-track">{joined} &nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp; {joined}</div>'
@@ -3335,11 +2147,11 @@ def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = N
         return fig
 
     doomsday = is_doomsday()
-    paper_bg = "rgba(16, 11, 9, 0.94)" if doomsday else "rgba(11, 5, 36, 0.92)"
-    plot_bg = "rgba(24, 15, 11, 0.92)" if doomsday else "rgba(16, 7, 46, 0.90)"
-    accent_primary = "#39ff14" if doomsday else "#00f5d4"
-    grid_x = "rgba(255, 69, 0, 0.18)" if doomsday else "rgba(255, 42, 133, 0.16)"
-    grid_y = "rgba(57, 255, 20, 0.14)" if doomsday else "rgba(0, 245, 212, 0.12)"
+    paper_bg = "rgba(16, 11, 9, 0.94)" if doomsday else "#070B1A"
+    plot_bg = "rgba(24, 15, 11, 0.92)" if doomsday else "#101A32"
+    accent_primary = "#39ff14" if doomsday else "#00E5FF"
+    grid_x = "rgba(255, 69, 0, 0.18)" if doomsday else "rgba(255, 255, 255, 0.06)"
+    grid_y = "rgba(57, 255, 20, 0.14)" if doomsday else "rgba(255, 255, 255, 0.06)"
 
     layout_kwargs = {
         "template": "plotly_dark",
@@ -3355,15 +2167,15 @@ def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = N
             "y": 1.02,
             "xanchor": "right",
             "x": 1,
-            "bgcolor": "rgba(10, 4, 28, 0.65)" if not doomsday else "rgba(16, 10, 8, 0.78)",
-            "bordercolor": "rgba(57, 255, 20, 0.42)" if doomsday else "rgba(0, 245, 212, 0.35)",
+            "bgcolor": "rgba(16, 10, 8, 0.78)" if doomsday else "rgba(16, 26, 50, 0.8)",
+            "bordercolor": "rgba(57, 255, 20, 0.42)" if doomsday else "rgba(0, 229, 255, 0.25)",
             "borderwidth": 1,
         },
     }
     if title:
         layout_kwargs["title"] = {
             "text": title,
-            "font": {"family": "Orbitron, sans-serif", "size": 15, "color": accent_primary},
+            "font": {"family": "Rajdhani, Orbitron, sans-serif", "size": 15, "color": accent_primary},
         }
 
     fig.update_layout(**layout_kwargs)
@@ -3374,7 +2186,7 @@ def style_plotly_figure(fig: go.Figure, height: int = 500, title: str | None = N
     )
     fig.update_yaxes(
         gridcolor=grid_y,
-        linecolor="#ff4500" if doomsday else "rgba(255, 42, 133, 0.35)",
+        linecolor="#ff4500" if doomsday else "rgba(255, 53, 200, 0.35)",
         zeroline=False,
     )
     return fig

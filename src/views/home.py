@@ -477,6 +477,9 @@ def render_main_three_column_grid(on_navigate_callback=None) -> None:
             """,
             unsafe_allow_html=True,
         )
+        if st.button("Open Live Market Overview ➔", key="btn_open_market_overview", use_container_width=True):
+            if on_navigate_callback:
+                on_navigate_callback("🌐 Market Overview")
 
     # ==================== CARD 2: STOCK PERFORMANCE ====================
     with col_mid:
@@ -505,6 +508,9 @@ def render_main_three_column_grid(on_navigate_callback=None) -> None:
             config={"displayModeBar": False, "staticPlot": False},
             key="ref_candle_chart",
         )
+        if st.button("Analyze Technicals & ML ➔", key="btn_open_stock_perf", use_container_width=True):
+            if on_navigate_callback:
+                on_navigate_callback("📈 Stock Analysis")
 
     # ==================== CARD 3: AI INSIGHTS ====================
     with col_right:
