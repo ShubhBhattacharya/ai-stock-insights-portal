@@ -286,6 +286,9 @@ def render_sidebar() -> str:
         render_edition_toggle(in_sidebar=True)
         st.sidebar.markdown("---")
 
+        _render_sidebar_voice_widget(default_pro=True)
+        st.sidebar.markdown("---")
+
         selected_mode = st.sidebar.radio(
             "Navigation Modules",
             NAV_ITEMS,
@@ -293,8 +296,6 @@ def render_sidebar() -> str:
             on_change=on_module_change,
         )
 
-        st.sidebar.markdown("---")
-        _render_sidebar_voice_widget(default_pro=True)
         st.sidebar.markdown("---")
         st.sidebar.info(
             "**AI Stock Insights Portal (Pro Standard)**\n"
@@ -336,6 +337,9 @@ def render_sidebar() -> str:
     render_edition_toggle(in_sidebar=True)
     st.sidebar.markdown("---")
 
+    _render_sidebar_voice_widget(default_pro=False)
+    st.sidebar.markdown("---")
+
     selected_mode = st.sidebar.radio(
         "☢️ BUNKER MODULES" if doomsday else "🕹️ MODULE SELECTOR",
         NAV_ITEMS,
@@ -343,8 +347,6 @@ def render_sidebar() -> str:
         on_change=on_module_change,
     )
 
-    st.sidebar.markdown("---")
-    _render_sidebar_voice_widget(default_pro=False)
     st.sidebar.markdown("---")
     if doomsday:
         st.sidebar.info(
