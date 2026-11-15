@@ -123,6 +123,23 @@ def on_module_change() -> None:
         st.session_state["prev_module"] = chosen
 
 
+def set_pending_navigation(target: str) -> None:
+    """Safely queue navigation target without directly mutating widget keys after instantiation."""
+    if target in NAV_ITEMS:
+        st.session_state["pending_nav_target"] = target
+        st.session_state["active_module"] = target
+        st.session_state["prev_module"] = target
+
+
+def apply_pending_navigation() -> None:
+    """Apply queued navigation before any sidebar widgets instantiate to prevent StreamlitWidgetAlreadyInstantiatedError."""
+    target = st.session_state.pop("pending_nav_target", None)
+    if target and target in NAV_ITEMS:
+        st.session_state["module_selector"] = target
+        st.session_state["active_module"] = target
+        st.session_state["prev_module"] = target
+
+
 def _render_sidebar_voice_widget(default_pro: bool) -> None:
     """Render sidebar voice command & stock query mic recorder powered by Whisper."""
     with st.sidebar.expander("🎙️ Voice Command (Whisper)", expanded=True):
@@ -131,15 +148,11 @@ def _render_sidebar_voice_widget(default_pro: bool) -> None:
                 return
             cmd = dispatch_voice_command(transcript)
             if cmd["action"] == "navigate":
-                st.session_state["module_selector"] = cmd["target"]
-                st.session_state["active_module"] = cmd["target"]
-                st.session_state["prev_module"] = cmd["target"]
+                set_pending_navigation(cmd["target"])
                 st.toast(f"Navigating to {cmd['target']} via voice!", icon="🚀")
                 st.rerun()
             else:
-                st.session_state["module_selector"] = "🎓 AI Stock Tutor & Chatbot"
-                st.session_state["active_module"] = "🎓 AI Stock Tutor & Chatbot"
-                st.session_state["prev_module"] = "🎓 AI Stock Tutor & Chatbot"
+                set_pending_navigation("🎓 AI Stock Tutor & Chatbot")
                 st.session_state.setdefault("messages", []).append({"role": "user", "content": transcript})
                 try:
                     from src.services.tutor import (
@@ -206,15 +219,11 @@ def render_top_voice_dictation_bar(portal_theme: str) -> None:
             return
         cmd = dispatch_voice_command(transcript)
         if cmd["action"] == "navigate":
-            st.session_state["module_selector"] = cmd["target"]
-            st.session_state["active_module"] = cmd["target"]
-            st.session_state["prev_module"] = cmd["target"]
+            set_pending_navigation(cmd["target"])
             st.toast(f"Navigating to {cmd['target']} via voice!", icon="🚀")
             st.rerun()
         else:
-            st.session_state["module_selector"] = "🎓 AI Stock Tutor & Chatbot"
-            st.session_state["active_module"] = "🎓 AI Stock Tutor & Chatbot"
-            st.session_state["prev_module"] = "🎓 AI Stock Tutor & Chatbot"
+            set_pending_navigation("🎓 AI Stock Tutor & Chatbot")
             st.session_state.setdefault("messages", []).append({"role": "user", "content": transcript})
             try:
                 from src.services.tutor import (
@@ -246,6 +255,7 @@ def render_top_voice_dictation_bar(portal_theme: str) -> None:
 
 def render_sidebar() -> str:
     """Render clean theme-aware sidebar profile, cash balance, logout, 3-mode switcher, and nav."""
+    apply_pending_navigation()
     default_pro = is_default_theme()
     doomsday = is_doomsday()
     username = html.escape(str(st.session_state["username"]))
@@ -279,7 +289,6 @@ def render_sidebar() -> str:
         selected_mode = st.sidebar.radio(
             "Navigation Modules",
             NAV_ITEMS,
-            index=active_idx,
             key="module_selector",
             on_change=on_module_change,
         )
@@ -330,7 +339,6 @@ def render_sidebar() -> str:
     selected_mode = st.sidebar.radio(
         "☢️ BUNKER MODULES" if doomsday else "🕹️ MODULE SELECTOR",
         NAV_ITEMS,
-        index=active_idx,
         key="module_selector",
         on_change=on_module_change,
     )
@@ -358,6 +366,7 @@ def render_sidebar() -> str:
 def main() -> None:
     """Bootstrap active portal theme styles, session state, transitions, and dashboard."""
     init_session_state()
+    apply_pending_navigation()
     inject_global_styles()
 
     if st.session_state.get("edition_transitioning"):
