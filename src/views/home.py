@@ -23,9 +23,19 @@ from src.constants import NSE_STOCKS
 from src.state import get_portal_theme, is_default_theme, is_doomsday
 
 
+def _clean_html(html_str: str) -> str:
+    """Strip leading and trailing whitespace from every line so Markdown never treats HTML as an indented code block."""
+    return "\n".join(line.strip() for line in html_str.splitlines() if line.strip())
+
+
+def _render_html(html_str: str) -> None:
+    """Safely render HTML via st.markdown(..., unsafe_allow_html=True) with guaranteed zero indentation."""
+    st.markdown(_clean_html(html_str), unsafe_allow_html=True)
+
+
 def _render_hero_skyline_svg() -> str:
     """Generate inline SVG for the Synthwave Sunset Skyline with palms, retro sun, and city silhouette."""
-    return """
+    raw_svg = """
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" preserveAspectRatio="none" style="width:100%; height:100%; position:absolute; top:0; left:0; pointer-events:none; border-radius:18px;">
       <defs>
         <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -129,6 +139,7 @@ def _render_hero_skyline_svg() -> str:
       </g>
     </svg>
     """
+    return _clean_html(raw_svg)
 
 
 def render_collegiate_top_bar() -> None:
@@ -136,68 +147,62 @@ def render_collegiate_top_bar() -> None:
     username = html.escape(str(st.session_state.get("username", "SHUBH")).upper())
     portal_theme = str(st.session_state.get("portal_theme", "GTA VI (Vice City)"))
 
-    st.markdown(
-        f"""
-        <div class="ref-top-bar">
-          <div class="ref-top-left">
-            <span class="ref-top-crest">🏛️</span>
-            <div>
-              <div class="ref-top-title">★ Dronacharya Group of Institutions ★</div>
-              <div class="ref-top-sub">BCCI 351 &nbsp;|&nbsp; Vice City Special Events</div>
-            </div>
-          </div>
-          <div class="ref-top-right">
-            <div class="ref-theme-toggle-pill" title="Active Theme: {portal_theme}">
-              <span class="ref-sun-icon">☀️</span>
-              <span class="ref-moon-icon">🌙</span>
-            </div>
-            <div class="ref-profile-pill">
-              <span style="font-size:0.95rem;">👤</span>
-              <span style="font-weight:700; letter-spacing:0.04em;">{username}</span>
-            </div>
-          </div>
+    _render_html(f"""
+    <div class="ref-top-bar">
+      <div class="ref-top-left">
+        <span class="ref-top-crest">🏛️</span>
+        <div>
+          <div class="ref-top-title">★ Dronacharya Group of Institutions ★</div>
+          <div class="ref-top-sub">BCCI 351 &nbsp;|&nbsp; Vice City Special Events</div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+      </div>
+      <div class="ref-top-right">
+        <div class="ref-theme-toggle-pill" title="Active Theme: {portal_theme}">
+          <span class="ref-sun-icon">☀️</span>
+          <span class="ref-moon-icon">🌙</span>
+        </div>
+        <div class="ref-profile-pill">
+          <span style="font-size:0.95rem;">👤</span>
+          <span style="font-weight:700; letter-spacing:0.04em;">{username}</span>
+        </div>
+      </div>
+    </div>
+    """)
 
 
 def render_hero_banner(on_search_callback=None) -> None:
     """Render the synthwave retro sunset skyline hero banner, cursive lettering, and centered pill search bar."""
     svg_bg = _render_hero_skyline_svg()
 
-    st.markdown(
-        f"""
-        <div class="ref-hero-banner">
-          {svg_bg}
-          <div class="ref-hero-content">
-            <div class="ref-hero-left">
-              <h1 class="ref-hero-title">
-                <span class="glow-cyan">AI Stock Insights</span>
-                <span class="glow-magenta">Portal</span>
-              </h1>
-              <div class="ref-hero-subtitle">Analyze • Predict • Invest Smarter</div>
-              <div class="ref-hero-badges-pill">
-                <span>⚡ Real-Time Analysis</span>
-                <span class="pill-divider">|</span>
-                <span>🤖 AI-Powered Insights</span>
-                <span class="pill-divider">|</span>
-                <span>📊 Professional Charts</span>
-              </div>
-            </div>
-            <div class="ref-hero-right">
-              <div class="ref-cursive-script">
-                Invest Smart<br>Trade Better
-              </div>
-            </div>
+    _render_html(f"""
+    <div class="ref-hero-banner">
+      {svg_bg}
+      <div class="ref-hero-content">
+        <div class="ref-hero-left">
+          <h1 class="ref-hero-title">
+            <span class="glow-cyan">AI Stock Insights</span>
+            <span class="glow-magenta">Portal</span>
+          </h1>
+          <div class="ref-hero-subtitle">Analyze • Predict • Invest Smarter</div>
+          <div class="ref-hero-badges-pill">
+            <span>⚡ Real-Time Analysis</span>
+            <span class="pill-divider">|</span>
+            <span>🤖 AI-Powered Insights</span>
+            <span class="pill-divider">|</span>
+            <span>📊 Professional Charts</span>
           </div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        <div class="ref-hero-right">
+          <div class="ref-cursive-script">
+            Invest Smart<br>Trade Better
+          </div>
+        </div>
+      </div>
+    </div>
+    """)
 
     # Centered Pill Search Container
-    st.markdown('<div class="ref-search-wrapper">', unsafe_allow_html=True)
+    _render_html('<div class="ref-search-wrapper">')
     c_search, c_btn = st.columns([4, 1.2], gap="small")
     with c_search:
         search_query = st.text_input(
@@ -213,7 +218,7 @@ def render_hero_banner(on_search_callback=None) -> None:
             key="home_hero_analyze_btn",
             use_container_width=True,
         )
-    st.markdown("</div>", unsafe_allow_html=True)
+    _render_html("</div>")
 
     if analyze_clicked or (search_query and st.session_state.get("last_hero_query") != search_query):
         target_sym = search_query if search_query else "RELIANCE"
@@ -271,21 +276,18 @@ def render_four_quick_action_cards(on_navigate_callback=None) -> None:
     for i, col in enumerate(cols):
         item = cards_data[i]
         with col:
-            st.markdown(
-                f"""
-                <div class="ref-action-card ref-card-{item['variant']}">
-                  <div class="ref-action-icon-box ref-icon-{item['variant']}">
-                    <span>{item['icon']}</span>
-                  </div>
-                  <div class="ref-action-text-box">
-                    <div class="ref-action-card-title">{item['title']}</div>
-                    <div class="ref-action-card-sub">{item['subtitle']}</div>
-                  </div>
-                  <div class="ref-action-card-arrow">➔</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            _render_html(f"""
+            <div class="ref-action-card ref-card-{item['variant']}">
+              <div class="ref-action-icon-box ref-icon-{item['variant']}">
+                <span>{item['icon']}</span>
+              </div>
+              <div class="ref-action-text-box">
+                <div class="ref-action-card-title">{item['title']}</div>
+                <div class="ref-action-card-sub">{item['subtitle']}</div>
+              </div>
+              <div class="ref-action-card-arrow">➔</div>
+            </div>
+            """)
             if st.button(
                 f"Open {item['title']} ➔",
                 key=item["btn_key"],
@@ -297,14 +299,12 @@ def render_four_quick_action_cards(on_navigate_callback=None) -> None:
 
 def _generate_smooth_market_chart() -> go.Figure:
     """Generate high-fidelity smooth green area chart matching the Market Overview card in reference."""
-    # 26 timepoints simulating bullish session from 09:15 to 15:30
     x_times = [
         "09:15", "09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00",
         "11:15", "11:30", "11:45", "12:00", "12:15", "12:30", "12:45", "13:00",
         "13:15", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00",
         "15:15", "15:30",
     ]
-    # Smooth upward trajectory climbing to 25,666.40
     y_vals = [
         25530.0, 25545.0, 25528.0, 25555.0, 25580.0, 25565.0, 25590.0, 25610.0,
         25600.0, 25625.0, 25615.0, 25630.0, 25642.0, 25635.0, 25650.0, 25640.0,
@@ -318,9 +318,9 @@ def _generate_smooth_market_chart() -> go.Figure:
             x=x_times,
             y=y_vals,
             mode="lines",
-            line=dict(color="#00f5d4", width=2.8, shape="spline", smoothing=1.1),
+            line=dict(color="#00D68F", width=2.8, shape="spline", smoothing=1.1),
             fill="tozeroy",
-            fillcolor="rgba(0, 245, 212, 0.12)",
+            fillcolor="rgba(0, 214, 143, 0.12)",
             hoverinfo="x+y",
             hovertemplate="<b>%{x}</b><br>NIFTY: %{y:,.2f}<extra></extra>",
         )
@@ -346,7 +346,6 @@ def _generate_smooth_market_chart() -> go.Figure:
 
 def _generate_candlestick_chart() -> go.Figure:
     """Generate high-fidelity interactive Candlestick chart matching the Stock Performance card in reference."""
-    timestamps = ["09:15", "10:30", "11:45", "13:00", "14:15", "15:30"]
     detailed_times = [
         "09:15", "09:35", "09:55", "10:15", "10:35", "10:55",
         "11:15", "11:35", "11:55", "12:15", "12:35", "12:55",
@@ -386,10 +385,10 @@ def _generate_candlestick_chart() -> go.Figure:
             high=highs,
             low=lows,
             close=closes,
-            increasing_line_color="#00f5d4",
-            increasing_fillcolor="rgba(0, 245, 212, 0.85)",
-            decreasing_line_color="#ff2a6d",
-            decreasing_fillcolor="rgba(255, 42, 109, 0.85)",
+            increasing_line_color="#00D68F",
+            increasing_fillcolor="rgba(0, 214, 143, 0.85)",
+            decreasing_line_color="#FF4D6D",
+            decreasing_fillcolor="rgba(255, 77, 109, 0.85)",
             name="OHLC",
         )
     )
@@ -429,32 +428,29 @@ def render_main_three_column_grid(on_navigate_callback=None) -> None:
 
     # ==================== CARD 1: MARKET OVERVIEW ====================
     with col_left:
-        st.markdown(
-            """
-            <div class="ref-grid-card">
-              <div class="ref-card-header">
-                <div class="ref-card-title-group">
-                  <span class="ref-card-icon cyan">📈</span>
-                  <span class="ref-card-title">Market Overview</span>
-                </div>
-                <div class="ref-live-badge">
-                  <span class="ref-live-dot"></span>
-                  <span>Live</span>
-                </div>
-              </div>
-              <div class="ref-tabs-row">
-                <span class="ref-tab-item active">NIFTY 50</span>
-                <span class="ref-tab-item">SENSEX</span>
-                <span class="ref-tab-item">BANKNIFTY</span>
-              </div>
-              <div class="ref-metric-block">
-                <div class="ref-metric-val">25,666.40</div>
-                <div class="ref-metric-delta">▲ +138.70 (+0.54%)</div>
-              </div>
+        _render_html("""
+        <div class="ref-grid-card">
+          <div class="ref-card-header">
+            <div class="ref-card-title-group">
+              <span class="ref-card-icon cyan">📈</span>
+              <span class="ref-card-title">Market Overview</span>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            <div class="ref-live-badge">
+              <span class="ref-live-dot"></span>
+              <span>Live</span>
+            </div>
+          </div>
+          <div class="ref-tabs-row">
+            <span class="ref-tab-item active">NIFTY 50</span>
+            <span class="ref-tab-item">SENSEX</span>
+            <span class="ref-tab-item">BANKNIFTY</span>
+          </div>
+          <div class="ref-metric-block">
+            <div class="ref-metric-val">25,666.40</div>
+            <div class="ref-metric-delta">▲ +138.70 (+0.54%)</div>
+          </div>
+        </div>
+        """)
 
         area_fig = _generate_smooth_market_chart()
         st.plotly_chart(
@@ -464,42 +460,36 @@ def render_main_three_column_grid(on_navigate_callback=None) -> None:
             key="ref_market_area_chart",
         )
 
-        st.markdown(
-            """
-            <div class="ref-timeframe-pills">
-              <span class="ref-tf-pill active">1D</span>
-              <span class="ref-tf-pill">1W</span>
-              <span class="ref-tf-pill">1M</span>
-              <span class="ref-tf-pill">3M</span>
-              <span class="ref-tf-pill">1Y</span>
-              <span class="ref-tf-pill">ALL</span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        _render_html("""
+        <div class="ref-timeframe-pills">
+          <span class="ref-tf-pill active">1D</span>
+          <span class="ref-tf-pill">1W</span>
+          <span class="ref-tf-pill">1M</span>
+          <span class="ref-tf-pill">3M</span>
+          <span class="ref-tf-pill">1Y</span>
+          <span class="ref-tf-pill">ALL</span>
+        </div>
+        """)
         if st.button("Open Live Market Overview ➔", key="btn_open_market_overview", use_container_width=True):
             if on_navigate_callback:
                 on_navigate_callback("🌐 Market Overview")
 
     # ==================== CARD 2: STOCK PERFORMANCE ====================
     with col_mid:
-        st.markdown(
-            """
-            <div class="ref-grid-card">
-              <div class="ref-card-header">
-                <div class="ref-card-title-group">
-                  <span class="ref-card-icon blue">📊</span>
-                  <span class="ref-card-title">Stock Performance</span>
-                </div>
-                <div class="ref-select-pill">
-                  <span>1D</span>
-                  <span style="font-size:0.7rem; margin-left:0.25rem;">▼</span>
-                </div>
-              </div>
+        _render_html("""
+        <div class="ref-grid-card">
+          <div class="ref-card-header">
+            <div class="ref-card-title-group">
+              <span class="ref-card-icon blue">📊</span>
+              <span class="ref-card-title">Stock Performance</span>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            <div class="ref-select-pill">
+              <span>1D</span>
+              <span style="font-size:0.7rem; margin-left:0.25rem;">▼</span>
+            </div>
+          </div>
+        </div>
+        """)
 
         candle_fig = _generate_candlestick_chart()
         st.plotly_chart(
@@ -514,46 +504,43 @@ def render_main_three_column_grid(on_navigate_callback=None) -> None:
 
     # ==================== CARD 3: AI INSIGHTS ====================
     with col_right:
-        st.markdown(
-            """
-            <div class="ref-grid-card">
-              <div class="ref-card-header">
-                <div class="ref-card-title-group">
-                  <span class="ref-card-icon magenta">✨</span>
-                  <span class="ref-card-title">AI Insights</span>
-                </div>
-                <div class="ref-view-all-link">
-                  <span>View All ➔</span>
-                </div>
-              </div>
-              <div class="ref-outlook-box">
-                <div class="ref-outlook-top">
-                  <div class="ref-outlook-icon">💡</div>
-                  <div class="ref-outlook-title">Bullish Outlook</div>
-                  <div class="ref-outlook-graph">📶</div>
-                </div>
-                <div class="ref-outlook-desc">
-                  Market shows strong momentum with positive global cues.
-                </div>
-              </div>
-              <div class="ref-bullets-list">
-                <div class="ref-bullet-item">
-                  <span class="ref-check-icon">✔</span>
-                  <span class="ref-bullet-text">Nifty above 25,600</span>
-                </div>
-                <div class="ref-bullet-item">
-                  <span class="ref-check-icon">✔</span>
-                  <span class="ref-bullet-text">Bank Nifty hits new high</span>
-                </div>
-                <div class="ref-bullet-item">
-                  <span class="ref-check-icon">✔</span>
-                  <span class="ref-bullet-text">IT stocks showing strength</span>
-                </div>
-              </div>
+        _render_html("""
+        <div class="ref-grid-card">
+          <div class="ref-card-header">
+            <div class="ref-card-title-group">
+              <span class="ref-card-icon magenta">✨</span>
+              <span class="ref-card-title">AI Insights</span>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            <div class="ref-view-all-link">
+              <span>View All ➔</span>
+            </div>
+          </div>
+          <div class="ref-outlook-box">
+            <div class="ref-outlook-top">
+              <div class="ref-outlook-icon">💡</div>
+              <div class="ref-outlook-title">Bullish Outlook</div>
+              <div class="ref-outlook-graph">📶</div>
+            </div>
+            <div class="ref-outlook-desc">
+              Market shows strong momentum with positive global cues.
+            </div>
+          </div>
+          <div class="ref-bullets-list">
+            <div class="ref-bullet-item">
+              <span class="ref-check-icon">✔</span>
+              <span class="ref-bullet-text">Nifty above 25,600</span>
+            </div>
+            <div class="ref-bullet-item">
+              <span class="ref-check-icon">✔</span>
+              <span class="ref-bullet-text">Bank Nifty hits new high</span>
+            </div>
+            <div class="ref-bullet-item">
+              <span class="ref-check-icon">✔</span>
+              <span class="ref-bullet-text">IT stocks showing strength</span>
+            </div>
+          </div>
+        </div>
+        """)
         if st.button("Open AI Chatbot & Insights ➔", key="btn_open_ai_insights", use_container_width=True):
             if on_navigate_callback:
                 on_navigate_callback("✨ AI Insights")
@@ -561,38 +548,35 @@ def render_main_three_column_grid(on_navigate_callback=None) -> None:
 
 def render_footer_bar() -> None:
     """Render the sleek collegiate footer bar."""
-    st.markdown(
-        """
-        <div class="ref-footer-bar">
-          <div class="ref-footer-quote">
-            <span class="ref-footer-icon">📈</span>
-            <em>"Smarter Analysis. Greater Opportunities."</em>
-          </div>
-          <div class="ref-footer-college">
-            <span>🏛️ Dronacharya Group of Institutions &nbsp;|&nbsp; BCC 351</span>
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    _render_html("""
+    <div class="ref-footer-bar">
+      <div class="ref-footer-quote">
+        <span class="ref-footer-icon">📈</span>
+        <em>"Smarter Analysis. Greater Opportunities."</em>
+      </div>
+      <div class="ref-footer-college">
+        <span>🏛️ Dronacharya Group of Institutions &nbsp;|&nbsp; BCC 351</span>
+      </div>
+    </div>
+    """)
 
 
 def render_home_dashboard(on_navigate=None) -> None:
     """Orchestrate the full Reference Executive Dashboard matching the reference screenshot pixel-for-pixel."""
     render_collegiate_top_bar()
-    st.markdown('<div style="height: 0.6rem;"></div>', unsafe_allow_html=True)
+    _render_html('<div style="height: 0.6rem;"></div>')
 
     def _handle_search(ticker: str) -> None:
         if on_navigate:
             on_navigate("📈 Stock Analysis")
 
     render_hero_banner(on_search_callback=_handle_search)
-    st.markdown('<div style="height: 0.8rem;"></div>', unsafe_allow_html=True)
+    _render_html('<div style="height: 0.8rem;"></div>')
 
     render_four_quick_action_cards(on_navigate_callback=on_navigate)
-    st.markdown('<div style="height: 0.85rem;"></div>', unsafe_allow_html=True)
+    _render_html('<div style="height: 0.85rem;"></div>')
 
     render_main_three_column_grid(on_navigate_callback=on_navigate)
-    st.markdown('<div style="height: 1.2rem;"></div>', unsafe_allow_html=True)
+    _render_html('<div style="height: 1.2rem;"></div>')
 
     render_footer_bar()

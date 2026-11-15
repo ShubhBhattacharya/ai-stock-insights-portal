@@ -121,6 +121,11 @@ VIEW_DISPATCH = {
 }
 
 
+def _clean_html(html_str: str) -> str:
+    """Strip leading/trailing whitespace on every line so Markdown never treats HTML as an indented code block."""
+    return "\n".join(line.strip() for line in html_str.splitlines() if line.strip())
+
+
 def on_module_change() -> None:
     """Instantly handle module switch on single click via native Streamlit radio callback."""
     chosen = st.session_state.get("module_selector")
@@ -322,7 +327,7 @@ def render_sidebar() -> str:
     if not is_default_theme() and not doomsday:
         # Top Brand Logo for Leonida / Vice City Mode
         st.sidebar.markdown(
-            """
+            _clean_html("""
             <div class="ref-sidebar-logo-container">
               <div class="ref-sidebar-logo-icon">🌴🏙️</div>
               <div class="ref-sidebar-logo-text">
@@ -330,7 +335,7 @@ def render_sidebar() -> str:
                 <div class="ref-logo-sub">Insights Portal</div>
               </div>
             </div>
-            """,
+            """),
             unsafe_allow_html=True,
         )
 
@@ -346,7 +351,7 @@ def render_sidebar() -> str:
 
         # Bottom Powered by AI Card matching Reference UI
         st.sidebar.markdown(
-            """
+            _clean_html("""
             <div class="ref-sidebar-powered-card">
               <div class="ref-powered-top">
                 <span class="ref-crown-icon">👑</span>
@@ -355,7 +360,7 @@ def render_sidebar() -> str:
               <div class="ref-powered-desc">Smarter Decisions.<br>Bigger Opportunities.</div>
               <div class="ref-powered-chart">📈 🌴</div>
             </div>
-            """,
+            """),
             unsafe_allow_html=True,
         )
 

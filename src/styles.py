@@ -1971,10 +1971,15 @@ def render_page_header(
     )
 
 
+def _clean_html(html_str: str) -> str:
+    """Strip leading/trailing whitespace on every line so Markdown never treats HTML as an indented code block."""
+    return "\n".join(line.strip() for line in html_str.splitlines() if line.strip())
+
+
 def render_doomsday_reboot_overlay() -> None:
     """Render fallback reboot overlay for Doomsday edition."""
     st.markdown(
-        """
+        _clean_html("""
         <div class="leonida-transition-shell">
             <div class="steel-rivet-card doomsday-glitch-stage" style="text-align:center; padding:1.8rem 1.4rem;">
                 <div class="doomsday-scan-beam"></div>
@@ -1992,7 +1997,7 @@ def render_doomsday_reboot_overlay() -> None:
                 <div class="glitch-seq-line seq-3" style="color:#39ff14;">▸ DEFCON-1 STATUS ACTIVE // BUNKER ONLINE</div>
             </div>
         </div>
-        """,
+        """),
         unsafe_allow_html=True,
     )
 
@@ -2002,7 +2007,7 @@ def render_login_transition_overlay(username: str) -> None:
     safe_user = html.escape(username)
     if is_default_theme():
         st.markdown(
-            f"""
+            _clean_html(f"""
             <div class="pro-transition-shell">
                 <div style="font-size:0.75rem; font-weight:700; letter-spacing:0.08em; color:#10b981; text-transform:uppercase;">
                     AI STOCK INSIGHTS PORTAL • PRO STANDARD
@@ -2017,13 +2022,13 @@ def render_login_transition_overlay(username: str) -> None:
                     <div class="pro-progress-fill"></div>
                 </div>
             </div>
-            """,
+            """),
             unsafe_allow_html=True,
         )
         return
 
     st.markdown(
-        f"""
+        _clean_html(f"""
         <div style="display:flex; justify-content:center; align-items:center; min-height:240px;">
             <div style="background:rgba(16,26,50,0.92); border:1.5px solid rgba(0,229,255,0.45); border-radius:16px; padding:2rem 2.5rem; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.6);">
                 <div style="font-size:2.2rem; margin-bottom:0.6rem;">🌴🏙️</div>
@@ -2038,7 +2043,7 @@ def render_login_transition_overlay(username: str) -> None:
                 </div>
             </div>
         </div>
-        """,
+        """),
         unsafe_allow_html=True,
     )
 
