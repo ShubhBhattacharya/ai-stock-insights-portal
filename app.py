@@ -3,10 +3,20 @@
 from __future__ import annotations
 
 import html
+import io
+import os
 from pathlib import Path
 import sys
 import time
 import streamlit as st
+
+# Safe import for streamlit-mic-recorder
+try:
+    from streamlit_mic_recorder import mic_recorder
+    HAS_MIC_RECORDER = True
+except Exception:
+    HAS_MIC_RECORDER = False
+    mic_recorder = None
 
 _ROOT_DIR = str(Path(__file__).resolve().parent)
 if _ROOT_DIR not in sys.path:
@@ -115,7 +125,7 @@ def on_module_change() -> None:
 
 def _render_sidebar_voice_widget(default_pro: bool) -> None:
     """Render sidebar voice command & stock query mic recorder powered by Whisper."""
-    with st.sidebar.expander("🎙️ Voice Command (Whisper)", expanded=False):
+    with st.sidebar.expander("🎙️ Voice Command (Whisper)", expanded=True):
         def _on_sidebar_voice(transcript: str) -> None:
             if not transcript or not transcript.strip():
                 return
@@ -157,6 +167,81 @@ def _render_sidebar_voice_widget(default_pro: bool) -> None:
             button_label="🎙️ Speak Voice Command",
             stop_label="⏹️ Transcribe",
         )
+
+
+def render_top_voice_dictation_bar(portal_theme: str) -> None:
+    """Render a prominent voice dictation Whisper banner directly on the user interface."""
+    doomsday = is_doomsday()
+    default_pro = is_default_theme()
+
+    accent_color = "#3b82f6" if default_pro else ("#39ff14" if doomsday else "#00f5d4")
+    border_color = (
+        "rgba(59, 130, 246, 0.35)"
+        if default_pro
+        else ("rgba(57, 255, 20, 0.45)" if doomsday else "rgba(255, 42, 133, 0.45)")
+    )
+    bg_color = (
+        "rgba(15, 23, 42, 0.65)"
+        if default_pro
+        else ("rgba(18, 12, 8, 0.85)" if doomsday else "rgba(13, 6, 34, 0.85)")
+    )
+    title_label = (
+        "🎙️ VOICE DICTATION & COMMAND BAR (WHISPER AI)"
+        if default_pro
+        else ("🎙️ BUNKER VOICE COMMS // WHISPER UPLINK" if doomsday else "🎙️ VICE VOICE DICTATION // WHISPER-1")
+    )
+
+    st.markdown(
+        f'<div style="background:{bg_color}; border:1px solid {border_color}; border-radius:10px; '
+        f'padding:0.45rem 0.85rem; margin-bottom:0.6rem; display:flex; justify-content:space-between; '
+        f'align-items:center; flex-wrap:wrap; gap:0.4rem;">'
+        f'<span style="font-weight:700; font-size:0.84rem; color:{accent_color}; letter-spacing:0.04em;">{title_label}</span>'
+        f'<span style="font-size:0.72rem; color:#94a3b8;">⚡ Speak any NSE stock query or navigation command</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    def _on_top_voice_transcribed(transcript: str) -> None:
+        if not transcript or not transcript.strip():
+            return
+        cmd = dispatch_voice_command(transcript)
+        if cmd["action"] == "navigate":
+            st.session_state["module_selector"] = cmd["target"]
+            st.session_state["active_module"] = cmd["target"]
+            st.session_state["prev_module"] = cmd["target"]
+            st.toast(f"Navigating to {cmd['target']} via voice!", icon="🚀")
+            st.rerun()
+        else:
+            st.session_state["module_selector"] = "🎓 AI Stock Tutor & Chatbot"
+            st.session_state["active_module"] = "🎓 AI Stock Tutor & Chatbot"
+            st.session_state["prev_module"] = "🎓 AI Stock Tutor & Chatbot"
+            st.session_state.setdefault("messages", []).append({"role": "user", "content": transcript})
+            try:
+                from src.services.tutor import (
+                    adapt_tutor_text_for_edition,
+                    generate_tutor_turn,
+                    sanitize_speech_text,
+                )
+                reply, mood, scans = generate_tutor_turn(transcript, edition=get_portal_theme())
+                st.session_state.messages.append({"role": "assistant", "content": reply})
+                st.session_state["tutor_mood"] = mood
+                st.session_state["tutor_scans"] = scans
+                st.session_state["tutor_turn_id"] = int(st.session_state.get("tutor_turn_id", 0)) + 1
+                st.session_state["tutor_just_spoke"] = True
+                adapted = adapt_tutor_text_for_edition(reply, edition=get_portal_theme())
+                st.session_state["latest_bot_reply"] = sanitize_speech_text(adapted)
+                st.session_state["reply_id"] = f"{len(st.session_state.messages)}-{time.time_ns()}"
+            except Exception:
+                pass
+            st.toast(f"Transcribed voice query: '{transcript}'", icon="🎙️")
+            st.rerun()
+
+    render_voice_input_controls(
+        key_prefix="main_top_voice",
+        on_transcript_received=_on_top_voice_transcribed,
+        button_label="🎙️ Speak Query / Command (Whisper)",
+        stop_label="⏹️ Stop & Transcribe",
+    )
 
 
 def render_sidebar() -> str:
@@ -314,6 +399,9 @@ def main() -> None:
 
     st.session_state["active_module"] = current_module
     st.session_state["prev_module"] = current_module
+
+    # Prominent Voice Dictation Whisper Bar directly on user interface
+    render_top_voice_dictation_bar(portal_theme)
 
     module_container = st.container()
     with module_container:
