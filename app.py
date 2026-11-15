@@ -21,6 +21,7 @@ from src.state import (
     is_doomsday,
     logout,
 )
+from src.services.voice_service import dispatch_voice_command, render_voice_input_controls
 try:
     from src.styles import (
         inject_global_styles,
@@ -112,6 +113,52 @@ def on_module_change() -> None:
         st.session_state["prev_module"] = chosen
 
 
+def _render_sidebar_voice_widget(default_pro: bool) -> None:
+    """Render sidebar voice command & stock query mic recorder powered by Whisper."""
+    with st.sidebar.expander("🎙️ Voice Command (Whisper)", expanded=False):
+        def _on_sidebar_voice(transcript: str) -> None:
+            if not transcript or not transcript.strip():
+                return
+            cmd = dispatch_voice_command(transcript)
+            if cmd["action"] == "navigate":
+                st.session_state["module_selector"] = cmd["target"]
+                st.session_state["active_module"] = cmd["target"]
+                st.session_state["prev_module"] = cmd["target"]
+                st.toast(f"Navigating to {cmd['target']} via voice!", icon="🚀")
+                st.rerun()
+            else:
+                st.session_state["module_selector"] = "🎓 AI Stock Tutor & Chatbot"
+                st.session_state["active_module"] = "🎓 AI Stock Tutor & Chatbot"
+                st.session_state["prev_module"] = "🎓 AI Stock Tutor & Chatbot"
+                st.session_state.setdefault("messages", []).append({"role": "user", "content": transcript})
+                try:
+                    from src.services.tutor import (
+                        adapt_tutor_text_for_edition,
+                        generate_tutor_turn,
+                        sanitize_speech_text,
+                    )
+                    reply, mood, scans = generate_tutor_turn(transcript, edition=get_portal_theme())
+                    st.session_state.messages.append({"role": "assistant", "content": reply})
+                    st.session_state["tutor_mood"] = mood
+                    st.session_state["tutor_scans"] = scans
+                    st.session_state["tutor_turn_id"] = int(st.session_state.get("tutor_turn_id", 0)) + 1
+                    st.session_state["tutor_just_spoke"] = True
+                    adapted = adapt_tutor_text_for_edition(reply, edition=get_portal_theme())
+                    st.session_state["latest_bot_reply"] = sanitize_speech_text(adapted)
+                    st.session_state["reply_id"] = f"{len(st.session_state.messages)}-{time.time_ns()}"
+                except Exception:
+                    pass
+                st.toast(f"Transcribed voice query: '{transcript}'", icon="🎙️")
+                st.rerun()
+
+        render_voice_input_controls(
+            key_prefix=f"sidebar_voice_{'pro' if default_pro else 'vice'}",
+            on_transcript_received=_on_sidebar_voice,
+            button_label="🎙️ Speak Voice Command",
+            stop_label="⏹️ Transcribe",
+        )
+
+
 def render_sidebar() -> str:
     """Render clean theme-aware sidebar profile, cash balance, logout, 3-mode switcher, and nav."""
     default_pro = is_default_theme()
@@ -152,6 +199,8 @@ def render_sidebar() -> str:
             on_change=on_module_change,
         )
 
+        st.sidebar.markdown("---")
+        _render_sidebar_voice_widget(default_pro=True)
         st.sidebar.markdown("---")
         st.sidebar.info(
             "**AI Stock Insights Portal (Pro Standard)**\n"
@@ -201,6 +250,8 @@ def render_sidebar() -> str:
         on_change=on_module_change,
     )
 
+    st.sidebar.markdown("---")
+    _render_sidebar_voice_widget(default_pro=False)
     st.sidebar.markdown("---")
     if doomsday:
         st.sidebar.info(

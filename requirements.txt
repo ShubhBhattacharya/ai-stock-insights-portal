@@ -6,3 +6,5 @@ pandas-ta>=0.3.14b0
 plotly>=5.20.0
 scikit-learn>=1.4.0
 requests>=2.31.0
+streamlit-mic-recorder>=0.0.8
+openai>=1.0.0

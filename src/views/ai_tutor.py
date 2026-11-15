@@ -13,6 +13,7 @@ from src.services.tutor import (
     get_curriculum_modules,
     sanitize_speech_text,
 )
+from src.services.voice_service import render_voice_input_controls
 from src.state import compute_dynamic_wanted_stars, get_portal_theme, is_default_theme, is_doomsday
 from src.styles import render_page_header
 from src.views.character_stage import render_character_stage
@@ -117,6 +118,24 @@ def _render_chat_panel(doomsday: bool, default_pro: bool = False) -> None:
             "</div>",
             unsafe_allow_html=True,
         )
+
+    # Voice-to-Text Whisper Flow Integration
+    def _on_voice_turn(voice_text: str) -> None:
+        if voice_text and voice_text.strip():
+            _handle_chat_turn(voice_text.strip())
+            st.rerun()
+
+    btn_lbl = (
+        "🎙️ Speak Stock Query (Whisper STT)"
+        if default_pro
+        else ("🎙️ Speak Latverian Command" if doomsday else "🎙️ Speak to Jason (Whisper STT)")
+    )
+    render_voice_input_controls(
+        key_prefix="ai_tutor_stt",
+        on_transcript_received=_on_voice_turn,
+        button_label=btn_lbl,
+        stop_label="⏹️ Stop & Transcribe",
+    )
 
     if prompt := st.chat_input(placeholder_txt):
         _handle_chat_turn(prompt)
