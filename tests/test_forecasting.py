@@ -22,6 +22,10 @@ class TestForecastingModel:
         assert pred_df.empty
         assert float(score) == 0.0
 
+        eval_res = evaluate_forecast_model(short_df)
+        assert eval_res.get("status") == "insufficient_data"
+        assert "limitations" in eval_res
+
     def test_chronological_evaluation_metrics_populated(self, synthetic_stock_df):
         metrics = evaluate_forecast_model(synthetic_stock_df, test_ratio=0.20)
         assert metrics["model_name"] == "Linear Trend Regression"

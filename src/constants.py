@@ -4,11 +4,13 @@ INITIAL_VIRTUAL_CAPITAL: float = 100_000.0
 RISK_FREE_RATE_PCT: float = 6.5
 MIN_HISTORY_ROWS: int = 30
 
+# Default verified seeded accounts (minimum 12 characters, complex passwords)
+# In production, accounts are registered dynamically and persisted in the relational database.
 DEFAULT_USERS: dict[str, str] = {
-    "admin": "admin123",
-    "shubh": "shubh123",
-    "rohit": "rohit123",
-    "utkarsh": "utkarsh123",
+    "evaluator": "EvaluatorDemo#2026!",
+    "shubh": "ShubhPortfolio#2026!",
+    "rohit": "RohitIndicator#2026!",
+    "utkarsh": "UtkarshArchitect#2026!",
 }
 
 NAV_ITEMS: list[str] = [

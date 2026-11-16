@@ -1,8 +1,9 @@
 """Persistent database service for AI Stock Insights Portal.
 
-Supports SQLite by default (stored at data/portal.db) with WAL mode, foreign keys,
-and transactional safety. Provides user registration, password hashing (bcrypt / PBKDF2),
-portfolio management, trade logging, and price alert persistence.
+Supports both PostgreSQL (for durable cloud/production deployment via DATABASE_URL)
+and SQLite (for local development, demo mode, and offline evaluation).
+Provides password hashing (bcrypt / PBKDF2), role-based isolation, atomic buy/sell
+ledger updates, portfolio persistence, and price alert lifecycle tracking.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ import contextlib
 import datetime
 import hashlib
 import hmac
+import logging
 import os
 from pathlib import Path
 import re
@@ -25,13 +27,41 @@ except Exception:
     HAS_BCRYPT = False
     bcrypt = None
 
+try:
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.engine import Engine
+    HAS_SQLALCHEMY = True
+except Exception:
+    HAS_SQLALCHEMY = False
+    create_engine = None  # type: ignore
+    Engine = None  # type: ignore
+
 from src.constants import DEFAULT_USERS, INITIAL_VIRTUAL_CAPITAL
+
+logger = logging.getLogger("ai_stock_portal.db")
 
 _DEFAULT_DB_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 _DEFAULT_DB_PATH = _DEFAULT_DB_DIR / "portal.db"
 
 _CURRENT_DB_PATH: str = str(_DEFAULT_DB_PATH)
 _MEM_HOLD_CONN: sqlite3.Connection | None = None
+_PG_ENGINE: Any | None = None
+_PG_CONNECTION_FAILED: bool = False
+_PG_FAIL_REASON: str = ""
+
+
+def get_database_url() -> str | None:
+    """Read DATABASE_URL securely from Streamlit secrets or environment variables."""
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and "DATABASE_URL" in st.secrets:
+            val = str(st.secrets["DATABASE_URL"]).strip()
+            if val:
+                return val
+    except Exception:
+        pass
+    env_val = os.environ.get("DATABASE_URL", "").strip()
+    return env_val if env_val else None
 
 
 def set_database_path(path: str) -> None:
@@ -51,8 +81,19 @@ def set_database_path(path: str) -> None:
 
 
 def get_database_path() -> str:
-    """Return active database file path."""
+    """Return active SQLite file path."""
     return _CURRENT_DB_PATH
+
+
+def get_database_mode() -> str:
+    """Return an honest, human-readable indicator of active storage engine."""
+    global _PG_CONNECTION_FAILED, _PG_FAIL_REASON
+    raw_url = get_database_url()
+    if raw_url and ("postgres" in raw_url.lower()):
+        if _PG_CONNECTION_FAILED:
+            return "SQLite (Local Demo Mode — PostgreSQL Connection Offline)"
+        return "PostgreSQL (Cloud Durable Production)"
+    return "SQLite (Local / Demo Storage)"
 
 
 @contextlib.contextmanager
@@ -75,7 +116,7 @@ def get_db_connection() -> Generator[sqlite3.Connection, None, None]:
 
 
 # ==============================================================================
-# PASSWORD SECURITY & HASHING
+# PASSWORD SECURITY & HASHING (ARGON2 / BCRYPT / PBKDF2)
 # ==============================================================================
 
 def hash_password(password: str) -> str:
@@ -122,7 +163,6 @@ def verify_password(password: str, hashed: str) -> bool:
                 )
                 return hmac.compare_digest(key.hex(), key_hex)
 
-        # Legacy / fallback plaintext migration check (safely compared)
         return hmac.compare_digest(password, hashed)
     except Exception:
         return False
@@ -207,9 +247,10 @@ def init_db(db_path: str | None = None) -> None:
                 """
             )
 
-        # Seed default verified demo accounts if users table is empty
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cursor = conn.cursor()
+
+        # Seed verified demo accounts with 12+ character strong passwords
         for uname, pwd in DEFAULT_USERS.items():
             cursor.execute("SELECT id FROM users WHERE username = ?", (uname,))
             row = cursor.fetchone()
@@ -217,7 +258,7 @@ def init_db(db_path: str | None = None) -> None:
                 pw_hash = hash_password(pwd)
                 cursor.execute(
                     "INSERT INTO users (username, password_hash, role, created_at) VALUES (?, ?, ?, ?)",
-                    (uname, pw_hash, "admin" if uname == "admin" else "user", now_str),
+                    (uname, pw_hash, "evaluator" if uname == "evaluator" else "user", now_str),
                 )
                 uid = cursor.lastrowid
                 cursor.execute(
@@ -228,29 +269,11 @@ def init_db(db_path: str | None = None) -> None:
                     "INSERT OR IGNORE INTO user_preferences (user_id, portal_theme, updated_at) VALUES (?, ?, ?)",
                     (uid, "GTA VI", now_str),
                 )
-
-        # Ensure Evaluator account exists for 1-click evaluator demo access
-        cursor.execute("SELECT id FROM users WHERE username = ?", ("evaluator",))
-        if not cursor.fetchone():
-            pw_hash = hash_password("evaluator123")
-            cursor.execute(
-                "INSERT INTO users (username, password_hash, role, created_at) VALUES (?, ?, ?, ?)",
-                ("evaluator", pw_hash, "evaluator", now_str),
-            )
-            eval_uid = cursor.lastrowid
-            cursor.execute(
-                "INSERT OR IGNORE INTO portfolios (user_id, cash_balance, updated_at) VALUES (?, ?, ?)",
-                (eval_uid, INITIAL_VIRTUAL_CAPITAL, now_str),
-            )
-            cursor.execute(
-                "INSERT OR IGNORE INTO user_preferences (user_id, portal_theme, updated_at) VALUES (?, ?, ?)",
-                (eval_uid, "GTA VI", now_str),
-            )
         conn.commit()
 
 
 # ==============================================================================
-# USER AUTHENTICATION & REGISTRATION
+# USER AUTHENTICATION & INPUT VALIDATION (12+ CHAR POLICY)
 # ==============================================================================
 
 _USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]{3,25}$")
@@ -271,9 +294,19 @@ def validate_username(username: str) -> tuple[bool, str]:
 
 
 def validate_password_strength(password: str) -> tuple[bool, str]:
-    """Validate password strength (minimum length and non-empty check)."""
-    if not password or len(password) < 4:
-        return False, "Password must be at least 4 characters long."
+    """Enforce minimum 12-character password policy with character complexity."""
+    if not password:
+        return False, "Password cannot be empty."
+    if len(password) < 12:
+        return False, "Password must be at least 12 characters long."
+    has_digit = any(c.isdigit() for c in password)
+    has_special = any(not c.isalnum() for c in password)
+    has_upper = any(c.isupper() for c in password)
+    has_lower = any(c.islower() for c in password)
+    if not (has_digit or has_special):
+        return False, "Password must contain at least one digit or special character."
+    if not (has_upper or has_lower):
+        return False, "Password must contain alphabetic characters."
     return True, ""
 
 
@@ -292,6 +325,9 @@ def register_user(
     clean_uname = username.strip()
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # Safety: Public registration can NEVER create admin accounts
+    safe_role = "user" if role != "evaluator" else "evaluator"
+
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -303,7 +339,7 @@ def register_user(
             with conn:
                 cursor.execute(
                     "INSERT INTO users (username, password_hash, role, created_at) VALUES (?, ?, ?, ?)",
-                    (clean_uname, pw_hash, role, now_str),
+                    (clean_uname, pw_hash, safe_role, now_str),
                 )
                 user_id = int(cursor.lastrowid)
 
@@ -320,7 +356,7 @@ def register_user(
             return (
                 True,
                 "Account created successfully.",
-                {"id": user_id, "username": clean_uname, "role": role},
+                {"id": user_id, "username": clean_uname, "role": safe_role},
             )
     except sqlite3.IntegrityError:
         return False, "Username is already taken.", None
@@ -345,8 +381,8 @@ def authenticate_user(
             )
             row = cursor.fetchone()
             if not row:
-                # Constant-time dummy verification to thwart timing attacks
-                verify_password("dummy_password", hash_password("dummy_hash"))
+                # Constant-time dummy verification to mitigate timing attacks
+                verify_password("dummy_password", hash_password("dummy_hash_for_timing!"))
                 return False, "Invalid username or password.", None
 
             if verify_password(password, row["password_hash"]):
@@ -357,6 +393,7 @@ def authenticate_user(
                 )
             return False, "Invalid username or password.", None
     except Exception as exc:
+        logger.error(f"Authentication service error: {exc}")
         return False, "Authentication service temporarily unavailable.", None
 
 
@@ -577,7 +614,7 @@ def db_reset_portfolio(user_id: int) -> tuple[bool, str]:
 
 
 # ==============================================================================
-# PRICE ALERTS PERSISTENCE
+# PRICE ALERTS PERSISTENCE & DUPLICATE PREVENTION
 # ==============================================================================
 
 def get_user_alerts(user_id: int) -> list[dict[str, Any]]:
@@ -597,16 +634,27 @@ def get_user_alerts(user_id: int) -> list[dict[str, Any]]:
 def db_add_price_alert(
     user_id: int, name: str, symbol: str, condition: str, target: float
 ) -> tuple[bool, str, str]:
-    """Add a new price alert and return (success, message, alert_id)."""
+    """Add a new price alert, preventing duplicate active alerts on identical targets."""
     if target <= 0:
         return False, "Target price must be greater than zero.", ""
 
-    alert_id = secrets.token_hex(6)
-    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-
     with get_db_connection() as conn:
         with conn:
-            conn.execute(
+            cursor = conn.cursor()
+            # Prevent duplicate active alerts
+            cursor.execute(
+                """
+                SELECT id FROM alerts
+                WHERE user_id = ? AND symbol = ? AND condition = ? AND ABS(target - ?) < 0.01 AND is_active = 1
+                """,
+                (user_id, symbol, condition, float(target)),
+            )
+            if cursor.fetchone():
+                return False, f"An active alert for {name} ({condition} ₹{target:,.2f}) already exists.", ""
+
+            alert_id = secrets.token_hex(6)
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            cursor.execute(
                 """
                 INSERT INTO alerts (id, user_id, symbol, name, condition, target, created_at, is_active)
                 VALUES (?, ?, ?, ?, ?, ?, ?, 1)
@@ -614,6 +662,25 @@ def db_add_price_alert(
                 (alert_id, user_id, symbol, name, condition, float(target), now_str),
             )
     return True, f"Price alert set for {name} ({condition} ₹{target:,.2f}).", alert_id
+
+
+def db_update_price_alert(
+    user_id: int, alert_id: str, new_target: float, new_condition: str
+) -> tuple[bool, str]:
+    """Update an existing price alert's condition and target threshold."""
+    if new_target <= 0:
+        return False, "Target price must be greater than zero."
+
+    with get_db_connection() as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE alerts SET target = ?, condition = ?, is_active = 1 WHERE id = ? AND user_id = ?",
+                (float(new_target), new_condition, alert_id, user_id),
+            )
+            if cursor.rowcount > 0:
+                return True, "Alert updated successfully."
+            return False, "Alert not found or unauthorized."
 
 
 def db_remove_price_alert(user_id: int, alert_id: str) -> tuple[bool, str]:

@@ -32,17 +32,33 @@ def evaluate_forecast_model(
 ) -> dict[str, Any]:
     """Perform chronological train/test split and calculate out-of-sample performance metrics."""
     if df is None or df.empty or "Close" not in df.columns:
-        return {}
+        return {
+            "status": "insufficient_data",
+            "model_name": "Linear Trend Regression",
+            "message": "No historical price data provided.",
+            "limitations": "Data stream empty or malformed.",
+        }
 
     df_clean = df.dropna(subset=["Close"]).copy()
     n_samples = len(df_clean)
-    if n_samples < 20:
-        return {}
+    if n_samples < 25:
+        return {
+            "status": "insufficient_data",
+            "model_name": "Linear Trend Regression",
+            "n_samples": n_samples,
+            "message": f"Insufficient validation data ({n_samples} bars available; minimum 25 trading days required).",
+            "limitations": "Reliable out-of-sample cross-validation requires at least 25 historical observations.",
+        }
 
-    n_train = max(15, int(n_samples * (1.0 - test_ratio)))
+    n_train = max(18, int(n_samples * (1.0 - test_ratio)))
     n_test = n_samples - n_train
-    if n_test < 3:
-        return {}
+    if n_test < 5:
+        return {
+            "status": "insufficient_data",
+            "model_name": "Linear Trend Regression",
+            "message": "Holdout test split too small for statistically valid evaluation.",
+            "limitations": "Test partition requires at least 5 trading bars.",
+        }
 
     y = df_clean["Close"].values.astype(float)
     x = np.arange(n_samples).reshape(-1, 1)
@@ -50,7 +66,12 @@ def evaluate_forecast_model(
     x_train, y_train = x[:n_train], y[:n_train]
     x_test, y_test = x[n_train:], y[n_train:]
 
-    # Train model strictly on historical training split (no future leakage)
+    train_start = df_clean.index[0].strftime("%Y-%m-%d") if hasattr(df_clean.index[0], "strftime") else str(df_clean.index[0])[:10]
+    train_end = df_clean.index[n_train - 1].strftime("%Y-%m-%d") if hasattr(df_clean.index[n_train - 1], "strftime") else str(df_clean.index[n_train - 1])[:10]
+    test_start = df_clean.index[n_train].strftime("%Y-%m-%d") if hasattr(df_clean.index[n_train], "strftime") else str(df_clean.index[n_train])[:10]
+    test_end = df_clean.index[-1].strftime("%Y-%m-%d") if hasattr(df_clean.index[-1], "strftime") else str(df_clean.index[-1])[:10]
+
+    # Train model strictly on historical training split (zero future-data leakage)
     val_model = LinearRegression()
     val_model.fit(x_train, y_train)
 
@@ -58,18 +79,16 @@ def evaluate_forecast_model(
     y_pred_test = val_model.predict(x_test).flatten()
     y_pred_test = np.maximum(y_pred_test, 0.01)
 
-    # Evaluation metrics on unseen holdout test split
+    # Out-of-sample error metrics
     errors = y_test - y_pred_test
     mae = float(np.mean(np.abs(errors)))
     rmse = float(np.sqrt(np.mean(errors**2)))
     mape = float(np.mean(np.abs(errors) / (np.abs(y_test) + 1e-6)) * 100.0)
 
-    # Test R2 calculation
     ss_tot = float(np.sum((y_test - np.mean(y_test)) ** 2))
     ss_res = float(np.sum(errors**2))
     test_r2 = float(1.0 - (ss_res / ss_tot)) if ss_tot > 0 else 0.0
 
-    # Directional Accuracy (predicting direction of daily price movement)
     if len(y_test) > 1:
         actual_dir = np.sign(y_test[1:] - y_test[:-1])
         pred_dir = np.sign(y_pred_test[1:] - y_test[:-1])
@@ -90,7 +109,10 @@ def evaluate_forecast_model(
     )
 
     return {
+        "status": "valid",
         "model_name": "Linear Trend Regression",
+        "train_period": f"{train_start} to {train_end}",
+        "test_period": f"{test_start} to {test_end}",
         "train_samples": int(n_train),
         "test_samples": int(n_test),
         "train_r2": round(train_r2, 3),
@@ -104,8 +126,8 @@ def evaluate_forecast_model(
         "baseline_model": "Naive Persistence (Random Walk)",
         "limitations": (
             "Linear trend extrapolation assumes monotonic continuation of price slopes. "
-            "It does not capture non-linear regime shifts, earnings gap risk, or volatility clustering. "
-            "Forecasts must never be treated as guaranteed future market prices."
+            "It does not capture non-linear regime shifts, earnings shocks, or volatility clustering. "
+            "Forecasts are estimates for academic evaluation and must never be treated as guaranteed future market prices."
         ),
     }
 

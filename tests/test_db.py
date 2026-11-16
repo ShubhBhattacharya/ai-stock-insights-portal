@@ -9,12 +9,15 @@ from src.services.db import (
     db_remove_price_alert,
     db_reset_portfolio,
     db_trigger_price_alert,
+    db_update_price_alert,
     get_user_alerts,
     get_user_portfolio,
     init_db,
     register_user,
     set_database_path,
 )
+
+TEST_PASSWORD = "StrongPassword2026!#"
 
 
 @pytest.fixture(autouse=True)
@@ -25,7 +28,7 @@ def setup_test_db():
 
 class TestPortfolioTransactions:
     def test_buy_order_cash_and_holdings_update(self):
-        _, _, u = register_user("trader_alpha", "Pass1234")
+        _, _, u = register_user("trader_alpha", TEST_PASSWORD)
         uid = u["id"]
 
         ok, msg = db_execute_buy_order(uid, "RELIANCE.NS", "Reliance Industries", 10, 2500.0)
@@ -39,7 +42,7 @@ class TestPortfolioTransactions:
         assert port["trade_history"][0]["Action"] == "BUY"
 
     def test_weighted_average_price_on_multiple_buys(self):
-        _, _, u = register_user("trader_beta", "Pass1234")
+        _, _, u = register_user("trader_beta", TEST_PASSWORD)
         uid = u["id"]
 
         # Buy 10 shares @ 100
@@ -52,7 +55,7 @@ class TestPortfolioTransactions:
         assert port["portfolio"]["TCS.NS"]["buy_price"] == 150.0
 
     def test_insufficient_cash_prevents_buy(self):
-        _, _, u = register_user("trader_gamma", "Pass1234")
+        _, _, u = register_user("trader_gamma", TEST_PASSWORD)
         uid = u["id"]
 
         # Attempt to buy more than ₹100,000 capital
@@ -64,7 +67,7 @@ class TestPortfolioTransactions:
         assert "INFY.NS" not in port["portfolio"]
 
     def test_partial_and_full_sell_orders(self):
-        _, _, u = register_user("trader_delta", "Pass1234")
+        _, _, u = register_user("trader_delta", TEST_PASSWORD)
         uid = u["id"]
 
         db_execute_buy_order(uid, "HDFCBANK.NS", "HDFC Bank", 20, 1500.0)
@@ -81,7 +84,7 @@ class TestPortfolioTransactions:
         assert "HDFCBANK.NS" not in port2["portfolio"]
 
     def test_selling_unowned_shares_rejected(self):
-        _, _, u = register_user("trader_epsilon", "Pass1234")
+        _, _, u = register_user("trader_epsilon", TEST_PASSWORD)
         uid = u["id"]
 
         ok, msg = db_execute_sell_order(uid, "SBIN.NS", "State Bank of India", 5, 800.0)
@@ -89,7 +92,7 @@ class TestPortfolioTransactions:
         assert "do not hold enough shares" in msg.lower()
 
     def test_portfolio_reset(self):
-        _, _, u = register_user("trader_zeta", "Pass1234")
+        _, _, u = register_user("trader_zeta", TEST_PASSWORD)
         uid = u["id"]
         db_execute_buy_order(uid, "LT.NS", "Larsen & Toubro", 5, 3000.0)
         db_reset_portfolio(uid)
@@ -101,8 +104,8 @@ class TestPortfolioTransactions:
 
 class TestUserIsolation:
     def test_user_data_strictly_isolated(self):
-        _, _, u1 = register_user("user_one", "Pass1234")
-        _, _, u2 = register_user("user_two", "Pass1234")
+        _, _, u1 = register_user("user_one", TEST_PASSWORD)
+        _, _, u2 = register_user("user_two", TEST_PASSWORD)
 
         db_execute_buy_order(u1["id"], "TITAN.NS", "Titan", 5, 3000.0)
 
@@ -116,7 +119,7 @@ class TestUserIsolation:
 
 class TestAlertsPersistence:
     def test_alert_lifecycle(self):
-        _, _, u = register_user("alert_watcher", "Pass1234")
+        _, _, u = register_user("alert_watcher", TEST_PASSWORD)
         uid = u["id"]
 
         ok, msg, alert_id = db_add_price_alert(uid, "Reliance", "RELIANCE.NS", "Crosses Above", 2600.0)
@@ -135,3 +138,31 @@ class TestAlertsPersistence:
         del_ok, _ = db_remove_price_alert(uid, alert_id)
         assert del_ok is True
         assert len(get_user_alerts(uid)) == 0
+
+    def test_duplicate_alert_prevented(self):
+        _, _, u = register_user("alert_dedup_user", TEST_PASSWORD)
+        uid = u["id"]
+
+        ok1, _, id1 = db_add_price_alert(uid, "Infosys", "INFY.NS", "Crosses Above", 1850.0)
+        assert ok1 is True
+        assert len(id1) > 0
+
+        # Attempt to add exact duplicate active alert
+        ok2, msg2, id2 = db_add_price_alert(uid, "Infosys", "INFY.NS", "Crosses Above", 1850.0)
+        assert ok2 is False
+        assert "already exists" in msg2.lower()
+
+    def test_update_price_alert(self):
+        _, _, u = register_user("alert_edit_user", TEST_PASSWORD)
+        uid = u["id"]
+
+        ok, _, alert_id = db_add_price_alert(uid, "TCS", "TCS.NS", "Crosses Above", 4000.0)
+        assert ok is True
+
+        up_ok, up_msg = db_update_price_alert(uid, alert_id, 4100.0, "Crosses Below")
+        assert up_ok is True
+
+        alerts = get_user_alerts(uid)
+        assert len(alerts) == 1
+        assert alerts[0]["target"] == 4100.0
+        assert alerts[0]["condition"] == "Crosses Below"

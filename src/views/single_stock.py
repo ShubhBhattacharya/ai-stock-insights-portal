@@ -483,14 +483,19 @@ def render_single_stock_analysis() -> None:
     eval_m = getattr(r2_score, "metrics", {})
     if eval_m:
         with st.expander("🔬 ML Model Validation & Statistical Evaluation (Holdout Split)", expanded=False):
-            em_col1, em_col2, em_col3, em_col4 = st.columns(4)
-            em_col1.metric("Holdout MAE", f"₹{eval_m.get('mae', 0.0):.2f}")
-            em_col2.metric("Holdout RMSE", f"₹{eval_m.get('rmse', 0.0):.2f}")
-            em_col3.metric("Holdout MAPE", f"{eval_m.get('mape', 0.0):.2f}%")
-            em_col4.metric("Directional Accuracy", f"{eval_m.get('directional_accuracy', 50.0):.1f}%")
-            st.caption(
-                f"**Validation Methodology:** Chronological 80/20 train/test split ({eval_m.get('train_samples', 0)} train bars, "
-                f"{eval_m.get('test_samples', 0)} test bars). Train $R^2$: {eval_m.get('train_r2', 0.0):.3f} vs Test $R^2$: {eval_m.get('test_r2', 0.0):.3f}. "
-                f"Naive Persistence Baseline MAE: ₹{eval_m.get('baseline_mae', 0.0):.2f}."
-            )
-            st.info(f"**Model Limitations:** {eval_m.get('limitations', '')}")
+            if eval_m.get("status") == "insufficient_data":
+                st.warning(f"⚠️ **Insufficient Validation Data:** {eval_m.get('message', 'Minimum 25 historical trading bars required for out-of-sample holdout testing.')}")
+                st.info(f"**Model Limitations:** {eval_m.get('limitations', '')}")
+            else:
+                em_col1, em_col2, em_col3, em_col4 = st.columns(4)
+                em_col1.metric("Holdout MAE", f"₹{eval_m.get('mae', 0.0):.2f}")
+                em_col2.metric("Holdout RMSE", f"₹{eval_m.get('rmse', 0.0):.2f}")
+                em_col3.metric("Holdout MAPE", f"{eval_m.get('mape', 0.0):.2f}%")
+                em_col4.metric("Directional Accuracy", f"{eval_m.get('directional_accuracy', 50.0):.1f}%")
+                st.caption(
+                    f"**Chronological Split:** Train ({eval_m.get('train_period', 'N/A')}, {eval_m.get('train_samples', 0)} bars) | "
+                    f"Test ({eval_m.get('test_period', 'N/A')}, {eval_m.get('test_samples', 0)} bars). "
+                    f"Train $R^2$: {eval_m.get('train_r2', 0.0):.3f} vs Out-of-Sample Test $R^2$: {eval_m.get('test_r2', 0.0):.3f}. "
+                    f"Naive Baseline MAE: ₹{eval_m.get('baseline_mae', 0.0):.2f}."
+                )
+                st.info(f"**Model Limitations:** {eval_m.get('limitations', '')}")

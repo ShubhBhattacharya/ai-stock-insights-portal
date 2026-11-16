@@ -190,3 +190,33 @@ def render_price_alerts() -> None:
             if st.button("Delete", key=f"del_{alert_id}", width="stretch"):
                 remove_price_alert(alert_id)
                 st.rerun()
+
+        with st.expander(f"✏️ Edit Trigger Threshold for {alert['name']}", expanded=False):
+            col_e1, col_e2, col_e3 = st.columns([2, 2, 1])
+            with col_e1:
+                new_cond = st.selectbox(
+                    "Condition",
+                    ["Crosses Above", "Falls Below"],
+                    index=0 if alert["condition"] == "Crosses Above" else 1,
+                    key=f"edit_cond_{alert_id}",
+                )
+            with col_e2:
+                new_tgt = st.number_input(
+                    "New Target Price (INR)",
+                    value=float(alert["target"]),
+                    min_value=1.0,
+                    step=10.0,
+                    key=f"edit_tgt_{alert_id}",
+                )
+            with col_e3:
+                st.markdown('<div style="height:1.75rem;"></div>', unsafe_allow_html=True)
+                if st.button("Save", key=f"save_edit_{alert_id}", type="primary"):
+                    from src.services.db import db_update_price_alert
+                    user_id = st.session_state.get("user_id")
+                    if user_id:
+                        ok_up, msg_up = db_update_price_alert(user_id, alert_id, new_tgt, new_cond)
+                        if ok_up:
+                            st.toast("Alert updated successfully!", icon="✅")
+                            st.rerun()
+                        else:
+                            st.error(msg_up)

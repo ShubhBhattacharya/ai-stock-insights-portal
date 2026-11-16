@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.services.db import authenticate_user, register_user
+from src.services.db import authenticate_user, get_database_mode, register_user
 from src.state import is_default_theme, is_doomsday, login_as
 from src.styles import render_page_header, render_weazel_flash_ticker
 
@@ -31,6 +31,9 @@ def render_login_page() -> None:
 
     _, col_center, _ = st.columns([0.8, 2.5, 0.8])
     with col_center:
+        db_mode_label = get_database_mode()
+        st.caption(f"🔒 **Storage Engine:** {db_mode_label}")
+
         if default_pro:
             st.markdown(
                 '<div class="surface-card">'
@@ -47,12 +50,12 @@ def render_login_page() -> None:
             )
 
             if st.button("▶ 1-Click Evaluator / Guest Demo Access", type="primary", width="stretch", key="btn_eval_demo_pro"):
-                ok, _, user_dict = authenticate_user("evaluator", "evaluator123")
+                ok, err_msg, user_dict = authenticate_user("evaluator", "EvaluatorDemo#2026!")
                 if ok and user_dict:
                     login_as(user_dict["username"], user_id=user_dict["id"], role=user_dict["role"])
+                    st.rerun()
                 else:
-                    login_as("Academic Evaluator")
-                st.rerun()
+                    st.error(f"Evaluator demo access unavailable: {err_msg or 'Access denied'}. Please register or sign in with account credentials.")
 
             st.markdown(
                 '<div class="console-hud-ruler">'
@@ -66,15 +69,15 @@ def render_login_page() -> None:
                 with st.form("login_form_pro", clear_on_submit=False):
                     username_input = st.text_input(
                         "Username",
-                        value="admin",
-                        placeholder="e.g. admin",
+                        value="",
+                        placeholder="Enter registered username",
                         key="login_username_pro",
                     )
                     password_input = st.text_input(
                         "Password",
                         type="password",
                         value="",
-                        placeholder="Demo password: admin123",
+                        placeholder="Enter password (minimum 12 characters)",
                         key="login_password_pro",
                     )
                     submitted = st.form_submit_button("Sign In", width="stretch")
@@ -86,13 +89,17 @@ def render_login_page() -> None:
                         st.rerun()
                     else:
                         st.error(
-                            "Invalid credentials. Please verify your username and password, or use 1-Click Evaluator Demo Access above."
+                            "Invalid credentials. Please verify your username and password, or use 1-Click Evaluator Demo Access."
                         )
 
             with tab_register:
                 with st.form("register_form_pro", clear_on_submit=True):
-                    new_user = st.text_input("Choose Username", key="reg_username_pro")
-                    new_pass = st.text_input("Password (min 4 characters)", type="password", key="reg_password_pro")
+                    new_user = st.text_input("Choose Username (3–25 chars)", key="reg_username_pro")
+                    new_pass = st.text_input(
+                        "Password (min 12 characters, numbers/symbols)",
+                        type="password",
+                        key="reg_password_pro",
+                    )
                     confirm_pass = st.text_input("Confirm Password", type="password", key="reg_confirm_pro")
                     reg_submitted = st.form_submit_button("Create Account", width="stretch")
 
@@ -102,8 +109,8 @@ def render_login_page() -> None:
                         st.error("Username and password are required.")
                     elif len(clean_user) < 3:
                         st.error("Username must be at least 3 characters long.")
-                    elif len(new_pass) < 4:
-                        st.error("Password must be at least 4 characters long.")
+                    elif len(new_pass) < 12:
+                        st.error("Password must be at least 12 characters long.")
                     elif new_pass != confirm_pass:
                         st.error("Passwords do not match.")
                     else:
@@ -159,12 +166,12 @@ def render_login_page() -> None:
         )
 
         if st.button(demo_btn_label, type="primary", width="stretch", key="btn_eval_demo_vice"):
-            ok, _, user_dict = authenticate_user("evaluator", "evaluator123")
+            ok, err_msg, user_dict = authenticate_user("evaluator", "EvaluatorDemo#2026!")
             if ok and user_dict:
                 login_as(user_dict["username"], user_id=user_dict["id"], role=user_dict["role"])
+                st.rerun()
             else:
-                login_as("Academic Evaluator" if not doomsday else "ADMIN")
-            st.rerun()
+                st.error(f"Covert demo access unavailable: {err_msg or 'Access denied'}. Please register or sign in with operator credentials.")
 
         st.markdown(
             '<div style="text-align:center; color:#94a3b8; font-size:0.76rem; letter-spacing:0.06em; margin:0.85rem 0;">'
@@ -179,15 +186,15 @@ def render_login_page() -> None:
             with st.form("login_form_vice", clear_on_submit=False):
                 username_input = st.text_input(
                     "AUTHORIZED ID (USERNAME)" if doomsday else "OPERATOR ID (USERNAME)",
-                    value="admin",
-                    placeholder="e.g. admin",
+                    value="",
+                    placeholder="Enter registered handle",
                     key="login_username_vice",
                 )
                 password_input = st.text_input(
                     "CLEARANCE KEY (PASSWORD)" if doomsday else "ACCESS KEY (PASSWORD)",
                     type="password",
                     value="",
-                    placeholder="Demo password: admin123",
+                    placeholder="Enter key (minimum 12 characters)",
                     key="login_password_vice",
                 )
                 submitted = st.form_submit_button("▸▸ SIGN IN TO PORTAL", width="stretch")
@@ -205,10 +212,14 @@ def render_login_page() -> None:
         with tab_register:
             with st.form("register_form_vice", clear_on_submit=True):
                 new_user = st.text_input(
-                    "CHOOSE SURVIVOR HANDLE" if doomsday else "CHOOSE OPERATOR HANDLE",
+                    "CHOOSE SURVIVOR HANDLE (3–25 chars)" if doomsday else "CHOOSE OPERATOR HANDLE (3–25 chars)",
                     key="reg_username_vice",
                 )
-                new_pass = st.text_input("SET ACCESS KEY (min 4 chars)", type="password", key="reg_password_vice")
+                new_pass = st.text_input(
+                    "SET ACCESS KEY (min 12 chars, numbers/symbols)",
+                    type="password",
+                    key="reg_password_vice",
+                )
                 confirm_pass = st.text_input("CONFIRM ACCESS KEY", type="password", key="reg_confirm_vice")
                 reg_submitted = st.form_submit_button("▸▸ REGISTER NEW OPERATOR", width="stretch")
 
@@ -218,8 +229,8 @@ def render_login_page() -> None:
                     st.error("Operator handle and access key are required.")
                 elif len(clean_user) < 3:
                     st.error("Operator handle must be at least 3 characters long.")
-                elif len(new_pass) < 4:
-                    st.error("Access key must be at least 4 characters long.")
+                elif len(new_pass) < 12:
+                    st.error("Access key must be at least 12 characters long.")
                 elif new_pass != confirm_pass:
                     st.error("Access keys do not match.")
                 else:
