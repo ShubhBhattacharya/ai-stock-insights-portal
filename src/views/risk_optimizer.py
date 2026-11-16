@@ -281,3 +281,12 @@ def render_risk_optimizer() -> None:
                 "Volatility %": st.column_config.NumberColumn(format="%.2f%%"),
             },
         )
+
+    st.markdown("---")
+    st.caption(
+        "ℹ️ **Methodology & Risk Disclosures (BCC 351):** "
+        f"Annualized metrics assume 252 trading days per calendar year. Benchmark risk-free rate is fixed at {RISK_FREE_RATE_PCT:.1f}% "
+        "(approximate yield on 10-Year Indian Government Sovereign Bonds). Historical correlation and volatility matrices reflect past "
+        "inter-asset returns and are subject to non-stationarity during extreme market shocks. Modern Portfolio Theory metrics are for academic "
+        "evaluation and do not guarantee future returns or capital preservation."
+    )

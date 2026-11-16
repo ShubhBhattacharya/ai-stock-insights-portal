@@ -448,8 +448,8 @@ def main() -> None:
         return
 
     if not st.session_state.get("authenticated"):
-        st.session_state["authenticated"] = True
-        st.session_state["username"] = "Shubh"
+        render_login_page()
+        return
 
     # Render sidebar with native single-click module selector
     current_module = render_sidebar()

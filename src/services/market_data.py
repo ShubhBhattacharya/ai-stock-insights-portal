@@ -34,6 +34,13 @@ _NEGATIVE_KEYWORDS = (
 
 _POS_PATTERN = re.compile(r"\b(" + "|".join(re.escape(w) for w in _POSITIVE_KEYWORDS) + r")\b")
 _NEG_PATTERN = re.compile(r"\b(" + "|".join(re.escape(w) for w in _NEGATIVE_KEYWORDS) + r")\b")
+_VALID_TICKER_RE = re.compile(r"^[A-Z0-9&_\.\-]{1,25}$")
+
+
+def validate_ticker_symbol(ticker: str) -> bool:
+    """Validate ticker symbol format."""
+    clean = str(ticker or "").strip().upper()
+    return bool(_VALID_TICKER_RE.match(clean))
 
 
 def _normalize_ohlcv_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -69,10 +76,20 @@ def _normalize_ohlcv_df(df: pd.DataFrame) -> pd.DataFrame:
     else:
         cleaned["Volume"] = cleaned["Volume"].fillna(0)
 
+    # Sanitize financial values: prices must be positive, High >= Low, Volume >= 0
+    cleaned["Close"] = cleaned["Close"].clip(lower=0.01)
+    cleaned["Open"] = cleaned["Open"].clip(lower=0.01)
+    cleaned["High"] = cleaned["High"].clip(lower=0.01)
+    cleaned["Low"] = cleaned["Low"].clip(lower=0.01)
+    cleaned["Volume"] = cleaned["Volume"].clip(lower=0)
+    cleaned["High"] = cleaned[["High", "Low", "Open", "Close"]].max(axis=1)
+    cleaned["Low"] = cleaned[["High", "Low", "Open", "Close"]].min(axis=1)
+
     idx = pd.to_datetime(cleaned.index)
     if getattr(idx, "tz", None) is not None:
         idx = idx.tz_localize(None)
     cleaned.index = idx
+    cleaned = cleaned.loc[~cleaned.index.duplicated(keep="last")]
     cleaned = cleaned.sort_index()
     return cleaned
 
@@ -222,57 +239,130 @@ def _analyze_dataframe(df: pd.DataFrame, formatted_ticker: str) -> tuple[dict[st
         high_52w = float(df["High"].max())
         low_52w = float(df["Low"].min())
 
+        vol_sma20 = float(df["Volume"].tail(20).mean()) if len(df) >= 20 else volume
+        bbu_val = float(latest["BBU"]) if not pd.isna(latest["BBU"]) else close * 1.05
+        bbl_val = float(latest["BBL"]) if not pd.isna(latest["BBL"]) else close * 0.95
+
+        # Multi-factor Rule-Based Confluence Evaluation Engine (0-100 pts)
+        bull_pts = 0
+        bear_pts = 0
+        neutral_pts = 0
         reasons: list[str] = []
+
+        # 1. RSI Indicator (Max 25 pts)
         if rsi < 35:
+            bull_pts += 25
             reasons.append(
-                f"🟢 **RSI Oversold ({rsi:.1f}):** Momentum indicates potential undervaluation and buying interest."
+                f"🟢 **RSI Oversold ({rsi:.1f}):** Momentum indicates attractive undervaluation below 35 (+25 Bullish)."
+            )
+        elif rsi < 45:
+            bull_pts += 15
+            reasons.append(
+                f"🟢 **RSI Accumulation ({rsi:.1f}):** Momentum is in an early accumulation zone (+15 Bullish)."
             )
         elif rsi > 70:
+            bear_pts += 25
             reasons.append(
-                f"🔴 **RSI Overbought ({rsi:.1f}):** Momentum is stretched near upper levels; risk of profit-taking."
+                f"🔴 **RSI Overbought ({rsi:.1f}):** Momentum is stretched above 70; profit-taking risk (+25 Bearish)."
+            )
+        elif rsi > 60:
+            bear_pts += 15
+            reasons.append(
+                f"🔴 **RSI Resistance ({rsi:.1f}):** Price momentum is testing upper resistance (+15 Bearish)."
             )
         else:
+            neutral_pts += 20
             reasons.append(
-                f"🟡 **Neutral RSI ({rsi:.1f}):** Price momentum is within normal bounds (35–70)."
+                f"🟡 **Neutral RSI ({rsi:.1f}):** Price momentum is balanced within normal 45–60 bounds (+20 Neutral)."
             )
 
+        # 2. 50-Day Moving Average Support (Max 25 pts)
         sma50_ratio = (close / sma50) * 100 if sma50 else 100.0
         if close >= sma50:
+            pts = 25 if close >= sma50 * 1.02 else 20
+            bull_pts += pts
             reasons.append(
-                f"🟢 **Above 50-Day SMA (₹{sma50:,.2f}):** Trading at {sma50_ratio:.1f}% of SMA50, signaling positive short-term trend."
+                f"🟢 **Above 50-Day SMA (₹{sma50:,.2f}):** Trading at {sma50_ratio:.1f}% of SMA50, confirming short-term uptrend (+{pts} Bullish)."
             )
         else:
+            pts = 25 if close <= sma50 * 0.98 else 20
+            bear_pts += pts
             reasons.append(
-                f"🔴 **Below 50-Day SMA (₹{sma50:,.2f}):** Trading at {sma50_ratio:.1f}% of SMA50, exhibiting short-term technical resistance."
+                f"🔴 **Below 50-Day SMA (₹{sma50:,.2f}):** Trading at {sma50_ratio:.1f}% of SMA50, exhibiting moving-average resistance (+{pts} Bearish)."
             )
 
-        if sma50 > sma200:
+        # 3. 50-Day vs 200-Day SMA Alignment (Max 20 pts)
+        if sma50 >= sma200:
+            bull_pts += 20
             reasons.append(
-                f"🟢 **Bullish Alignment:** 50-Day SMA (₹{sma50:,.2f}) is above 200-Day SMA (₹{sma200:,.2f})."
+                f"🟢 **Bullish Alignment (Golden Trend):** 50-SMA (₹{sma50:,.2f}) > 200-SMA (₹{sma200:,.2f}) (+20 Bullish)."
             )
         else:
+            bear_pts += 20
             reasons.append(
-                f"🔴 **Bearish Alignment:** 50-Day SMA (₹{sma50:,.2f}) remains below 200-Day SMA (₹{sma200:,.2f})."
+                f"🔴 **Bearish Alignment (Death Trend):** 50-SMA (₹{sma50:,.2f}) < 200-SMA (₹{sma200:,.2f}) (+20 Bearish)."
             )
 
-        if rsi < 40 and close > (sma50 * 0.95):
+        # 4. Bollinger Bands Envelope (Max 15 pts)
+        if close <= bbl_val * 1.01:
+            bull_pts += 15
+            reasons.append(
+                f"🟢 **Bollinger Band Lower Test (₹{bbl_val:,.2f}):** Proximity to lower band indicates mean-reversion potential (+15 Bullish)."
+            )
+        elif close >= bbu_val * 0.99:
+            bear_pts += 15
+            reasons.append(
+                f"🔴 **Bollinger Band Upper Test (₹{bbu_val:,.2f}):** Price touching upper standard deviation envelope (+15 Bearish)."
+            )
+        else:
+            neutral_pts += 10
+            reasons.append(
+                f"🟡 **Inside Bollinger Envelope:** Trading safely between ₹{bbl_val:,.2f} and ₹{bbu_val:,.2f} (+10 Neutral)."
+            )
+
+        # 5. Volume Confirmation (Max 15 pts)
+        if vol_sma20 > 0 and volume >= vol_sma20:
+            vol_ratio = (volume / vol_sma20) * 100
+            if bull_pts > bear_pts:
+                bull_pts += 15
+                reasons.append(
+                    f"🟢 **Volume Expansion ({vol_ratio:.0f}% of 20D Avg):** Above-average volume supports accumulation (+15 Bullish)."
+                )
+            elif bear_pts > bull_pts:
+                bear_pts += 15
+                reasons.append(
+                    f"🔴 **Volume Expansion ({vol_ratio:.0f}% of 20D Avg):** Heavy selling volume confirms downward distribution (+15 Bearish)."
+                )
+            else:
+                neutral_pts += 10
+        else:
+            neutral_pts += 10
+            reasons.append("🟡 **Standard Volume:** Activity within normal 20-day average baseline.")
+
+        # Statistically Calibrated Signal Generation
+        if bull_pts >= 55 and bull_pts > (bear_pts + 10):
             signal = "BUY"
-            confidence = 88
+            confidence = min(92, max(52, bull_pts))
             final_reason = (
-                "Oversold condition near moving-average support. Attractive accumulation opportunity."
+                f"Rule-based bullish confluence ({confidence}% strength): Multiple indicators (RSI, SMA50 support, volume) align positively."
             )
-        elif rsi > 65 or close < (sma50 * 0.92):
+        elif bear_pts >= 55 and bear_pts > (bull_pts + 10):
             signal = "SELL"
-            confidence = 82
+            confidence = min(92, max(52, bear_pts))
             final_reason = (
-                "Overbought condition or notable break below 50-day SMA support. Risk mitigation recommended."
+                f"Rule-based bearish confluence ({confidence}% strength): Downward moving-average breach or overbought indicators warrant risk mitigation."
             )
         else:
             signal = "HOLD"
-            confidence = 65
+            confidence = min(82, max(48, int(neutral_pts + abs(bull_pts - bear_pts) * 0.4)))
             final_reason = (
-                "Consolidation or no strong directional trigger. Maintain current exposure."
+                f"Rule-based consolidation ({confidence}% neutral score): Indicators display mixed or range-bound signals without clear breakout conviction."
             )
+
+        last_ts = df.index[-1]
+        last_updated_str = (
+            last_ts.strftime("%Y-%m-%d %H:%M") if hasattr(last_ts, "strftime") else str(last_ts)
+        )
 
         return {
             "symbol": formatted_ticker,
@@ -286,10 +376,21 @@ def _analyze_dataframe(df: pd.DataFrame, formatted_ticker: str) -> tuple[dict[st
             "rsi": round(rsi, 2),
             "sma50": round(sma50, 2),
             "sma200": round(sma200, 2),
+            "bbu": round(bbu_val, 2),
+            "bbl": round(bbl_val, 2),
             "signal": signal,
             "confidence": confidence,
+            "signal_type": "Rule-Based Confluence",
+            "bullish_points": bull_pts,
+            "bearish_points": bear_pts,
             "reasons": reasons,
             "final_reason": final_reason,
+            "last_updated": last_updated_str,
+            "data_feed": "NSE India / Yahoo Finance (15-min delayed or last close)",
+            "educational_disclaimer": (
+                "Educational research under AKTU Mini Project BCC 351. "
+                "Rule-based technical scoring is not registered financial or SEBI investment advice."
+            ),
             "df": df,
         }, None
     except Exception as exc:
@@ -301,6 +402,8 @@ def _compute_stock_analysis_raw(ticker_symbol: str) -> tuple[dict[str, Any] | No
     cleaned_symbol = ticker_symbol.strip().upper()
     if not cleaned_symbol:
         return None, "Please enter a valid NSE/BSE ticker symbol."
+    if not validate_ticker_symbol(cleaned_symbol):
+        return None, f"Invalid ticker symbol format: '{cleaned_symbol}'."
 
     df, formatted_ticker = _fetch_stock_dataframe_raw(cleaned_symbol)
     if df.empty or len(df) < MIN_HISTORY_ROWS:

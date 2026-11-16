@@ -374,9 +374,9 @@ def render_single_stock_analysis() -> None:
     col_dec1, col_dec2 = st.columns([3, 2])
     with col_dec1:
         st.subheader(
-            f"Signal Summary: {metrics['signal']} ({metrics['confidence']}% Confidence)"
+            f"Signal Summary: {metrics['signal']} ({metrics['confidence']}% Confluence)"
             if default_pro
-            else f"📁 CLASSIFIED INTEL DOSSIER: {metrics['signal']} ({metrics['confidence']}% Confidence)"
+            else f"📁 CLASSIFIED INTEL DOSSIER: {metrics['signal']} ({metrics['confidence']}% Confluence)"
         )
         if metrics["signal"] == "BUY":
             st.success(f"**{'Signal Rationale:' if default_pro else 'Mission Directive:'}** {metrics['final_reason']}")
@@ -385,9 +385,12 @@ def render_single_stock_analysis() -> None:
         else:
             st.warning(f"**{'Neutral Stance:' if default_pro else 'Hold Position:'}** {metrics['final_reason']}")
 
-        st.markdown("**Rule-Based Trigger Conditions:**" if default_pro else "**Explainable Signal Tripwires:**")
+        st.markdown("**Rule-Based Confluence Drivers:**" if default_pro else "**Explainable Signal Tripwires:**")
         for reason in metrics["reasons"]:
             st.markdown(f"- {reason}")
+
+        if "educational_disclaimer" in metrics:
+            st.caption(f"ℹ️ *{metrics['educational_disclaimer']}*")
 
     with col_dec2:
         st.subheader("Market News & Sentiment" if default_pro else "📡 Street Wire & News Sentiment")
@@ -476,3 +479,18 @@ def render_single_stock_analysis() -> None:
         show_bbands=show_bbands,
     )
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+
+    eval_m = getattr(r2_score, "metrics", {})
+    if eval_m:
+        with st.expander("🔬 ML Model Validation & Statistical Evaluation (Holdout Split)", expanded=False):
+            em_col1, em_col2, em_col3, em_col4 = st.columns(4)
+            em_col1.metric("Holdout MAE", f"₹{eval_m.get('mae', 0.0):.2f}")
+            em_col2.metric("Holdout RMSE", f"₹{eval_m.get('rmse', 0.0):.2f}")
+            em_col3.metric("Holdout MAPE", f"{eval_m.get('mape', 0.0):.2f}%")
+            em_col4.metric("Directional Accuracy", f"{eval_m.get('directional_accuracy', 50.0):.1f}%")
+            st.caption(
+                f"**Validation Methodology:** Chronological 80/20 train/test split ({eval_m.get('train_samples', 0)} train bars, "
+                f"{eval_m.get('test_samples', 0)} test bars). Train $R^2$: {eval_m.get('train_r2', 0.0):.3f} vs Test $R^2$: {eval_m.get('test_r2', 0.0):.3f}. "
+                f"Naive Persistence Baseline MAE: ₹{eval_m.get('baseline_mae', 0.0):.2f}."
+            )
+            st.info(f"**Model Limitations:** {eval_m.get('limitations', '')}")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from src.services.db import authenticate_user, register_user
 from src.state import is_default_theme, is_doomsday, login_as
 from src.styles import render_page_header, render_weazel_flash_ticker
 
@@ -45,8 +46,12 @@ def render_login_page() -> None:
                 unsafe_allow_html=True,
             )
 
-            if st.button("▶ 1-Click Evaluator / Guest Demo Access", type="primary", width="stretch"):
-                login_as("Academic Evaluator")
+            if st.button("▶ 1-Click Evaluator / Guest Demo Access", type="primary", width="stretch", key="btn_eval_demo_pro"):
+                ok, _, user_dict = authenticate_user("evaluator", "evaluator123")
+                if ok and user_dict:
+                    login_as(user_dict["username"], user_id=user_dict["id"], role=user_dict["role"])
+                else:
+                    login_as("Academic Evaluator")
                 st.rerun()
 
             st.markdown(
@@ -58,38 +63,37 @@ def render_login_page() -> None:
 
             tab_login, tab_register = st.tabs(["Sign In", "Create Account"])
             with tab_login:
-                with st.form("login_form", clear_on_submit=False):
+                with st.form("login_form_pro", clear_on_submit=False):
                     username_input = st.text_input(
                         "Username",
                         value="admin",
                         placeholder="e.g. admin",
-                        key="login_username",
+                        key="login_username_pro",
                     )
                     password_input = st.text_input(
                         "Password",
                         type="password",
                         value="",
                         placeholder="Demo password: admin123",
-                        key="login_password",
+                        key="login_password_pro",
                     )
                     submitted = st.form_submit_button("Sign In", width="stretch")
 
                 if submitted:
-                    uname = username_input.strip().lower()
-                    valid_pass = st.session_state["users"].get(uname)
-                    if valid_pass and valid_pass == password_input:
-                        login_as(username_input.strip().capitalize())
+                    ok, msg, user_dict = authenticate_user(username_input.strip(), password_input)
+                    if ok and user_dict:
+                        login_as(user_dict["username"], user_id=user_dict["id"], role=user_dict["role"])
                         st.rerun()
                     else:
                         st.error(
-                            "Invalid credentials. Try username 'admin' and password 'admin123', or use 1-Click Evaluator Demo Access above."
+                            "Invalid credentials. Please verify your username and password, or use 1-Click Evaluator Demo Access above."
                         )
 
             with tab_register:
-                with st.form("register_form", clear_on_submit=True):
-                    new_user = st.text_input("Choose Username", key="reg_username")
-                    new_pass = st.text_input("Password", type="password", key="reg_password")
-                    confirm_pass = st.text_input("Confirm Password", type="password", key="reg_confirm")
+                with st.form("register_form_pro", clear_on_submit=True):
+                    new_user = st.text_input("Choose Username", key="reg_username_pro")
+                    new_pass = st.text_input("Password (min 4 characters)", type="password", key="reg_password_pro")
+                    confirm_pass = st.text_input("Confirm Password", type="password", key="reg_confirm_pro")
                     reg_submitted = st.form_submit_button("Create Account", width="stretch")
 
                 if reg_submitted:
@@ -102,13 +106,14 @@ def render_login_page() -> None:
                         st.error("Password must be at least 4 characters long.")
                     elif new_pass != confirm_pass:
                         st.error("Passwords do not match.")
-                    elif clean_user.lower() in st.session_state["users"]:
-                        st.error("Username already registered.")
                     else:
-                        st.session_state["users"][clean_user.lower()] = new_pass
-                        st.success(
-                            f"Account created for '{clean_user}'. Switch to the Sign In tab to continue."
-                        )
+                        ok, msg, _ = register_user(clean_user, new_pass)
+                        if ok:
+                            st.success(
+                                f"Account '{clean_user}' created successfully! You can now switch to the Sign In tab to enter."
+                            )
+                        else:
+                            st.error(msg)
 
             st.markdown("---")
             st.caption(
@@ -153,8 +158,12 @@ def render_login_page() -> None:
             unsafe_allow_html=True,
         )
 
-        if st.button(demo_btn_label, type="primary", width="stretch"):
-            login_as("Academic Evaluator" if not doomsday else "ADMIN")
+        if st.button(demo_btn_label, type="primary", width="stretch", key="btn_eval_demo_vice"):
+            ok, _, user_dict = authenticate_user("evaluator", "evaluator123")
+            if ok and user_dict:
+                login_as(user_dict["username"], user_id=user_dict["id"], role=user_dict["role"])
+            else:
+                login_as("Academic Evaluator" if not doomsday else "ADMIN")
             st.rerun()
 
         st.markdown(
@@ -167,38 +176,40 @@ def render_login_page() -> None:
         tab_login, tab_register = st.tabs(tabs)
 
         with tab_login:
-            with st.form("login_form", clear_on_submit=False):
+            with st.form("login_form_vice", clear_on_submit=False):
                 username_input = st.text_input(
                     "AUTHORIZED ID (USERNAME)" if doomsday else "OPERATOR ID (USERNAME)",
                     value="admin",
                     placeholder="e.g. admin",
-                    key="login_username",
+                    key="login_username_vice",
                 )
                 password_input = st.text_input(
                     "CLEARANCE KEY (PASSWORD)" if doomsday else "ACCESS KEY (PASSWORD)",
                     type="password",
                     value="",
                     placeholder="Demo password: admin123",
-                    key="login_password",
+                    key="login_password_vice",
                 )
                 submitted = st.form_submit_button("▸▸ SIGN IN TO PORTAL", width="stretch")
 
             if submitted:
-                uname = username_input.strip().lower()
-                valid_pass = st.session_state["users"].get(uname)
-                if valid_pass and valid_pass == password_input:
-                    login_as(username_input.strip().capitalize())
+                ok, msg, user_dict = authenticate_user(username_input.strip(), password_input)
+                if ok and user_dict:
+                    login_as(user_dict["username"], user_id=user_dict["id"], role=user_dict["role"])
                     st.rerun()
                 else:
                     st.error(
-                        "🚨 ACCESS DENIED: Try username 'admin' and password 'admin123' or click the Covert Demo button above!"
+                        "🚨 ACCESS DENIED: Invalid credentials. Check operator ID and key, or click Covert Demo Access above."
                     )
 
         with tab_register:
-            with st.form("register_form", clear_on_submit=True):
-                new_user = st.text_input("CHOOSE SURVIVOR HANDLE" if doomsday else "CHOOSE OPERATOR HANDLE", key="reg_username")
-                new_pass = st.text_input("SET ACCESS KEY", type="password", key="reg_password")
-                confirm_pass = st.text_input("CONFIRM ACCESS KEY", type="password", key="reg_confirm")
+            with st.form("register_form_vice", clear_on_submit=True):
+                new_user = st.text_input(
+                    "CHOOSE SURVIVOR HANDLE" if doomsday else "CHOOSE OPERATOR HANDLE",
+                    key="reg_username_vice",
+                )
+                new_pass = st.text_input("SET ACCESS KEY (min 4 chars)", type="password", key="reg_password_vice")
+                confirm_pass = st.text_input("CONFIRM ACCESS KEY", type="password", key="reg_confirm_vice")
                 reg_submitted = st.form_submit_button("▸▸ REGISTER NEW OPERATOR", width="stretch")
 
             if reg_submitted:
@@ -211,13 +222,14 @@ def render_login_page() -> None:
                     st.error("Access key must be at least 4 characters long.")
                 elif new_pass != confirm_pass:
                     st.error("Access keys do not match.")
-                elif clean_user.lower() in st.session_state["users"]:
-                    st.error("Operator handle already taken.")
                 else:
-                    st.session_state["users"][clean_user.lower()] = new_pass
-                    st.success(
-                        f"✅ Clearance granted for '{clean_user}'! Switch to Sign-In tab to enter."
-                    )
+                    ok, msg, _ = register_user(clean_user, new_pass)
+                    if ok:
+                        st.success(
+                            f"✅ Clearance granted for '{clean_user}'! Switch to Sign-In tab to enter."
+                        )
+                    else:
+                        st.error(msg)
 
         if doomsday:
             render_weazel_flash_ticker(

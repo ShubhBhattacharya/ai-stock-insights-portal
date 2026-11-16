@@ -3,10 +3,22 @@
 from __future__ import annotations
 
 import datetime
-import uuid
+from typing import Any
 import streamlit as st
 
-from src.constants import DEFAULT_USERS, INITIAL_VIRTUAL_CAPITAL, NAV_ITEMS
+from src.constants import INITIAL_VIRTUAL_CAPITAL, NAV_ITEMS
+from src.services.db import (
+    db_add_price_alert,
+    db_execute_buy_order,
+    db_execute_sell_order,
+    db_remove_price_alert,
+    db_reset_portfolio,
+    get_user_alerts,
+    get_user_portfolio,
+    get_user_theme,
+    init_db,
+    set_user_theme,
+)
 
 
 def _normalize_portal_theme(edition: str | None) -> str:
@@ -20,15 +32,18 @@ def _normalize_portal_theme(edition: str | None) -> str:
 
 
 def init_session_state() -> None:
-    """Ensure all required session state keys exist with safe defaults."""
-    defaults = {
-        "authenticated": True,
+    """Ensure all required session state keys exist with safe defaults and active DB connection."""
+    init_db()
+
+    defaults: dict[str, Any] = {
+        "authenticated": False,
+        "username": "",
+        "user_id": None,
+        "role": "guest",
         "transitioning": False,
         "edition_transitioning": False,
         "portal_theme": "GTA VI",
         "world_edition": "GTA VI",
-        "username": "Shubh",
-        "users": dict(DEFAULT_USERS),
         "cash_balance": INITIAL_VIRTUAL_CAPITAL,
         "portfolio": {},
         "trade_history": [],
@@ -66,6 +81,20 @@ def init_session_state() -> None:
     )
     st.session_state["world_edition"] = st.session_state["portal_theme"]
 
+    # If already authenticated, refresh from persistent database
+    user_id = st.session_state.get("user_id")
+    if st.session_state.get("authenticated") and user_id is not None:
+        sync_user_state_from_db(user_id)
+
+
+def sync_user_state_from_db(user_id: int) -> None:
+    """Synchronize user's portfolio, trade history, alerts, and theme preferences from the database."""
+    port_data = get_user_portfolio(user_id)
+    st.session_state["cash_balance"] = port_data["cash_balance"]
+    st.session_state["portfolio"] = port_data["portfolio"]
+    st.session_state["trade_history"] = port_data["trade_history"]
+    st.session_state["alerts"] = get_user_alerts(user_id)
+
 
 def get_portal_theme() -> str:
     """Return active portal theme: 'DEFAULT', 'GTA VI', or 'DOOMSDAY'."""
@@ -79,16 +108,37 @@ def is_default_theme() -> bool:
     return get_portal_theme() == "DEFAULT"
 
 
-def login_as(username: str, trigger_transition: bool = True) -> None:
-    """Mark the current session as authenticated and trigger the entry sequence."""
+def login_as(
+    username: str,
+    user_id: int | None = None,
+    role: str = "user",
+    trigger_transition: bool = True,
+) -> None:
+    """Mark the current session as authenticated, load user records, and trigger transition."""
     st.session_state["authenticated"] = True
     st.session_state["username"] = username
+    st.session_state["user_id"] = user_id
+    st.session_state["role"] = role
     st.session_state["transitioning"] = trigger_transition
+
+    if user_id is not None:
+        sync_user_state_from_db(user_id)
+        saved_theme = get_user_theme(user_id)
+        if saved_theme:
+            st.session_state["portal_theme"] = _normalize_portal_theme(saved_theme)
+            st.session_state["world_edition"] = st.session_state["portal_theme"]
 
 
 def logout() -> None:
-    """Clear authentication and transition flags for the current session."""
+    """Clear authentication, reset user identity, and restore clean session state."""
     st.session_state["authenticated"] = False
+    st.session_state["username"] = ""
+    st.session_state["user_id"] = None
+    st.session_state["role"] = "guest"
+    st.session_state["cash_balance"] = INITIAL_VIRTUAL_CAPITAL
+    st.session_state["portfolio"] = {}
+    st.session_state["trade_history"] = []
+    st.session_state["alerts"] = []
     st.session_state["transitioning"] = False
     st.session_state["edition_transitioning"] = False
     st.session_state["show_gta_transition"] = False
@@ -103,11 +153,16 @@ def is_doomsday() -> bool:
 
 
 def switch_world_edition(edition: str) -> None:
-    """Switch active portal theme ('DEFAULT', 'GTA VI', or 'DOOMSDAY') seamlessly."""
+    """Switch active portal theme ('DEFAULT', 'GTA VI', or 'DOOMSDAY') and persist in DB."""
     current = get_portal_theme()
     normalized = _normalize_portal_theme(edition)
     st.session_state["portal_theme"] = normalized
     st.session_state["world_edition"] = normalized
+
+    user_id = st.session_state.get("user_id")
+    if user_id is not None:
+        set_user_theme(user_id, normalized)
+
     if normalized == "DOOMSDAY" and current != "DOOMSDAY":
         st.session_state["edition_transitioning"] = True
     else:
@@ -115,75 +170,111 @@ def switch_world_edition(edition: str) -> None:
 
 
 def reset_paper_portfolio() -> None:
-    """Restore virtual paper-trading account back to starting capital."""
-    st.session_state["cash_balance"] = INITIAL_VIRTUAL_CAPITAL
-    st.session_state["portfolio"] = {}
-    st.session_state["trade_history"] = []
+    """Restore virtual paper-trading account back to starting capital in database and state."""
+    user_id = st.session_state.get("user_id")
+    if user_id is not None:
+        db_reset_portfolio(user_id)
+        sync_user_state_from_db(user_id)
+    else:
+        st.session_state["cash_balance"] = INITIAL_VIRTUAL_CAPITAL
+        st.session_state["portfolio"] = {}
+        st.session_state["trade_history"] = []
 
 
 def execute_buy_order(symbol: str, stock_name: str, qty: int, price: float) -> tuple[bool, str]:
-    """Execute a virtual BUY order and update cash, holdings, and trade log."""
-    total_cost = qty * price
+    """Execute a virtual BUY order atomically in the database and synchronize session state."""
     if qty <= 0 or price <= 0:
-        return False, "Quantity and price must be positive."
+        return False, "Quantity and price must be positive numbers."
+
+    user_id = st.session_state.get("user_id")
+    if user_id is not None:
+        ok, msg = db_execute_buy_order(user_id, symbol, stock_name, qty, price)
+        if ok:
+            sync_user_state_from_db(user_id)
+        return ok, msg
+
+    # Fallback for transient demo session
+    total_cost = round(qty * price, 2)
     if st.session_state["cash_balance"] < total_cost:
         return False, "Insufficient cash balance for this order."
 
-    st.session_state["cash_balance"] -= total_cost
+    st.session_state["cash_balance"] = round(st.session_state["cash_balance"] - total_cost, 2)
     portfolio = st.session_state["portfolio"]
     if symbol in portfolio:
         prev_qty = portfolio[symbol]["qty"]
         prev_avg = portfolio[symbol]["buy_price"]
         new_qty = prev_qty + qty
-        new_avg = ((prev_qty * prev_avg) + total_cost) / new_qty
+        new_avg = round(((prev_qty * prev_avg) + total_cost) / new_qty, 2)
         portfolio[symbol] = {"name": stock_name, "qty": new_qty, "buy_price": new_avg}
     else:
-        portfolio[symbol] = {"name": stock_name, "qty": qty, "buy_price": price}
+        portfolio[symbol] = {"name": stock_name, "qty": qty, "buy_price": round(price, 2)}
 
+    clean_sym = symbol.replace(".NS", "").replace(".BO", "")
     st.session_state["trade_history"].append(
         {
             "Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "Action": "BUY",
             "Stock": stock_name,
-            "Symbol": symbol.replace(".NS", "").replace(".BO", ""),
+            "Symbol": clean_sym,
             "Quantity": int(qty),
             "Price": round(price, 2),
-            "Total": round(total_cost, 2),
+            "Total": total_cost,
         }
     )
     return True, f"Bought {qty} shares of {stock_name} at ₹{price:,.2f}."
 
 
 def execute_sell_order(symbol: str, stock_name: str, qty: int, price: float) -> tuple[bool, str]:
-    """Execute a virtual SELL order and update cash, holdings, and trade log."""
-    portfolio = st.session_state["portfolio"]
+    """Execute a virtual SELL order atomically in the database and synchronize session state."""
     if qty <= 0 or price <= 0:
-        return False, "Quantity and price must be positive."
+        return False, "Quantity and price must be positive numbers."
+
+    user_id = st.session_state.get("user_id")
+    if user_id is not None:
+        ok, msg = db_execute_sell_order(user_id, symbol, stock_name, qty, price)
+        if ok:
+            sync_user_state_from_db(user_id)
+        return ok, msg
+
+    # Fallback for transient demo session
+    portfolio = st.session_state["portfolio"]
     if symbol not in portfolio or portfolio[symbol]["qty"] < qty:
         return False, "You do not hold enough shares of this stock to sell."
 
-    total_proceeds = qty * price
-    st.session_state["cash_balance"] += total_proceeds
+    total_proceeds = round(qty * price, 2)
+    st.session_state["cash_balance"] = round(st.session_state["cash_balance"] + total_proceeds, 2)
     portfolio[symbol]["qty"] -= qty
     if portfolio[symbol]["qty"] == 0:
         del portfolio[symbol]
 
+    clean_sym = symbol.replace(".NS", "").replace(".BO", "")
     st.session_state["trade_history"].append(
         {
             "Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "Action": "SELL",
             "Stock": stock_name,
-            "Symbol": symbol.replace(".NS", "").replace(".BO", ""),
+            "Symbol": clean_sym,
             "Quantity": int(qty),
             "Price": round(price, 2),
-            "Total": round(total_proceeds, 2),
+            "Total": total_proceeds,
         }
     )
     return True, f"Sold {qty} shares of {stock_name} at ₹{price:,.2f}."
 
 
-def add_price_alert(name: str, symbol: str, condition: str, target: float) -> None:
-    """Create a new price alert with a stable unique ID."""
+def add_price_alert(name: str, symbol: str, condition: str, target: float) -> tuple[bool, str]:
+    """Create a new price alert persisted in the database."""
+    if target <= 0:
+        return False, "Target price must be positive."
+
+    user_id = st.session_state.get("user_id")
+    if user_id is not None:
+        ok, msg, _ = db_add_price_alert(user_id, name, symbol, condition, target)
+        if ok:
+            st.session_state["alerts"] = get_user_alerts(user_id)
+        return ok, msg
+
+    import uuid
     st.session_state["alerts"].append(
         {
             "id": uuid.uuid4().hex[:10],
@@ -194,13 +285,22 @@ def add_price_alert(name: str, symbol: str, condition: str, target: float) -> No
             "created": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
         }
     )
+    return True, f"Price alert set for {name} ({condition} ₹{target:,.2f})."
 
 
-def remove_price_alert(alert_id: str) -> None:
-    """Delete an alert by its unique ID."""
+def remove_price_alert(alert_id: str) -> tuple[bool, str]:
+    """Delete an alert by its unique ID from the database and session state."""
+    user_id = st.session_state.get("user_id")
+    if user_id is not None:
+        ok, msg = db_remove_price_alert(user_id, alert_id)
+        if ok:
+            st.session_state["alerts"] = get_user_alerts(user_id)
+        return ok, msg
+
     st.session_state["alerts"] = [
         alert for alert in st.session_state["alerts"] if alert.get("id") != alert_id
     ]
+    return True, "Alert removed."
 
 
 def set_context_risk_heat(stars: int) -> None:

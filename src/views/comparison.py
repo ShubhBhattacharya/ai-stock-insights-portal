@@ -72,7 +72,7 @@ def _render_street_race_arena(name1: str, m1: dict, name2: str, m2: dict) -> Non
         _bar_pair("OVERALL COMPOSITE SCORE", s1["overall"], s2["overall"], f"{s1['overall']}/100", f"{s2['overall']}/100")
         + _bar_pair("RSI MOMENTUM HEALTH", s1["rsi"], s2["rsi"], f"RSI {m1['rsi']:.1f} ({s1['rsi']} pts)", f"RSI {m2['rsi']:.1f} ({s2['rsi']} pts)")
         + _bar_pair("50-SMA TREND VECTOR", s1["sma"], s2["sma"], f"₹{m1['sma50']:,.0f} ({s1['sma']} pts)", f"₹{m2['sma50']:,.0f} ({s2['sma']} pts)")
-        + _bar_pair("AI SIGNAL CONFIDENCE", s1["ai"], s2["ai"], f"{m1['signal']} {m1['confidence']}%", f"{m2['signal']} {m2['confidence']}%")
+        + _bar_pair("CONFLUENCE STRENGTH", s1["ai"], s2["ai"], f"{m1['signal']} {m1['confidence']}%", f"{m2['signal']} {m2['confidence']}%")
     )
 
     arena_sub = (

@@ -32,7 +32,7 @@ def generate_text_report(metrics: dict[str, Any], edition: str = "GTA VI") -> st
         range_label = "52-WEEK RANGE       "
         vol_label = "TRADING VOLUME      "
         sec1 = "[01] MARKET TELEMETRY & TECHNICAL INDICATORS"
-        sec2 = "[02] RULE-BASED SIGNAL ENGINE & CONFIDENCE RATING"
+        sec2 = "[02] RULE-BASED CONFLUENCE ENGINE & SCORING"
         action_lbl = "SIGNAL DIRECTIVE    "
         reason_lbl = "SIGNAL RATIONALE    "
         sec3 = "[03] EXPLAINABLE SIGNAL TRIGGERS"
@@ -42,7 +42,7 @@ def generate_text_report(metrics: dict[str, Any], edition: str = "GTA VI") -> st
         range_label = "52-WEEK PERIMETER   "
         vol_label = "DETECTED VOLUME     "
         sec1 = "[01] SECTOR TELEMETRY & TECHNICAL SCANS"
-        sec2 = "[02] BUNKER DECISION ENGINE & CONFIDENCE RATING"
+        sec2 = "[02] BUNKER DECISION ENGINE & CONFLUENCE RATING"
         action_lbl = "TACTICAL DIRECTIVE  "
         reason_lbl = "BUNKER BRIEFING     "
         sec3 = "[03] EXPLAINABLE SIGNAL TRIPWIRES"
@@ -52,7 +52,7 @@ def generate_text_report(metrics: dict[str, Any], edition: str = "GTA VI") -> st
         range_label = "52-WEEK PERIMETER   "
         vol_label = "DETECTED VOLUME     "
         sec1 = "[01] TELEMETRY & TECHNICAL SCANS"
-        sec2 = "[02] SYNDICATE DECISION ENGINE & CONFIDENCE RATING"
+        sec2 = "[02] SYNDICATE DECISION ENGINE & CONFLUENCE RATING"
         action_lbl = "ACTION DIRECTIVE    "
         reason_lbl = "MISSION BRIEFING    "
         sec3 = "[03] EXPLAINABLE SIGNAL TRIGGERS"
@@ -79,7 +79,7 @@ LIVE MARKET QUOTE   : INR {close:,.2f}
 {sec2}
 --------------------------------------------------------------------------------
 {action_lbl}: {signal}
-CONFIDENCE LEVEL    : {confidence}%
+CONFLUENCE SCORE    : {confidence}% (5-Factor Multi-Indicator Alignment)
 {reason_lbl}: {final_reason}
 
 --------------------------------------------------------------------------------

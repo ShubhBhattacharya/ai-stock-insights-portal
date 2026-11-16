@@ -12,7 +12,18 @@ ENV/
 # Streamlit
 .streamlit/secrets.toml
 
+# Database & Environment
+*.db
+*.sqlite
+*.sqlite3
+data/
+.env
+.env.*
+!.env.example
+
 # OS & Temp
 .DS_Store
 Thumbs.db
 *.log
+.pytest_cache/
+

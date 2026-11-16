@@ -97,8 +97,12 @@ def render_price_alerts() -> None:
         )
 
     if st.button("Set New Price Alert", type="primary"):
-        add_price_alert(alert_name, alert_sym, direction, target)
-        st.toast(f"Price alert created for {alert_name} at ₹{target:,.2f}.", icon="🔔")
+        ok, msg = add_price_alert(alert_name, alert_sym, direction, target)
+        if ok:
+            st.toast(f"Price alert created for {alert_name} at ₹{target:,.2f}.", icon="🔔")
+            st.rerun()
+        else:
+            st.error(msg)
 
     st.markdown("---")
     monitor_hdr = (
@@ -107,6 +111,10 @@ def render_price_alerts() -> None:
         else ("☢️ Active Radiation Tripwire Monitor" if doomsday else "🚨 Active WANTED Threshold Monitor")
     )
     st.subheader(monitor_hdr)
+    st.caption(
+        "ℹ️ **In-App Threshold Engine:** Spot prices are compared against user target boundaries in real time while the app is active. "
+        "Background SMS/Email push alerts require an external daemon scheduler."
+    )
 
     alerts = st.session_state["alerts"]
     if not alerts:

@@ -28,11 +28,12 @@ CURRICULUM_MODULES: dict[str, str] = {
   - **Golden Cross:** 50 SMA slicing *above* 200 SMA — maximum bullish heat!
 """,
     "3. Syndicate Heuristics (Rules behind BUY, SELL & HOLD)": """
-### 🎯 [FILE 03] Rule-Based Decision Matrix (BCC 351 Specs)
+### 🎯 [FILE 03] Rule-Based Confluence Matrix (BCC 351 Specs)
 No black boxes here, runner — pure transparent logic:
-- **BUY (88% Confidence):** `RSI < 40` AND `Close > 95% of SMA_50`.
-- **SELL (82% Confidence):** `RSI > 65` OR `Close < 92% of SMA_50`.
-- **HOLD (65% Confidence):** Sideways chop — keep your powder dry.
+- **BUY (Confluence Strength):** `RSI < 40` AND `Close > 95% of SMA_50`, confirmed by Golden Cross trend or Bollinger Band lower envelope bounce.
+- **SELL (Confluence Strength):** `RSI > 65` OR `Close < 92% of SMA_50`, or rejection at upper Bollinger Band envelope.
+- **HOLD:** Sideways consolidation or conflicting indicators.
+- *Disclaimer:* Rule-based confluence score for educational research under BCC 351.
 """,
     "4. Corporate Valuation Intel (P/E Ratio, Market Cap, EPS)": """
 ### 📊 [FILE 04] Valuation & Fundamentals Recon
@@ -221,7 +222,7 @@ def _format_live_stock_response(
         lines.append(
             f"\n* 🎯 **{m['symbol']}** — **₹{m['close']:,.2f}** (`{m['day_change_pct']:+.2f}%`)"
             f"\n  - **RSI (14):** `{m['rsi']:.1f}` | **50-SMA:** `₹{m['sma50']:,.2f}` ({sma_pos}) | **200-SMA:** `₹{m['sma200']:,.2f}`"
-            f"\n  - **Signal:** {sig_icon} **{sig}** (`{m['confidence']}%` conf) — *{m['final_reason']}*"
+            f"\n  - **Signal:** {sig_icon} **{sig}** (`{m['confidence']}%` confluence) — *{m['final_reason']}*"
         )
 
     if hinglish:
@@ -571,14 +572,14 @@ Built by J. Welles Wilder, RSI tracks momentum from 0 to 100:
 🛑 **Bechne (SELL) ka Rule Trigger:**
 1. **RSI > 65** (Stock overbought zone mein garam ho chuka hai).
 2. **YA Close Price < 92% of 50-Day SMA** (Support floor toot gaya hai).
-Dono mein se koi bhi hit ho, terminal **SELL** (`82% Confidence`) flash karta hai taaki profit safe rahe!"""
+Dono mein se tripwire hit hone par terminal **SELL** (dynamic confluence score) trigger karta hai taaki stash safe rahe!"""
         else:
             text = """`[RED ALERT // SELL SIGNAL PROTOCOL]`
 
 🛑 **Synopsis Rule-Based SELL Signal Condition:**
 1. **RSI > 65** (Momentum is redlining in overbought territory).
 2. **OR Close Price < 92% of 50-Day SMA** (Support floor shattered).
-Either tripwire triggers a **SELL** order at **82% Confidence** to protect your stash!"""
+When triggered, the terminal issues a **SELL** directive with a dynamic confluence score to protect capital!"""
         return text, "bearish", []
 
     if has_buy or any(k in q for k in ("signal", "logic")):
@@ -588,7 +589,7 @@ Either tripwire triggers a **SELL** order at **82% Confidence** to protect your 
 🎯 **Khareedne (BUY) ka Rule Trigger:**
 1. **RSI < 40** (Momentum oversold / attractive zone mein hai).
 2. **Close Price > 95% of 50-Day SMA** (Price support hold kar raha hai).
-Jab dono match hon, terminal **BUY** (`88% Confidence`) flash karta hai!"""
+Jab indicators align hote hain, terminal **BUY** (calibrated confluence score) flash karta hai!"""
         else:
             text = """`[GREEN LIGHT // BUY SIGNAL PROTOCOL]`
 
@@ -596,7 +597,7 @@ Jab dono match hon, terminal **BUY** (`88% Confidence`) flash karta hai!"""
 Under the BCC 351 Mini Project matrix:
 1. **RSI < 40** (Target is oversold / coiled for bounce).
 2. **Close Price > 95% of 50-Day SMA** (Structural support is holding strong).
-When both tripwires align, the terminal flashes **BUY** at **88% Confidence**!"""
+When indicators align, the terminal flashes **BUY** with a calibrated confluence strength score!"""
         return text, "bullish", []
 
     if hinglish:
